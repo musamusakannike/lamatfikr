@@ -61,8 +61,8 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
       <header
         className={cn(
           "fixed top-0 left-0 right-0 z-50 h-16",
-          "bg-[var(--bg-card)]/95 backdrop-blur-md",
-          "border-b border-[var(--border)]",
+          "bg-(--bg-card)/95 backdrop-blur-md",
+          "border-b border-(--border)",
           "transition-all duration-300 ease-in-out",
           "shadow-sm dark:shadow-none"
         )}
@@ -99,7 +99,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               <div
                 className={cn(
                   "w-9 h-9 rounded-xl flex items-center justify-center",
-                  "bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700",
+                  "bg-linear-to-br from-primary-500 via-primary-600 to-primary-700",
                   "shadow-lg shadow-primary-500/25 dark:shadow-primary-500/15",
                   "group-hover:shadow-xl group-hover:shadow-primary-500/30",
                   "transition-all duration-300 group-hover:scale-105"
@@ -110,7 +110,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               <span
                 className={cn(
                   "hidden sm:block text-xl font-bold",
-                  "bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400",
+                  "bg-linear-to-r from-primary-600 via-primary-500 to-primary-400",
                   "bg-clip-text text-transparent",
                   "group-hover:from-primary-500 group-hover:to-primary-300",
                   "transition-all duration-300"
@@ -133,7 +133,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 size={18}
                 className={cn(
                   "absolute left-4 transition-colors duration-200",
-                  searchFocused ? "text-primary-500" : "text-[var(--text-muted)]"
+                  searchFocused ? "text-primary-500" : "text-(--text-muted)"
                 )}
               />
               <input
@@ -144,8 +144,8 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                   "bg-primary-50/80 dark:bg-primary-950/40",
                   "border-2 border-transparent",
                   "focus:border-primary-400 dark:focus:border-primary-500",
-                  "focus:bg-[var(--bg-card)]",
-                  "placeholder:text-[var(--text-muted)]",
+                  "focus:bg-(--bg-card)",
+                  "placeholder:text-(--text-muted)",
                   "outline-none transition-all duration-300",
                   "hover:bg-primary-100/80 dark:hover:bg-primary-900/40"
                 )}
@@ -210,7 +210,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 className={cn(
                   "absolute top-1.5 right-1.5 w-2.5 h-2.5",
                   "bg-primary-500 rounded-full",
-                  "ring-2 ring-[var(--bg-card)]",
+                  "ring-2 ring-(--bg-card)",
                   "animate-pulse"
                 )}
               />
@@ -230,9 +230,9 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                   "min-w-[20px] h-[20px] px-1.5",
                   "flex items-center justify-center",
                   "text-[10px] font-bold text-white",
-                  "bg-gradient-to-r from-red-500 to-red-600",
+                  "bg-linear-to-r from-red-500 to-red-600",
                   "rounded-full shadow-sm",
-                  "ring-2 ring-[var(--bg-card)]"
+                  "ring-2 ring-(--bg-card)"
                 )}
               >
                 5
@@ -293,7 +293,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 <ChevronDown
                   size={14}
                   className={cn(
-                    "hidden sm:block text-[var(--text-muted)] transition-transform duration-200",
+                    "hidden sm:block text-(--text-muted) transition-transform duration-200",
                     userMenuOpen && "rotate-180"
                   )}
                 />
@@ -303,8 +303,8 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               <div
                 className={cn(
                   "absolute right-0 top-full mt-2 w-56",
-                  "bg-[var(--bg-card)] rounded-xl",
-                  "border border-[var(--border)]",
+                  "bg-(--bg-card) rounded-xl",
+                  "border border-(--border)",
                   "shadow-xl shadow-black/10 dark:shadow-black/30",
                   "py-2 overflow-hidden",
                   "transition-all duration-200 origin-top-right",
@@ -313,16 +313,16 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                     : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                 )}
               >
-                <div className="px-4 py-3 border-b border-[var(--border)]">
-                  <p className="font-semibold text-sm text-[var(--text)]">John Doe</p>
-                  <p className="text-xs text-[var(--text-muted)]">@johndoe</p>
+                <div className="px-4 py-3 border-b border-(--border)">
+                  <p className="font-semibold text-sm text-(--text)">John Doe</p>
+                  <p className="text-xs text-(--text-muted)">@johndoe</p>
                 </div>
                 <div className="py-1">
                   <DropdownItem icon={User} label="Profile" />
                   <DropdownItem icon={Settings} label="Settings" />
                   <DropdownItem icon={HelpCircle} label="Help & Support" />
                 </div>
-                <div className="border-t border-[var(--border)] pt-1">
+                <div className="border-t border-(--border) pt-1">
                   <DropdownItem icon={LogOut} label="Sign out" danger />
                 </div>
               </div>
@@ -334,14 +334,14 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
       {/* Mobile search overlay */}
       <div
         className={cn(
-          "fixed inset-0 z-[60] bg-[var(--bg)]/95 backdrop-blur-sm",
+          "fixed inset-0 z-60 bg-(--bg)/95 backdrop-blur-sm",
           "transition-all duration-300 md:hidden",
           mobileSearchOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="flex items-center gap-3 p-4 h-16 border-b border-[var(--border)]">
+        <div className="flex items-center gap-3 p-4 h-16 border-b border-(--border)">
           <Button
             variant="ghost"
             size="icon"
@@ -353,7 +353,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
           <div className="flex-1 relative">
             <Search
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
             />
             <input
               ref={searchInputRef}
@@ -363,14 +363,14 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 "w-full pl-10 pr-4 py-2.5 rounded-full text-sm",
                 "bg-primary-50/80 dark:bg-primary-950/40",
                 "border-2 border-primary-400 dark:border-primary-500",
-                "placeholder:text-[var(--text-muted)]",
+                "placeholder:text-(--text-muted)",
                 "outline-none transition-all duration-200"
               )}
             />
           </div>
         </div>
         <div className="p-4">
-          <p className="text-sm text-[var(--text-muted)]">Recent searches</p>
+          <p className="text-sm text-(--text-muted)">Recent searches</p>
         </div>
       </div>
     </>
@@ -391,10 +391,10 @@ function DropdownItem({ icon: Icon, label, danger }: DropdownItemProps) {
         "transition-colors duration-150",
         danger
           ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-          : "text-[var(--text)] hover:bg-primary-50 dark:hover:bg-primary-900/30"
+          : "text-(--text) hover:bg-primary-50 dark:hover:bg-primary-900/30"
       )}
     >
-      <Icon size={18} className={danger ? "" : "text-[var(--text-muted)]"} />
+      <Icon size={18} className={danger ? "" : "text-(--text-muted)"} />
       <span>{label}</span>
     </button>
   );

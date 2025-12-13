@@ -2,6 +2,7 @@
 
 import { Badge, Button, Card } from "@/components/ui";
 import { Users, ChevronRight, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 interface FeaturedRoom {
   id: string;
@@ -45,14 +46,16 @@ const featuredRooms: FeaturedRoom[] = [
 
 function RoomCard({ room }: { room: FeaturedRoom }) {
   return (
-    <Card hover className="overflow-hidden min-w-[280px] max-w-[280px] flex-shrink-0">
+    <Card hover className="overflow-hidden min-w-[280px] max-w-[280px] shrink-0">
       <div className="relative h-32">
-        <img
+        <Image
           src={room.image}
           alt={room.name}
+          width={300}
+          height={200}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
         <Badge
           variant="primary"
           className="absolute top-2 left-2"
@@ -64,11 +67,11 @@ function RoomCard({ room }: { room: FeaturedRoom }) {
         </div>
       </div>
       <div className="p-3">
-        <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-3">
+        <p className="text-sm text-(--text-muted) line-clamp-2 mb-3">
           {room.description}
         </p>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+          <div className="flex items-center gap-3 text-xs text-(--text-muted)">
             <span className="flex items-center gap-1">
               <Users size={14} />
               {room.memberCount.toLocaleString()}
@@ -89,7 +92,7 @@ function RoomCard({ room }: { room: FeaturedRoom }) {
 
 export function FeaturedRooms() {
   return (
-    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4">
+    <div className="bg-(--bg-card) rounded-xl border border-(--border) p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles size={20} className="text-primary-500" />

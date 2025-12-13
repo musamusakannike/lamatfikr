@@ -46,7 +46,7 @@ function NavLink({ item }: { item: NavItem }) {
         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
         item.active
           ? "bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300"
-          : "hover:bg-primary-50 dark:hover:bg-primary-900/30 text-[var(--text-muted)] hover:text-[var(--text)]"
+          : "hover:bg-primary-50 dark:hover:bg-primary-900/30 text-(--text-muted) hover:text-(--text)"
       )}
     >
       <div className="relative">
@@ -81,7 +81,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-16 bottom-0 w-64 bg-[var(--bg-sidebar)] border-r border-[var(--border)] z-40 transition-transform duration-300 flex flex-col",
+          "fixed left-0 top-16 bottom-0 w-64 bg-(--bg-sidebar) border-r border-(--border) z-40 transition-transform duration-300 flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -93,7 +93,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Profile section at bottom */}
-        <div className="p-3 border-t border-[var(--border)]">
+        <div className="p-3 border-t border-(--border)">
           <a
             href="/profile"
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors group"
@@ -106,13 +106,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">John Doe</p>
-              <p className="text-xs text-[var(--text-muted)] truncate">
+              <p className="text-xs text-(--text-muted) truncate">
                 @johndoe
               </p>
             </div>
             <ChevronRight
               size={16}
-              className="text-[var(--text-muted)] group-hover:text-primary-500 transition-colors"
+              className="text-(--text-muted) group-hover:text-primary-500 transition-colors"
             />
           </a>
         </div>

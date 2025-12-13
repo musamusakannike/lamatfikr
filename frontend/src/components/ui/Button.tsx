@@ -15,9 +15,9 @@ const variantClasses = {
   secondary:
     "bg-primary-100 text-primary-700 hover:bg-primary-200 dark:bg-primary-900 dark:text-primary-300 dark:hover:bg-primary-800",
   ghost:
-    "bg-transparent hover:bg-primary-100 dark:hover:bg-primary-900/50 text-[var(--text)]",
+    "bg-transparent hover:bg-primary-100 dark:hover:bg-primary-900/50 text-(--text)",
   outline:
-    "border border-[var(--border)] bg-transparent hover:bg-primary-50 dark:hover:bg-primary-900/30 text-[var(--text)]",
+    "border border-(--border) bg-transparent hover:bg-primary-50 dark:hover:bg-primary-900/30 text-(--text)",
   danger:
     "bg-red-600 text-white hover:bg-red-700 active:bg-red-800",
 };
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-[var(--bg)] disabled:opacity-50 disabled:cursor-not-allowed",
+          "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-(--bg) disabled:opacity-50 disabled:cursor-not-allowed",
           variantClasses[variant],
           sizeClasses[size],
           className

@@ -70,11 +70,11 @@ function StoryItem({ story }: { story: Story }) {
         className={cn(
           "p-0.5 rounded-full",
           story.hasUnviewed
-            ? "bg-gradient-to-tr from-primary-500 via-accent-pink to-accent-orange"
+            ? "bg-linear-to-tr from-primary-500 via-accent-pink to-accent-orange"
             : "bg-gray-300 dark:bg-gray-600"
         )}
       >
-        <div className="p-0.5 bg-[var(--bg)] rounded-full">
+        <div className="p-0.5 bg-(--bg) rounded-full">
           <Avatar
             src={story.avatar}
             alt={story.username}
@@ -83,7 +83,7 @@ function StoryItem({ story }: { story: Story }) {
           />
         </div>
       </div>
-      <span className="text-xs text-[var(--text-muted)] truncate max-w-[64px]">
+      <span className="text-xs text-(--text-muted) truncate max-w-[64px]">
         {story.username}
       </span>
     </button>
@@ -100,11 +100,11 @@ function AddStoryButton() {
           size="lg"
           className="opacity-80"
         />
-        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center border-2 border-[var(--bg)]">
+        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center border-2 border-(--bg)">
           <Plus size={14} className="text-white" />
         </div>
       </div>
-      <span className="text-xs text-[var(--text-muted)]">Your story</span>
+      <span className="text-xs text-(--text-muted)">Your story</span>
     </button>
   );
 }
@@ -119,7 +119,7 @@ export function StoriesSection() {
   };
 
   return (
-    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-4">
+    <div className="bg-(--bg-card) rounded-xl border border-(--border) p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-lg">Stories</h2>
         <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 gap-1">
@@ -142,7 +142,7 @@ export function StoriesSection() {
         {/* Scroll indicator */}
         <button
           onClick={scrollRight}
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-[var(--bg-card)] border border-[var(--border)] rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-colors"
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-(--bg-card) border border-(--border) rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-colors"
         >
           <ChevronRight size={18} className="text-primary-600" />
         </button>

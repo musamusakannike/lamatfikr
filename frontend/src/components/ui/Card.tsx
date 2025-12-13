@@ -12,7 +12,7 @@ export function Card({ children, className, hover = false }: CardProps) {
   return (
     <div
       className={cn(
-        "bg-[var(--bg-card)] rounded-xl border border-[var(--border)] shadow-sm",
+        "bg-(--bg-card) rounded-xl border border-(--border) shadow-sm",
         hover && "hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200",
         className
       )}
@@ -24,7 +24,7 @@ export function Card({ children, className, hover = false }: CardProps) {
 
 export function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("px-4 py-3 border-b border-[var(--border)]", className)}>
+    <div className={cn("px-4 py-3 border-b border-(--border)", className)}>
       {children}
     </div>
   );
@@ -36,7 +36,7 @@ export function CardContent({ children, className }: { children: React.ReactNode
 
 export function CardFooter({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("px-4 py-3 border-t border-[var(--border)]", className)}>
+    <div className={cn("px-4 py-3 border-t border-(--border)", className)}>
       {children}
     </div>
   );

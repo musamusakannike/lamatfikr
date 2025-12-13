@@ -14,6 +14,7 @@ import {
   Grid3X3,
   Megaphone,
 } from "lucide-react";
+import Image from "next/image";
 
 type FilterType = "all" | "images" | "announcements";
 
@@ -138,7 +139,7 @@ function FilterButton({
         "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all",
         active
           ? "bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300"
-          : "text-[var(--text-muted)] hover:bg-primary-50 dark:hover:bg-primary-900/30"
+          : "text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30"
       )}
     >
       <Icon size={18} />
@@ -198,20 +199,20 @@ function PostCard({ post }: { post: Post }) {
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+              <div className="flex items-center gap-2 text-sm text-(--text-muted)">
                 <span>@{post.author.username}</span>
                 <span>•</span>
                 <span>{post.timestamp}</span>
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="text-[var(--text-muted)]">
+          <Button variant="ghost" size="icon" className="text-(--text-muted)">
             <MoreHorizontal size={18} />
           </Button>
         </div>
 
         {/* Content */}
-        <p className="text-[var(--text)] mb-3 whitespace-pre-wrap">{post.content}</p>
+        <p className="text-(--text) mb-3 whitespace-pre-wrap">{post.content}</p>
 
         {/* Images */}
         {post.images && post.images.length > 0 && (
@@ -222,10 +223,12 @@ function PostCard({ post }: { post: Post }) {
             )}
           >
             {post.images.map((image, index) => (
-              <img
+              <Image
                 key={index}
                 src={image}
                 alt={`Post image ${index + 1}`}
+                width={600}
+                height={post.images!.length === 1 ? 400 : 200}
                 className={cn(
                   "w-full object-cover",
                   post.images!.length === 1 ? "max-h-96" : "h-48"
@@ -236,7 +239,7 @@ function PostCard({ post }: { post: Post }) {
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+        <div className="flex items-center justify-between pt-2 border-t border-(--border)">
           <div className="flex items-center gap-1">
             {/* Vote buttons */}
             <div className="flex items-center bg-primary-50 dark:bg-primary-900/30 rounded-full">
@@ -246,7 +249,7 @@ function PostCard({ post }: { post: Post }) {
                   "p-2 rounded-l-full transition-colors",
                   userVote === "up"
                     ? "text-primary-600 dark:text-primary-400"
-                    : "text-[var(--text-muted)] hover:text-primary-600"
+                    : "text-(--text-muted) hover:text-primary-600"
                 )}
               >
                 <ArrowBigUp size={22} fill={userVote === "up" ? "currentColor" : "none"} />
@@ -263,7 +266,7 @@ function PostCard({ post }: { post: Post }) {
                   "p-2 rounded-r-full transition-colors",
                   userVote === "down"
                     ? "text-red-500"
-                    : "text-[var(--text-muted)] hover:text-red-500"
+                    : "text-(--text-muted) hover:text-red-500"
                 )}
               >
                 <ArrowBigDown size={22} fill={userVote === "down" ? "currentColor" : "none"} />
@@ -271,13 +274,13 @@ function PostCard({ post }: { post: Post }) {
             </div>
 
             {/* Comments */}
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[var(--text-muted)] hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
               <MessageCircle size={18} />
               <span className="text-sm">{post.comments}</span>
             </button>
 
             {/* Share */}
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[var(--text-muted)] hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
               <Share2 size={18} />
               <span className="text-sm hidden sm:inline">{post.shares}</span>
             </button>
@@ -290,7 +293,7 @@ function PostCard({ post }: { post: Post }) {
               "p-2 rounded-full transition-colors",
               saved
                 ? "text-primary-600 dark:text-primary-400"
-                : "text-[var(--text-muted)] hover:text-primary-600"
+                : "text-(--text-muted) hover:text-primary-600"
             )}
           >
             <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
@@ -313,7 +316,7 @@ export function PostFeed() {
   return (
     <div className="space-y-4">
       {/* Filter tabs */}
-      <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-2 flex gap-2">
+      <div className="bg-(--bg-card) rounded-xl border border-(--border) p-2 flex gap-2">
         <FilterButton
           active={filter === "all"}
           onClick={() => setFilter("all")}
