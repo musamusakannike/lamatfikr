@@ -4,12 +4,21 @@ export * from "./user.model";
 export * from "./session.model";
 export * from "./follow.model";
 export * from "./block.model";
+export * from "./friendship.model";
+export * from "./mute.model";
 
 export * from "./post.model";
 export * from "./post-media.model";
 export * from "./comment.model";
 export * from "./reaction.model";
 export * from "./share.model";
+export * from "./vote.model";
+export * from "./saved-item.model";
+export * from "./hashtag.model";
+export * from "./post-hashtag.model";
+export * from "./mention.model";
+export * from "./poll.model";
+export * from "./poll-vote.model";
 
 export * from "./conversation.model";
 export * from "./message.model";

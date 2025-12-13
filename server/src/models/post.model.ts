@@ -13,6 +13,9 @@ export interface Post {
   likeCount: number;
   commentCount: number;
   shareCount: number;
+  upvoteCount: number;
+  downvoteCount: number;
+  hasPoll: boolean;
   deletedAt?: Date | null;
 }
 
@@ -32,6 +35,9 @@ const PostSchema = new Schema<Post>(
     likeCount: { type: Number, default: 0, min: 0 },
     commentCount: { type: Number, default: 0, min: 0 },
     shareCount: { type: Number, default: 0, min: 0 },
+    upvoteCount: { type: Number, default: 0, min: 0 },
+    downvoteCount: { type: Number, default: 0, min: 0 },
+    hasPoll: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true }

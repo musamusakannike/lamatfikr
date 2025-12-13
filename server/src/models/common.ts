@@ -20,6 +20,8 @@ export const PostPrivacy = {
   public: "public",
   followers: "followers",
   friends: "friends",
+  friends_only: "friends_only",
+  me_only: "me_only",
 } as const;
 export type PostPrivacy = (typeof PostPrivacy)[keyof typeof PostPrivacy];
 
@@ -103,8 +105,29 @@ export const PostMediaType = {
   image: "image",
   video: "video",
   audio: "audio",
+  voice_note: "voice_note",
+  file: "file",
 } as const;
 export type PostMediaType = (typeof PostMediaType)[keyof typeof PostMediaType];
+
+export const FriendshipStatus = {
+  pending: "pending",
+  accepted: "accepted",
+  rejected: "rejected",
+} as const;
+export type FriendshipStatus = (typeof FriendshipStatus)[keyof typeof FriendshipStatus];
+
+export const VoteType = {
+  upvote: "upvote",
+  downvote: "downvote",
+} as const;
+export type VoteType = (typeof VoteType)[keyof typeof VoteType];
+
+export const SavedItemType = {
+  post: "post",
+  comment: "comment",
+} as const;
+export type SavedItemType = (typeof SavedItemType)[keyof typeof SavedItemType];
 
 export const Gender = {
   male: "male",

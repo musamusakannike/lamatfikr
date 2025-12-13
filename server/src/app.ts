@@ -12,6 +12,8 @@ import { stripeWebhookRouter } from "./routes/stripe";
 import { authRouter } from "./routes/auth";
 import { profileRouter } from "./routes/profile";
 import { verificationRouter } from "./routes/verification";
+import { socialRouter } from "./routes/social";
+import { postsRouter } from "./routes/posts";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -47,6 +49,8 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/profile", profileRouter);
   app.use("/api/verification", verificationRouter);
+  app.use("/api/social", socialRouter);
+  app.use("/api/posts", postsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
