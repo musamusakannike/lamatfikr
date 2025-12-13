@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Button } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -13,7 +13,13 @@ import {
   Sun,
   Moon,
   Plus,
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+  HelpCircle,
 } from "lucide-react";
+import Link from "next/link";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -23,101 +29,373 @@ interface NavbarProps {
 export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [searchFocused, setSearchFocused] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Focus search input when mobile search opens
+  useEffect(() => {
+    if (mobileSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [mobileSearchOpen]);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[var(--bg-card)] border-b border-[var(--border)] backdrop-blur-sm bg-opacity-95">
-      <div className="h-full px-4 flex items-center justify-between gap-4">
-        {/* Left section */}
-        <div className="flex items-center gap-3">
+    <>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 h-16",
+          "bg-[var(--bg-card)]/95 backdrop-blur-md",
+          "border-b border-[var(--border)]",
+          "transition-all duration-300 ease-in-out",
+          "shadow-sm dark:shadow-none"
+        )}
+      >
+        <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Left section */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMenuToggle}
+              className="lg:hidden hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+            >
+              <div className="relative w-5 h-5">
+                <Menu
+                  size={20}
+                  className={cn(
+                    "absolute inset-0 transition-all duration-300",
+                    isSidebarOpen ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
+                  )}
+                />
+                <X
+                  size={20}
+                  className={cn(
+                    "absolute inset-0 transition-all duration-300",
+                    isSidebarOpen ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
+                  )}
+                />
+              </div>
+            </Button>
+
+            <Link href="/" className="flex items-center gap-2 group">
+              <div
+                className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center",
+                  "bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700",
+                  "shadow-lg shadow-primary-500/25 dark:shadow-primary-500/15",
+                  "group-hover:shadow-xl group-hover:shadow-primary-500/30",
+                  "transition-all duration-300 group-hover:scale-105"
+                )}
+              >
+                <span className="text-white font-bold text-lg">L</span>
+              </div>
+              <span
+                className={cn(
+                  "hidden sm:block text-xl font-bold",
+                  "bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400",
+                  "bg-clip-text text-transparent",
+                  "group-hover:from-primary-500 group-hover:to-primary-300",
+                  "transition-all duration-300"
+                )}
+              >
+                Lamatfikr
+              </span>
+            </Link>
+          </div>
+
+          {/* Search bar - Desktop */}
+          <div className="flex-1 max-w-xl hidden md:block">
+            <div
+              className={cn(
+                "relative flex items-center transition-all duration-300",
+                searchFocused && "scale-[1.02]"
+              )}
+            >
+              <Search
+                size={18}
+                className={cn(
+                  "absolute left-4 transition-colors duration-200",
+                  searchFocused ? "text-primary-500" : "text-[var(--text-muted)]"
+                )}
+              />
+              <input
+                type="text"
+                placeholder="Search posts, people, communities..."
+                className={cn(
+                  "w-full pl-11 pr-4 py-2.5 rounded-full text-sm",
+                  "bg-primary-50/80 dark:bg-primary-950/40",
+                  "border-2 border-transparent",
+                  "focus:border-primary-400 dark:focus:border-primary-500",
+                  "focus:bg-[var(--bg-card)]",
+                  "placeholder:text-[var(--text-muted)]",
+                  "outline-none transition-all duration-300",
+                  "hover:bg-primary-100/80 dark:hover:bg-primary-900/40"
+                )}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+              />
+            </div>
+          </div>
+
+          {/* Right section */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* Mobile search button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden hover:bg-primary-100 dark:hover:bg-primary-900/50"
+              onClick={() => setMobileSearchOpen(true)}
+              aria-label="Search"
+            >
+              <Search size={20} />
+            </Button>
+
+            {/* Create button */}
+            <Button
+              variant="primary"
+              size="sm"
+              className={cn(
+                "hidden sm:flex gap-1.5 items-center",
+                "shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30",
+                "hover:scale-[1.02] active:scale-[0.98]",
+                "transition-all duration-200"
+              )}
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span className="font-semibold">Create</span>
+            </Button>
+
+            {/* Mobile create button */}
+            <Button
+              variant="primary"
+              size="icon"
+              className={cn(
+                "sm:hidden",
+                "shadow-md shadow-primary-500/20",
+                "hover:scale-[1.02] active:scale-[0.98]",
+                "transition-all duration-200"
+              )}
+              aria-label="Create post"
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </Button>
+
+            {/* Messages */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              aria-label="Messages"
+            >
+              <MessageCircle size={20} />
+              <span
+                className={cn(
+                  "absolute top-1.5 right-1.5 w-2.5 h-2.5",
+                  "bg-primary-500 rounded-full",
+                  "ring-2 ring-[var(--bg-card)]",
+                  "animate-pulse"
+                )}
+              />
+            </Button>
+
+            {/* Notifications */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell size={20} />
+              <span
+                className={cn(
+                  "absolute -top-0.5 -right-0.5",
+                  "min-w-[20px] h-[20px] px-1.5",
+                  "flex items-center justify-center",
+                  "text-[10px] font-bold text-white",
+                  "bg-gradient-to-r from-red-500 to-red-600",
+                  "rounded-full shadow-sm",
+                  "ring-2 ring-[var(--bg-card)]"
+                )}
+              >
+                5
+              </span>
+            </Button>
+
+            {/* Theme toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              aria-label={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              <div className="relative w-5 h-5">
+                <Sun
+                  size={20}
+                  className={cn(
+                    "absolute inset-0 transition-all duration-500",
+                    "text-amber-500",
+                    resolvedTheme === "dark"
+                      ? "opacity-100 rotate-0 scale-100"
+                      : "opacity-0 rotate-90 scale-0"
+                  )}
+                />
+                <Moon
+                  size={20}
+                  className={cn(
+                    "absolute inset-0 transition-all duration-500",
+                    "text-primary-600 dark:text-primary-400",
+                    resolvedTheme === "dark"
+                      ? "opacity-0 -rotate-90 scale-0"
+                      : "opacity-100 rotate-0 scale-100"
+                  )}
+                />
+              </div>
+            </Button>
+
+            {/* User menu */}
+            <div className="relative ml-1" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className={cn(
+                  "flex items-center gap-1.5 p-1 pr-2 rounded-full",
+                  "hover:bg-primary-100 dark:hover:bg-primary-900/50",
+                  "transition-colors duration-200",
+                  userMenuOpen && "bg-primary-100 dark:bg-primary-900/50"
+                )}
+                aria-label="User menu"
+                aria-expanded={userMenuOpen}
+              >
+                <Avatar
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+                  alt="User"
+                  size="sm"
+                  online
+                />
+                <ChevronDown
+                  size={14}
+                  className={cn(
+                    "hidden sm:block text-[var(--text-muted)] transition-transform duration-200",
+                    userMenuOpen && "rotate-180"
+                  )}
+                />
+              </button>
+
+              {/* Dropdown menu */}
+              <div
+                className={cn(
+                  "absolute right-0 top-full mt-2 w-56",
+                  "bg-[var(--bg-card)] rounded-xl",
+                  "border border-[var(--border)]",
+                  "shadow-xl shadow-black/10 dark:shadow-black/30",
+                  "py-2 overflow-hidden",
+                  "transition-all duration-200 origin-top-right",
+                  userMenuOpen
+                    ? "opacity-100 scale-100 translate-y-0"
+                    : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                )}
+              >
+                <div className="px-4 py-3 border-b border-[var(--border)]">
+                  <p className="font-semibold text-sm text-[var(--text)]">John Doe</p>
+                  <p className="text-xs text-[var(--text-muted)]">@johndoe</p>
+                </div>
+                <div className="py-1">
+                  <DropdownItem icon={User} label="Profile" />
+                  <DropdownItem icon={Settings} label="Settings" />
+                  <DropdownItem icon={HelpCircle} label="Help & Support" />
+                </div>
+                <div className="border-t border-[var(--border)] pt-1">
+                  <DropdownItem icon={LogOut} label="Sign out" danger />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile search overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 z-[60] bg-[var(--bg)]/95 backdrop-blur-sm",
+          "transition-all duration-300 md:hidden",
+          mobileSearchOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="flex items-center gap-3 p-4 h-16 border-b border-[var(--border)]">
           <Button
             variant="ghost"
             size="icon"
-            onClick={onMenuToggle}
-            className="lg:hidden"
+            onClick={() => setMobileSearchOpen(false)}
+            aria-label="Close search"
           >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            <X size={20} />
           </Button>
-          
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">L</span>
-            </div>
-            <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-              Lamatfikr
-            </span>
-          </div>
-        </div>
-
-        {/* Search bar */}
-        <div className="flex-1 max-w-xl hidden sm:block">
-          <div
-            className={cn(
-              "relative flex items-center transition-all duration-200",
-              searchFocused && "scale-[1.02]"
-            )}
-          >
+          <div className="flex-1 relative">
             <Search
               size={18}
-              className="absolute left-3 text-[var(--text-muted)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
             />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search posts, people, communities..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-primary-50 dark:bg-primary-950/50 border border-transparent focus:border-primary-400 focus:bg-[var(--bg-card)] outline-none transition-all duration-200 text-sm"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
+              placeholder="Search..."
+              className={cn(
+                "w-full pl-10 pr-4 py-2.5 rounded-full text-sm",
+                "bg-primary-50/80 dark:bg-primary-950/40",
+                "border-2 border-primary-400 dark:border-primary-500",
+                "placeholder:text-[var(--text-muted)]",
+                "outline-none transition-all duration-200"
+              )}
             />
           </div>
         </div>
-
-        {/* Right section */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="sm:hidden"
-          >
-            <Search size={20} />
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            className="hidden sm:flex gap-1.5"
-          >
-            <Plus size={16} />
-            <span>Create</span>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="relative">
-            <MessageCircle size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full" />
-          </Button>
-
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell size={20} />
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full px-1">
-              5
-            </span>
-          </Button>
-
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {resolvedTheme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-          </Button>
-
-          <Avatar
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
-            alt="User"
-            size="sm"
-            online
-            className="ml-1 cursor-pointer"
-          />
+        <div className="p-4">
+          <p className="text-sm text-[var(--text-muted)]">Recent searches</p>
         </div>
       </div>
-    </header>
+    </>
+  );
+}
+
+interface DropdownItemProps {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  danger?: boolean;
+}
+
+function DropdownItem({ icon: Icon, label, danger }: DropdownItemProps) {
+  return (
+    <button
+      className={cn(
+        "w-full flex items-center gap-3 px-4 py-2.5 text-sm",
+        "transition-colors duration-150",
+        danger
+          ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          : "text-[var(--text)] hover:bg-primary-50 dark:hover:bg-primary-900/30"
+      )}
+    >
+      <Icon size={18} className={danger ? "" : "text-[var(--text-muted)]"} />
+      <span>{label}</span>
+    </button>
   );
 }
