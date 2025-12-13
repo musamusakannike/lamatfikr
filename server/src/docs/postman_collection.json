@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "LamatFikr API",
+    "description": "API collection for LamatFikr social platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user with email and password"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password"
+          }
+        },
+        {
+          "name": "Social Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"firebase_id_token_here\",\n  \"username\": \"johndoe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/social",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "social"]
+            },
+            "description": "Authenticate with social providers (Google, Facebook, Apple) via Firebase"
+          }
+        },
+        {
+          "name": "Complete Social Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"firebase_id_token_here\",\n  \"username\": \"johndoe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/social/complete-profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "social", "complete-profile"]
+            },
+            "description": "Complete profile for social auth users with missing required fields"
+          }
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token=verification_token_here",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "verification_token_here"
+                }
+              ]
+            },
+            "description": "Verify email address using token from email"
+          }
+        },
+        {
+          "name": "Resend Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "resend-verification"]
+            },
+            "description": "Resend email verification link"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "Request password reset email"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_here\",\n  \"password\": \"NewPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "description": "Reset password using token from email"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get current authenticated user details"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "me"]
+            },
+            "description": "Get current user's full profile"
+          }
+        },
+        {
+          "name": "Get Public Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/user/:username",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "user", ":username"],
+              "variable": [
+                {
+                  "key": "username",
+                  "value": "johndoe"
+                }
+              ]
+            },
+            "description": "Get public profile by username"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"bio\": \"Software developer and tech enthusiast\",\n  \"birthday\": \"1990-01-15\",\n  \"relationshipStatus\": \"Single\",\n  \"address\": \"Lagos, Nigeria\",\n  \"website\": \"https://johndoe.com\",\n  \"workingAt\": \"Tech Company\",\n  \"school\": \"University of Lagos\",\n  \"phone\": \"+2348012345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Update user profile details"
+          }
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatarUrl\": \"https://example.com/avatar.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "avatar"]
+            },
+            "description": "Update user avatar"
+          }
+        },
+        {
+          "name": "Update Cover Photo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverPhotoUrl\": \"https://example.com/cover.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/cover-photo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "cover-photo"]
+            },
+            "description": "Update user cover photo"
+          }
+        },
+        {
+          "name": "Get Privacy Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "privacy"]
+            },
+            "description": "Get user privacy settings"
+          }
+        },
+        {
+          "name": "Update Privacy Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"whoCanFollowMe\": \"everyone\",\n  \"whoCanMessageMe\": \"friends\",\n  \"whoCanSeeMyBirthday\": \"friends\",\n  \"whoCanSeeMyEmail\": \"nobody\",\n  \"whoCanSeeMyPhone\": \"nobody\",\n  \"whoCanSeeMyLocation\": \"friends\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "privacy"]
+            },
+            "description": "Update privacy settings (options: everyone, friends, nobody)"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password123\",\n  \"newPassword\": \"NewPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "change-password"]
+            },
+            "description": "Change user password (email auth only)"
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Delete user account (requires password for email auth users)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verification (Blue Tick)",
+      "item": [
+        {
+          "name": "Submit Verification Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"passport\",\n  \"documentFrontUrl\": \"https://example.com/passport-front.jpg\",\n  \"documentBackUrl\": \"https://example.com/passport-back.jpg\",\n  \"selfieUrl\": \"https://example.com/selfie.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "request"]
+            },
+            "description": "Submit verification request (documentType: passport, national_id, drivers_license)"
+          }
+        },
+        {
+          "name": "Get My Verification Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/my-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "my-requests"]
+            },
+            "description": "Get all verification requests for current user"
+          }
+        },
+        {
+          "name": "Get Verification Request Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/request/:requestId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "request", ":requestId"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "request_id_here"
+                }
+              ]
+            },
+            "description": "Get status of a specific verification request"
+          }
+        },
+        {
+          "name": "Cancel Verification Request",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/request/:requestId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "request", ":requestId"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "request_id_here"
+                }
+              ]
+            },
+            "description": "Cancel a pending verification request"
+          }
+        },
+        {
+          "name": "[Admin] Get All Verification Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/admin/requests?status=pending&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "admin", "requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "Filter by status: pending, approved, rejected"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Admin: Get all verification requests with pagination"
+          }
+        },
+        {
+          "name": "[Admin] Get Verification Request Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/admin/requests/:requestId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "admin", "requests", ":requestId"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "request_id_here"
+                }
+              ]
+            },
+            "description": "Admin: Get full details of a verification request including documents"
+          }
+        },
+        {
+          "name": "[Admin] Review Verification Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"adminNotes\": \"Documents verified successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/admin/requests/:requestId/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "admin", "requests", ":requestId", "review"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "request_id_here"
+                }
+              ]
+            },
+            "description": "Admin: Approve or reject verification request (status: approved, rejected)"
+          }
+        },
+        {
+          "name": "[Admin] Get Verification Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/verification/admin/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "verification", "admin", "stats"]
+            },
+            "description": "Admin: Get verification request statistics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the server is running"
+          }
+        }
+      ]
+    }
+  ]
+}

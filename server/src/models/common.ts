@@ -105,3 +105,40 @@ export const PostMediaType = {
   audio: "audio",
 } as const;
 export type PostMediaType = (typeof PostMediaType)[keyof typeof PostMediaType];
+
+export const Gender = {
+  male: "male",
+  female: "female",
+  other: "other",
+  preferNotToSay: "prefer_not_to_say",
+} as const;
+export type Gender = (typeof Gender)[keyof typeof Gender];
+
+export const AuthProvider = {
+  email: "email",
+  google: "google",
+  facebook: "facebook",
+  apple: "apple",
+} as const;
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider];
+
+export const PrivacyOption = {
+  everyone: "everyone",
+  friends: "friends",
+  nobody: "nobody",
+} as const;
+export type PrivacyOption = (typeof PrivacyOption)[keyof typeof PrivacyOption];
+
+export const VerificationStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+export type VerificationStatus = (typeof VerificationStatus)[keyof typeof VerificationStatus];
+
+export const DocumentType = {
+  passport: "passport",
+  nationalId: "national_id",
+  driversLicense: "drivers_license",
+} as const;
+export type DocumentType = (typeof DocumentType)[keyof typeof DocumentType];

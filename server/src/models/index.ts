@@ -38,5 +38,6 @@ export * from "./user-subscription.model";
 
 export * from "./setting.model";
 export * from "./audit-log.model";
+export * from "./verification-request.model";
 
 

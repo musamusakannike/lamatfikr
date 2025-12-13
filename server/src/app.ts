@@ -9,6 +9,9 @@ import rateLimit from "express-rate-limit";
 import { env } from "./config/env";
 import { healthRouter } from "./routes/health";
 import { stripeWebhookRouter } from "./routes/stripe";
+import { authRouter } from "./routes/auth";
+import { profileRouter } from "./routes/profile";
+import { verificationRouter } from "./routes/verification";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -41,6 +44,9 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
 
   app.use("/health", healthRouter);
+  app.use("/api/auth", authRouter);
+  app.use("/api/profile", profileRouter);
+  app.use("/api/verification", verificationRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -27,6 +27,12 @@ const envSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).optional(),
+
+  FIREBASE_PROJECT_ID: z.string().min(1).optional(),
+  FIREBASE_CLIENT_EMAIL: z.string().min(1).optional(),
+  FIREBASE_PRIVATE_KEY: z.string().min(1).optional(),
+
+  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
 });
 
 export const env = envSchema.parse(process.env);
