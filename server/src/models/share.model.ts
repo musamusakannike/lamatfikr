@@ -11,8 +11,8 @@ export interface Share {
 
 const ShareSchema = new Schema<Share>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    originalPostId: { type: Schema.Types.ObjectId, ref: "Post", required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    originalPostId: { type: Schema.Types.ObjectId, ref: "Post", required: true },
     message: { type: String },
     deletedAt: { type: Date, default: null },
   },

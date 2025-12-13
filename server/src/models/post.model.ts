@@ -21,7 +21,7 @@ export interface Post {
 
 const PostSchema = new Schema<Post>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     contentText: { type: String },
     privacy: {
       type: String,

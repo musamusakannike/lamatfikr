@@ -15,7 +15,7 @@ export interface PostMedia {
 
 const PostMediaSchema = new Schema<PostMedia>(
   {
-    postId: { type: Schema.Types.ObjectId, ref: "Post", required: true, index: true },
+    postId: { type: Schema.Types.ObjectId, ref: "Post", required: true },
     type: { type: String, enum: Object.values(PostMediaType), required: true },
     url: { type: String, required: true },
     thumbnail: { type: String },

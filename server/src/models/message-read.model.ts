@@ -10,8 +10,8 @@ export interface MessageRead {
 
 const MessageReadSchema = new Schema<MessageRead>(
   {
-    messageId: { type: Schema.Types.ObjectId, ref: "Message", required: true, index: true },
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    messageId: { type: Schema.Types.ObjectId, ref: "Message", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     readAt: { type: Date, default: () => new Date(), required: true },
   },
   { timestamps: false }

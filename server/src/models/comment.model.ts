@@ -15,7 +15,7 @@ export interface Comment {
 
 const CommentSchema = new Schema<Comment>(
   {
-    postId: { type: Schema.Types.ObjectId, ref: "Post", required: true, index: true },
+    postId: { type: Schema.Types.ObjectId, ref: "Post", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     parentCommentId: { type: Schema.Types.ObjectId, ref: "Comment", default: null },
     content: { type: String, required: true },

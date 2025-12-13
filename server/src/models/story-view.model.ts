@@ -10,8 +10,8 @@ export interface StoryView {
 
 const StoryViewSchema = new Schema<StoryView>(
   {
-    storyId: { type: Schema.Types.ObjectId, ref: "Story", required: true, index: true },
-    viewerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    storyId: { type: Schema.Types.ObjectId, ref: "Story", required: true },
+    viewerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     viewedAt: { type: Date, default: () => new Date(), required: true },
   },
   { timestamps: false }

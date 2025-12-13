@@ -13,9 +13,9 @@ export interface Reaction {
 
 const ReactionSchema = new Schema<Reaction>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     targetType: { type: String, enum: Object.values(ReactionTargetType), required: true },
-    targetId: { type: Schema.Types.ObjectId, required: true, index: true },
+    targetId: { type: Schema.Types.ObjectId, required: true },
     reactionType: { type: String, required: true },
     deletedAt: { type: Date, default: null },
   },
