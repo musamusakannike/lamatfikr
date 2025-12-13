@@ -676,6 +676,1182 @@
       ]
     },
     {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentText\": \"This is my first post!\",\n  \"privacy\": \"public\",\n  \"location\": \"Lagos, Nigeria\",\n  \"feeling\": \"happy\",\n  \"media\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts"]
+            },
+            "description": "Create a new post (privacy: public, friends, private)"
+          }
+        },
+        {
+          "name": "Get Feed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/feed?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "feed"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get personalized feed for authenticated user"
+          }
+        },
+        {
+          "name": "Get Saved Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/saved?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "saved"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get user's saved posts"
+          }
+        },
+        {
+          "name": "Get User Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/user/:userId?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "user", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get posts by a specific user"
+          }
+        },
+        {
+          "name": "Get Posts by Hashtag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/hashtag/:tag?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "hashtag", ":tag"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "tag",
+                  "value": "trending"
+                }
+              ]
+            },
+            "description": "Get posts by hashtag"
+          }
+        },
+        {
+          "name": "Get Trending Hashtags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/hashtags/trending?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "hashtags", "trending"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get trending hashtags"
+          }
+        },
+        {
+          "name": "Get Post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Get a single post by ID"
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentText\": \"Updated post content\",\n  \"privacy\": \"friends\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Update a post (only owner can update)"
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Delete a post (soft delete)"
+          }
+        },
+        {
+          "name": "Vote Post (Upvote/Downvote)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voteType\": \"upvote\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/vote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "vote"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Vote on a post (voteType: upvote, downvote)"
+          }
+        },
+        {
+          "name": "Remove Vote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/vote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "vote"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Remove vote from a post"
+          }
+        },
+        {
+          "name": "Vote on Poll",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"optionId\": \"option_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/poll/vote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "poll", "vote"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Vote on a poll option"
+          }
+        },
+        {
+          "name": "Save Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "save"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Save a post to bookmarks"
+          }
+        },
+        {
+          "name": "Unsave Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "save"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Remove post from bookmarks"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"This is a great post!\",\n  \"parentCommentId\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Create a comment on a post (set parentCommentId for replies)"
+          }
+        },
+        {
+          "name": "Get Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                }
+              ]
+            },
+            "description": "Get comments for a post"
+          }
+        },
+        {
+          "name": "Get Comment Replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId/replies?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId", "replies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Get replies to a comment"
+          }
+        },
+        {
+          "name": "Update Comment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated comment content\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Update a comment (only owner can update)"
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Delete a comment (soft delete)"
+          }
+        },
+        {
+          "name": "React to Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reactionType\": \"like\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId/react",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId", "react"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "React to a comment (reactionType: like, love, haha, wow, sad, angry)"
+          }
+        },
+        {
+          "name": "Remove Comment Reaction",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId/react",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId", "react"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Remove reaction from a comment"
+          }
+        },
+        {
+          "name": "Save Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/:postId/comments/:commentId/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", ":postId", "comments", ":commentId", "save"],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": "post_id_here"
+                },
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Save a comment to bookmarks"
+          }
+        },
+        {
+          "name": "Unsave Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/comments/:commentId/save",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "comments", ":commentId", "save"],
+              "variable": [
+                {
+                  "key": "commentId",
+                  "value": "comment_id_here"
+                }
+              ]
+            },
+            "description": "Remove comment from bookmarks"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social",
+      "item": [
+        {
+          "name": "Send Friend Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends", "request"]
+            },
+            "description": "Send a friend request to another user"
+          }
+        },
+        {
+          "name": "Respond to Friend Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"friendshipId\": \"friendship_id_here\",\n  \"action\": \"accept\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends/respond",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends", "respond"]
+            },
+            "description": "Accept or reject a friend request (action: accept, reject)"
+          }
+        },
+        {
+          "name": "Unfriend",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends/:friendId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends", ":friendId"],
+              "variable": [
+                {
+                  "key": "friendId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Remove a friend"
+          }
+        },
+        {
+          "name": "Get Friends",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get list of friends"
+          }
+        },
+        {
+          "name": "Get Pending Friend Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends/requests/pending?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends", "requests", "pending"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get pending friend requests received"
+          }
+        },
+        {
+          "name": "Get Sent Friend Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/friends/requests/sent?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "friends", "requests", "sent"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get friend requests you have sent"
+          }
+        },
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "follow"]
+            },
+            "description": "Follow a user"
+          }
+        },
+        {
+          "name": "Unfollow User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/unfollow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "unfollow"]
+            },
+            "description": "Unfollow a user"
+          }
+        },
+        {
+          "name": "Get My Followers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/followers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "followers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get your followers"
+          }
+        },
+        {
+          "name": "Get User Followers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/followers/:userId?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "followers", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get followers of a specific user"
+          }
+        },
+        {
+          "name": "Get My Following",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/following?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "following"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get users you are following"
+          }
+        },
+        {
+          "name": "Get User Following",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/following/:userId?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "following", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get users a specific user is following"
+          }
+        },
+        {
+          "name": "Block User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/block",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "block"]
+            },
+            "description": "Block a user"
+          }
+        },
+        {
+          "name": "Unblock User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/unblock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "unblock"]
+            },
+            "description": "Unblock a user"
+          }
+        },
+        {
+          "name": "Get Blocked Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/blocked?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "blocked"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get list of blocked users"
+          }
+        },
+        {
+          "name": "Mute User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\",\n  \"duration\": 86400\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/mute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "mute"]
+            },
+            "description": "Mute a user (duration in seconds, optional for permanent mute)"
+          }
+        },
+        {
+          "name": "Unmute User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": \"user_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/social/unmute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "unmute"]
+            },
+            "description": "Unmute a user"
+          }
+        },
+        {
+          "name": "Get Muted Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/social/muted?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "social", "muted"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get list of muted users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stripe Webhook",
+      "item": [
+        {
+          "name": "Stripe Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "stripe-signature",
+                "value": "stripe_signature_here"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/stripe/webhook",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stripe", "webhook"]
+            },
+            "description": "Stripe webhook endpoint for payment events (requires valid Stripe signature)"
+          }
+        }
+      ]
+    },
+    {
       "name": "Health",
       "item": [
         {
