@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
-import { Avatar, Button, Badge, Modal, Card } from "@/components/ui";
+import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import {
   Plus,
@@ -191,8 +191,8 @@ type FilterType = "all" | "owned" | "paid" | "free";
 
 function RoomChatCard({ room, onClick }: { room: RoomChat; onClick: () => void }) {
   return (
-    <Card hover className="overflow-hidden cursor-pointer" onClick={onClick}>
-      <div className="flex gap-4 p-4">
+    <Card hover className="overflow-hidden cursor-pointer">
+      <div className="flex gap-4 p-4" onClick={onClick}>
         <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
           <Image
             src={room.image}
@@ -340,7 +340,7 @@ function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
                 id="room-image"
               />
               <label htmlFor="room-image">
-                <Button type="button" variant="outline" size="sm" className="cursor-pointer" asChild>
+                <Button type="button" variant="outline" size="sm" className="cursor-pointer">
                   <span>Upload Image</span>
                 </Button>
               </label>
@@ -566,7 +566,7 @@ function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProps) {
             height={200}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4">
             <div className="flex items-center gap-2 mb-1">
               {room.membershipType === "paid" && (
