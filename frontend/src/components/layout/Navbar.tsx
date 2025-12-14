@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { CreatePost } from "@/components/home/CreatePost";
+import { useRouter } from "next/navigation";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -35,6 +36,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -43,7 +45,10 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -84,14 +89,18 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                   size={20}
                   className={cn(
                     "absolute inset-0 transition-all duration-300",
-                    isSidebarOpen ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
+                    isSidebarOpen
+                      ? "opacity-0 rotate-90"
+                      : "opacity-100 rotate-0"
                   )}
                 />
                 <X
                   size={20}
                   className={cn(
                     "absolute inset-0 transition-all duration-300",
-                    isSidebarOpen ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
+                    isSidebarOpen
+                      ? "opacity-100 rotate-0"
+                      : "opacity-0 -rotate-90"
                   )}
                 />
               </div>
@@ -249,7 +258,11 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               size="icon"
               onClick={toggleTheme}
               className="hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
-              aria-label={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={
+                resolvedTheme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+              }
             >
               <div className="relative w-5 h-5">
                 <Sun
@@ -318,16 +331,37 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 )}
               >
                 <div className="px-4 py-3 border-b border-(--border)">
-                  <p className="font-semibold text-sm text-(--text)">John Doe</p>
+                  <p className="font-semibold text-sm text-(--text)">
+                    John Doe
+                  </p>
                   <p className="text-xs text-(--text-muted)">@johndoe</p>
                 </div>
                 <div className="py-1">
-                  <DropdownItem icon={User} label="Profile" />
-                  <DropdownItem icon={Settings} label="Settings" />
-                  <DropdownItem icon={HelpCircle} label="Help & Support" />
+                  <DropdownItem
+                    icon={User}
+                    label="Profile"
+                    onClick={() => {
+                      router.push("/profile");
+                    }}
+                  />
+                  <DropdownItem
+                    icon={Settings}
+                    label="Settings"
+                    onClick={() => {}}
+                  />
+                  <DropdownItem
+                    icon={HelpCircle}
+                    label="Help & Support"
+                    onClick={() => {}}
+                  />
                 </div>
                 <div className="border-t border-(--border) pt-1">
-                  <DropdownItem icon={LogOut} label="Sign out" danger />
+                  <DropdownItem
+                    icon={LogOut}
+                    label="Sign out"
+                    danger
+                    onClick={() => {}}
+                  />
                 </div>
               </div>
             </div>
@@ -388,7 +422,10 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
         closeOnEscape={true}
       >
         <div className="p-0">
-          <CreatePost onClose={() => setCreatePostModalOpen(false)} inModal={true} />
+          <CreatePost
+            onClose={() => setCreatePostModalOpen(false)}
+            inModal={true}
+          />
         </div>
       </Modal>
     </>
@@ -399,11 +436,13 @@ interface DropdownItemProps {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   label: string;
   danger?: boolean;
+  onClick?: () => void;
 }
 
-function DropdownItem({ icon: Icon, label, danger }: DropdownItemProps) {
+function DropdownItem({ icon: Icon, label, danger, onClick }: DropdownItemProps) {
   return (
     <button
+      onClick={onClick}
       className={cn(
         "w-full flex items-center gap-3 px-4 py-2.5 text-sm",
         "transition-colors duration-150",
