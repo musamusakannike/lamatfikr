@@ -24,7 +24,7 @@ import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 
 // Visibility options
-type VisibilityOption = "only_me" | "followers" | "following";
+// type VisibilityOption = "only_me" | "followers" | "following";
 
 interface VisibilityState {
   only_me: boolean;
@@ -524,21 +524,19 @@ export function CreatePost() {
 
   const getVisibilityIcon = () => {
     if (visibility.only_me && !visibility.followers && !visibility.following) {
-      return Lock;
+      return <Lock size={16} />;
     }
     if (visibility.followers && visibility.following) {
-      return Globe;
+      return <Globe size={16} />;
     }
     if (visibility.followers) {
-      return Users;
+      return <Users size={16} />;
     }
     if (visibility.following) {
-      return UserCheck;
+      return <UserCheck size={16} />;
     }
-    return Globe;
+    return <Globe size={16} />;
   };
-
-  const VisibilityIcon = getVisibilityIcon();
 
   const handleSubmit = async () => {
     if (!content.trim() && mediaAttachments.length === 0 && !audioAttachment && !showPoll) {
@@ -732,7 +730,7 @@ export function CreatePost() {
                   onClick={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                 >
-                  <VisibilityIcon size={16} />
+                  {getVisibilityIcon()}
                   <span className="hidden sm:inline">{getVisibilityLabel()}</span>
                   <ChevronDown
                     size={14}
