@@ -5,6 +5,7 @@ import { Navbar, Sidebar } from "@/components/layout";
 import { Card } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   ProductCard,
   ProductDetailsModal,
@@ -174,6 +175,7 @@ const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Gar
 
 export default function MarketplacePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t, isRTL } = useLanguage();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -250,17 +252,17 @@ export default function MarketplacePage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content */}
-      <main className="pt-16 lg:pl-64">
+      <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
         <div className="max-w-7xl mx-auto p-4 space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">Marketplace</h1>
-              <p className="text-(--text-muted)">Discover amazing products from our community</p>
+              <h1 className="text-2xl font-bold text-(--text)">{t("marketplace", "title")}</h1>
+              <p className="text-(--text-muted)">{t("marketplace", "discoverProducts")}</p>
             </div>
             <Button variant="primary" onClick={() => setShowAddProduct(true)}>
-              <Plus size={18} className="mr-2" />
-              Add Product
+              <Plus size={18} className={isRTL ? "ml-2" : "mr-2"} />
+              {t("marketplace", "addProduct")}
             </Button>
           </div>
 
@@ -273,7 +275,7 @@ export default function MarketplacePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-(--text)">{stats.totalProducts}</p>
-                  <p className="text-sm text-(--text-muted)">Total Products</p>
+                  <p className="text-sm text-(--text-muted)">{t("marketplace", "totalProducts")}</p>
                 </div>
               </div>
             </Card>
@@ -284,7 +286,7 @@ export default function MarketplacePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-(--text)">{stats.inStock}</p>
-                  <p className="text-sm text-(--text-muted)">In Stock</p>
+                  <p className="text-sm text-(--text-muted)">{t("marketplace", "inStock")}</p>
                 </div>
               </div>
             </Card>
@@ -295,7 +297,7 @@ export default function MarketplacePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-(--text)">{stats.featured}</p>
-                  <p className="text-sm text-(--text-muted)">Featured</p>
+                  <p className="text-sm text-(--text-muted)">{t("marketplace", "featured")}</p>
                 </div>
               </div>
             </Card>
@@ -306,7 +308,7 @@ export default function MarketplacePage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-(--text)">${stats.avgPrice}</p>
-                  <p className="text-sm text-(--text-muted)">Avg. Price</p>
+                  <p className="text-sm text-(--text-muted)">{t("marketplace", "avgPrice")}</p>
                 </div>
               </div>
             </Card>
@@ -320,7 +322,7 @@ export default function MarketplacePage() {
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder={t("marketplace", "searchProducts")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"

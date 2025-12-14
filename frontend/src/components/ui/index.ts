@@ -3,3 +3,4 @@ export { Badge, NotificationBadge } from "./Badge";
 export { Button } from "./Button";
 export { Card, CardHeader, CardContent, CardFooter } from "./Card";
 export { Modal } from "./Modal";
+export { LanguageSwitcher } from "./LanguageSwitcher";

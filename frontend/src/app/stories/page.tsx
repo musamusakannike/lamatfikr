@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Avatar, Button, Modal } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { cn } from "@/lib/utils";
 import { dummyStories, Story } from "@/components/home/StoriesSection";
 import { 
   ArrowLeft, 
@@ -15,7 +17,6 @@ import {
   Filter
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 type FilterType = "all" | "images" | "videos";
 
@@ -215,6 +216,7 @@ function FullScreenViewer({ stories, initialIndex, isOpen, onClose }: FullScreen
 
 export default function StoriesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t, isRTL } = useLanguage();
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -243,7 +245,7 @@ export default function StoriesPage() {
       />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="pt-16 lg:pl-64">
+      <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
         <div className="max-w-6xl mx-auto p-4">
           {/* Header */}
           <div className="mb-6">
@@ -252,14 +254,14 @@ export default function StoriesPage() {
               className="inline-flex items-center gap-2 text-(--text-muted) hover:text-(--text) transition-colors mb-4"
             >
               <ArrowLeft size={20} />
-              <span>Back to Home</span>
+              <span>{t("stories", "backToHome")}</span>
             </Link>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-(--text)">Stories</h1>
+                <h1 className="text-2xl font-bold text-(--text)">{t("stories", "title")}</h1>
                 <p className="text-(--text-muted) text-sm mt-1">
-                  {unviewedCount} new stories from people you follow
+                  {unviewedCount} {t("stories", "newStories")}
                 </p>
               </div>
 
@@ -276,7 +278,7 @@ export default function StoriesPage() {
                         : "text-(--text-muted) hover:text-(--text)"
                     )}
                   >
-                    All ({dummyStories.length})
+                    {t("common", "all")} ({dummyStories.length})
                   </button>
                   <button
                     onClick={() => setFilter("images")}
@@ -288,7 +290,7 @@ export default function StoriesPage() {
                     )}
                   >
                     <ImageIcon size={14} />
-                    Photos ({imageCount})
+                    {t("stories", "photos")} ({imageCount})
                   </button>
                   <button
                     onClick={() => setFilter("videos")}
@@ -300,7 +302,7 @@ export default function StoriesPage() {
                     )}
                   >
                     <Video size={14} />
-                    Videos ({videoCount})
+                    {t("stories", "videos")} ({videoCount})
                   </button>
                 </div>
               </div>

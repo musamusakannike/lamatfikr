@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar, NotificationBadge } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Home,
   MessageSquare,
@@ -28,16 +29,6 @@ interface NavItem {
   active?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: MessageSquare, label: "Room Chats", href: "/rooms", badge: 12 },
-  { icon: Users, label: "Communities", href: "/communities", badge: 3 },
-  { icon: ShoppingBag, label: "Marketplace", href: "/marketplace" },
-  { icon: FileText, label: "Articles", href: "/articles" },
-  { icon: Newspaper, label: "Posts", href: "/posts" },
-  { icon: Bell, label: "Notifications", href: "/notifications", badge: 5 },
-  { icon: Settings, label: "Settings", href: "/settings" },
-];
 
 function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
   return (
@@ -70,6 +61,18 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { t, isRTL } = useLanguage();
+
+  const navItems: NavItem[] = [
+    { icon: Home, label: t("nav", "home"), href: "/" },
+    { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: 12 },
+    { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: 3 },
+    { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
+    { icon: FileText, label: isRTL ? "المقالات" : "Articles", href: "/articles" },
+    { icon: Newspaper, label: isRTL ? "المنشورات" : "Posts", href: "/posts" },
+    { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: 5 },
+    { icon: Settings, label: t("nav", "settings"), href: "/settings" },
+  ];
 
   return (
     <>
@@ -84,8 +87,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-16 bottom-0 w-64 bg-(--bg-sidebar) border-r border-(--border) z-40 transition-transform duration-300 flex flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed top-16 bottom-0 w-64 bg-(--bg-sidebar) z-40 transition-transform duration-300 flex flex-col",
+          isRTL ? "right-0 border-l border-(--border)" : "left-0 border-r border-(--border)",
+          isOpen 
+            ? "translate-x-0" 
+            : isRTL 
+              ? "translate-x-full lg:translate-x-0" 
+              : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Navigation */}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui";
+import { Button, LanguageSwitcher } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import {
   Eye,
@@ -14,10 +14,12 @@ import {
   AtSign,
   ChevronDown,
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Gender = "male" | "female" | "other" | "prefer_not_to_say" | "";
 
 export default function RegisterPage() {
+  const { t, isRTL } = useLanguage();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -53,8 +55,13 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex">
+      {/* Language Switcher - Fixed position */}
+      <div className="fixed top-4 end-4 z-50">
+        <LanguageSwitcher variant="full" className="bg-(--bg-card) border border-(--border) shadow-lg" />
+      </div>
+
       {/* Background Image - Hidden on mobile */}
-      <div className="hidden lg:block lg:w-1/2 xl:w-3/5 relative">
+      <div className={cn("hidden lg:block lg:w-1/2 xl:w-3/5 relative", isRTL ? "order-2" : "order-1")}>
         <Image
           src="/images/auth-bg.png"
           alt="Authentication background"
@@ -66,24 +73,23 @@ export default function RegisterPage() {
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-white max-w-lg">
             <h1 className="text-4xl xl:text-5xl font-bold mb-4">
-              Join LamatFikr
+              {t("auth", "joinLamatfikr")}
             </h1>
             <p className="text-lg xl:text-xl text-white/80">
-              Connect with like-minded individuals, share your thoughts, and be
-              part of a vibrant community.
+              {t("auth", "joinDescription")}
             </p>
           </div>
         </div>
       </div>
 
       {/* Auth Modal / Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-4 sm:p-8 bg-(--bg)">
+      <div className={cn("w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-4 sm:p-8 bg-(--bg)", isRTL ? "order-1" : "order-2")}>
         <div className="w-full max-w-md">
           {/* Logo for mobile */}
           <div className="lg:hidden text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary-600">LamatFikr</h1>
+            <h1 className="text-3xl font-bold text-primary-600">{t("common", "appName")}</h1>
             <p className="text-(--text-muted) mt-2">
-              Join our community today
+              {t("auth", "joinCommunity")}
             </p>
           </div>
 
@@ -91,10 +97,10 @@ export default function RegisterPage() {
           <div className="bg-(--bg-card) rounded-2xl border border-(--border) shadow-xl p-6 sm:p-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-(--text)">
-                Create Account
+                {t("auth", "createAccount")}
               </h2>
               <p className="text-(--text-muted) mt-1">
-                Fill in your details to get started
+                {t("auth", "fillDetails")}
               </p>
             </div>
 
@@ -123,7 +129,7 @@ export default function RegisterPage() {
                 />
               </svg>
               <span className="font-medium text-(--text)">
-                Sign up with Google
+                {t("auth", "signUpWithGoogle")}
               </span>
             </button>
 
@@ -134,7 +140,7 @@ export default function RegisterPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-(--bg-card) text-(--text-muted)">
-                  or continue with email
+                  {t("auth", "orContinueWithEmail")}
                 </span>
               </div>
             </div>
@@ -145,12 +151,12 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-1.5">
-                    First Name
+                    {t("auth", "firstName")}
                   </label>
                   <div className="relative">
                     <User
                       size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                      className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted)", isRTL ? "right-3" : "left-3")}
                     />
                     <input
                       type="text"
@@ -159,13 +165,13 @@ export default function RegisterPage() {
                       onChange={handleChange}
                       placeholder="John"
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                     />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-1.5">
-                    Last Name
+                    {t("auth", "lastName")}
                   </label>
                   <input
                     type="text"
@@ -182,12 +188,12 @@ export default function RegisterPage() {
               {/* Username */}
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Username
+                  {t("auth", "username")}
                 </label>
                 <div className="relative">
                   <AtSign
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                    className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted)", isRTL ? "right-3" : "left-3")}
                   />
                   <input
                     type="text"
@@ -196,7 +202,7 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     placeholder="johndoe"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                   />
                 </div>
               </div>
@@ -204,12 +210,12 @@ export default function RegisterPage() {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Email
+                  {t("auth", "email")}
                 </label>
                 <div className="relative">
                   <Mail
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                    className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted)", isRTL ? "right-3" : "left-3")}
                   />
                   <input
                     type="email"
@@ -218,7 +224,7 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     placeholder="john@example.com"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                   />
                 </div>
               </div>
@@ -226,12 +232,12 @@ export default function RegisterPage() {
               {/* Password */}
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Password
+                  {t("auth", "password")}
                 </label>
                 <div className="relative">
                   <Lock
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                    className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted)", isRTL ? "right-3" : "left-3")}
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -241,12 +247,12 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     required
                     minLength={8}
-                    className="w-full pl-10 pr-12 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-12" : "pl-10 pr-12")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text)"
+                    className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text)", isRTL ? "left-3" : "right-3")}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -256,7 +262,7 @@ export default function RegisterPage() {
               {/* Gender */}
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Gender
+                  {t("auth", "gender")}
                 </label>
                 <div className="relative">
                   <select
@@ -266,15 +272,15 @@ export default function RegisterPage() {
                     required
                     className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer"
                   >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                    <option value="prefer_not_to_say">Prefer not to say</option>
+                    <option value="">{t("auth", "selectGender")}</option>
+                    <option value="male">{t("auth", "male")}</option>
+                    <option value="female">{t("auth", "female")}</option>
+                    <option value="other">{t("auth", "other")}</option>
+                    <option value="prefer_not_to_say">{t("auth", "preferNotToSay")}</option>
                   </select>
                   <ChevronDown
                     size={18}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) pointer-events-none"
+                    className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted) pointer-events-none", isRTL ? "left-3" : "right-3")}
                   />
                 </div>
               </div>
@@ -289,35 +295,35 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating account...
+                    {t("auth", "creatingAccount")}
                   </div>
                 ) : (
-                  "Create Account"
+                  t("auth", "createAccount")
                 )}
               </Button>
             </form>
 
             {/* Login Link */}
             <p className="text-center text-(--text-muted) mt-6">
-              Already have an account?{" "}
+              {t("auth", "alreadyHaveAccount")}{" "}
               <Link
                 href="/auth/login"
                 className="text-primary-600 hover:text-primary-700 font-medium"
               >
-                Sign in
+                {t("auth", "signInLink")}
               </Link>
             </p>
           </div>
 
           {/* Terms */}
           <p className="text-center text-xs text-(--text-muted) mt-6">
-            By creating an account, you agree to our{" "}
+            {t("auth", "createAccountAgreement")}{" "}
             <Link href="#" className="text-primary-600 hover:underline">
-              Terms of Service
+              {t("auth", "termsOfService")}
             </Link>{" "}
-            and{" "}
+            {t("common", "and")}{" "}
             <Link href="#" className="text-primary-600 hover:underline">
-              Privacy Policy
+              {t("auth", "privacyPolicy")}
             </Link>
           </p>
         </div>

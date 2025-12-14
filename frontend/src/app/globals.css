@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Font Classes */
+.font-arabic {
+  font-family: var(--font-arabic), "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+}
+
+.font-english {
+  font-family: "Google Sans", "Segoe UI", Roboto, sans-serif;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="ltr"] {
+  text-align: left;
+}
+
 @theme {
   /* Primary Purple Colors */
   --color-primary-50: #f5f3ff;

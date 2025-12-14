@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Button, Modal } from "@/components/ui";
+import { Avatar, Button, Modal, LanguageSwitcher } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Search,
   Bell,
@@ -30,6 +31,7 @@ interface NavbarProps {
 
 export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -149,7 +151,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               />
               <input
                 type="text"
-                placeholder="Search posts, people, communities..."
+                placeholder={t("common", "search") + "..."}
                 className={cn(
                   "w-full pl-11 pr-4 py-2.5 rounded-full text-sm",
                   "bg-primary-50/80 dark:bg-primary-950/40",
@@ -192,7 +194,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               )}
             >
               <Plus size={16} strokeWidth={2.5} />
-              <span className="font-semibold">Create</span>
+              <span className="font-semibold">{t("common", "create")}</span>
             </Button>
 
             {/* Mobile create button */}
@@ -251,6 +253,9 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 5
               </span>
             </Button>
+
+            {/* Language Switcher */}
+            <LanguageSwitcher variant="icon" />
 
             {/* Theme toggle */}
             <Button
@@ -339,26 +344,26 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 <div className="py-1">
                   <DropdownItem
                     icon={User}
-                    label="Profile"
+                    label={t("nav", "profile")}
                     onClick={() => {
                       router.push("/profile");
                     }}
                   />
                   <DropdownItem
                     icon={Settings}
-                    label="Settings"
+                    label={t("nav", "settings")}
                     onClick={() => {}}
                   />
                   <DropdownItem
                     icon={HelpCircle}
-                    label="Help & Support"
+                    label={isRTL ? "المساعدة والدعم" : "Help & Support"}
                     onClick={() => {}}
                   />
                 </div>
                 <div className="border-t border-(--border) pt-1">
                   <DropdownItem
                     icon={LogOut}
-                    label="Sign out"
+                    label={t("nav", "logout")}
                     danger
                     onClick={() => {}}
                   />

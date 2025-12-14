@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui";
+import { Button, LanguageSwitcher } from "@/components/ui";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LoginPage() {
+  const { t, isRTL } = useLanguage();
   const [formData, setFormData] = useState({
     emailOrUsername: "",
     password: "",
@@ -36,8 +38,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
+      {/* Language Switcher - Fixed position */}
+      <div className="fixed top-4 end-4 z-50">
+        <LanguageSwitcher variant="full" className="bg-(--bg-card) border border-(--border) shadow-lg" />
+      </div>
+
       {/* Background Image - Hidden on mobile */}
-      <div className="hidden lg:block lg:w-1/2 xl:w-3/5 relative">
+      <div className={`hidden lg:block lg:w-1/2 xl:w-3/5 relative ${isRTL ? "order-2" : "order-1"}`}>
         <Image
           src="/images/auth-bg.png"
           alt="Authentication background"
@@ -49,31 +56,30 @@ export default function LoginPage() {
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-white max-w-lg">
             <h1 className="text-4xl xl:text-5xl font-bold mb-4">
-              Welcome Back
+              {t("auth", "welcomeBack")}
             </h1>
             <p className="text-lg xl:text-xl text-white/80">
-              Sign in to continue your journey with LamatFikr. Your community
-              awaits.
+              {t("auth", "signInContinue")}
             </p>
           </div>
         </div>
       </div>
 
       {/* Auth Modal / Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-4 sm:p-8 bg-(--bg)">
+      <div className={`w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-4 sm:p-8 bg-(--bg) ${isRTL ? "order-1" : "order-2"}`}>
         <div className="w-full max-w-md">
           {/* Logo for mobile */}
           <div className="lg:hidden text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary-600">LamatFikr</h1>
-            <p className="text-(--text-muted) mt-2">Welcome back</p>
+            <h1 className="text-3xl font-bold text-primary-600">{t("common", "appName")}</h1>
+            <p className="text-(--text-muted) mt-2">{t("auth", "welcomeBack")}</p>
           </div>
 
           {/* Form Card */}
           <div className="bg-(--bg-card) rounded-2xl border border-(--border) shadow-xl p-6 sm:p-8">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-(--text)">Sign In</h2>
+              <h2 className="text-2xl font-bold text-(--text)">{t("auth", "signIn")}</h2>
               <p className="text-(--text-muted) mt-1">
-                Enter your credentials to continue
+                {t("auth", "enterCredentials")}
               </p>
             </div>
 
@@ -102,7 +108,7 @@ export default function LoginPage() {
                 />
               </svg>
               <span className="font-medium text-(--text)">
-                Sign in with Google
+                {t("auth", "signInWithGoogle")}
               </span>
             </button>
 
@@ -113,7 +119,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-(--bg-card) text-(--text-muted)">
-                  or continue with email
+                  {t("auth", "orContinueWithEmail")}
                 </span>
               </div>
             </div>
@@ -123,21 +129,21 @@ export default function LoginPage() {
               {/* Email or Username */}
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Email or Username
+                  {t("auth", "emailOrUsername")}
                 </label>
                 <div className="relative">
                   <Mail
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                    className={`absolute top-1/2 -translate-y-1/2 text-(--text-muted) ${isRTL ? "right-3" : "left-3"}`}
                   />
                   <input
                     type="text"
                     name="emailOrUsername"
                     value={formData.emailOrUsername}
                     onChange={handleChange}
-                    placeholder="john@example.com or johndoe"
+                    placeholder={t("auth", "emailOrUsernamePlaceholder")}
                     required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={`w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 ${isRTL ? "pr-10 pl-4" : "pl-10 pr-4"}`}
                   />
                 </div>
               </div>
@@ -146,19 +152,19 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-sm font-medium text-(--text)">
-                    Password
+                    {t("auth", "password")}
                   </label>
                   <Link
                     href="#"
                     className="text-sm text-primary-600 hover:text-primary-700"
                   >
-                    Forgot password?
+                    {t("auth", "forgotPassword")}
                   </Link>
                 </div>
                 <div className="relative">
                   <Lock
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
+                    className={`absolute top-1/2 -translate-y-1/2 text-(--text-muted) ${isRTL ? "right-3" : "left-3"}`}
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -167,12 +173,12 @@ export default function LoginPage() {
                     onChange={handleChange}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-12 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={`w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 ${isRTL ? "pr-10 pl-12" : "pl-10 pr-12"}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text)"
+                    className={`absolute top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text) ${isRTL ? "left-3" : "right-3"}`}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -190,7 +196,7 @@ export default function LoginPage() {
                   htmlFor="remember"
                   className="text-sm text-(--text-muted)"
                 >
-                  Remember me for 30 days
+                  {t("auth", "rememberMe")}
                 </label>
               </div>
 
@@ -204,35 +210,35 @@ export default function LoginPage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
+                    {t("auth", "signingIn")}
                   </div>
                 ) : (
-                  "Sign In"
+                  t("auth", "signIn")
                 )}
               </Button>
             </form>
 
             {/* Register Link */}
             <p className="text-center text-(--text-muted) mt-6">
-              Don&apos;t have an account?{" "}
+              {t("auth", "noAccount")}{" "}
               <Link
                 href="/auth/register"
                 className="text-primary-600 hover:text-primary-700 font-medium"
               >
-                Create one
+                {t("auth", "createOne")}
               </Link>
             </p>
           </div>
 
           {/* Terms */}
           <p className="text-center text-xs text-(--text-muted) mt-6">
-            By signing in, you agree to our{" "}
+            {t("auth", "termsAgreement")}{" "}
             <Link href="#" className="text-primary-600 hover:underline">
-              Terms of Service
+              {t("auth", "termsOfService")}
             </Link>{" "}
-            and{" "}
+            {t("common", "and")}{" "}
             <Link href="#" className="text-primary-600 hover:underline">
-              Privacy Policy
+              {t("auth", "privacyPolicy")}
             </Link>
           </p>
         </div>
