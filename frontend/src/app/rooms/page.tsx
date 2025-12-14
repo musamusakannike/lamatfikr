@@ -517,7 +517,7 @@ function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                  <option value="NGN">NGN (₦)</option>
+                  <option value="NGN">SAR (SAR)</option>
                 </select>
               </div>
             </div>
