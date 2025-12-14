@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button, LanguageSwitcher } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import {
@@ -15,21 +16,29 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth, getErrorMessage } from "@/contexts/AuthContext";
+import { signInWithGoogle } from "@/lib/firebase";
+import { Gender } from "@/types/auth";
+import toast from "react-hot-toast";
 
-type Gender = "male" | "female" | "other" | "prefer_not_to_say" | "";
+type GenderType = "male" | "female" | "other" | "prefer_not_to_say" | "";
 
 export default function RegisterPage() {
   const { t, isRTL } = useLanguage();
+  const { register, socialAuth } = useAuth();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     username: "",
     email: "",
     password: "",
-    gender: "" as Gender,
+    gender: "" as GenderType,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -41,16 +50,64 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Dummy submit - simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    alert(
-      `Registration submitted!\n\nData:\n- Name: ${formData.firstName} ${formData.lastName}\n- Username: ${formData.username}\n- Email: ${formData.email}\n- Gender: ${formData.gender}`
-    );
-    setIsLoading(false);
+    setError(null);
+
+    try {
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        gender: formData.gender as Gender,
+      });
+      toast.success(
+        t("auth", "registrationSuccess") ||
+          "Registration successful! Please check your email to verify your account."
+      );
+      // Redirect to login page after successful registration
+      router.push("/auth/login?registered=true");
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignUp = () => {
-    alert("Google Sign Up clicked! (This is a dummy action)");
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    setError(null);
+
+    try {
+      const result = await signInWithGoogle();
+      const idToken = await result.user.getIdToken();
+
+      const response = await socialAuth({ idToken });
+
+      if (response.requiresProfileCompletion) {
+        // Store firebase user info for profile completion
+        sessionStorage.setItem(
+          "pendingFirebaseUser",
+          JSON.stringify({
+            idToken,
+            ...response.firebaseUser,
+            missingFields: response.missingFields,
+          })
+        );
+        // Redirect to complete profile page
+        router.push("/auth/complete-profile");
+      } else {
+        toast.success(t("auth", "registrationSuccess") || "Registration successful!");
+      }
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -104,11 +161,19 @@ export default function RegisterPage() {
               </p>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
             {/* Google Sign Up */}
             <button
               type="button"
               onClick={handleGoogleSignUp}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-(--border) bg-(--bg) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors mb-6"
+              disabled={isGoogleLoading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-(--border) bg-(--bg) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -129,7 +194,7 @@ export default function RegisterPage() {
                 />
               </svg>
               <span className="font-medium text-(--text)">
-                {t("auth", "signUpWithGoogle")}
+                {isGoogleLoading ? t("auth", "creatingAccount") : t("auth", "signUpWithGoogle")}
               </span>
             </button>
 

@@ -6,15 +6,21 @@ import Image from "next/image";
 import { Button, LanguageSwitcher } from "@/components/ui";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth, getErrorMessage } from "@/contexts/AuthContext";
+import { signInWithGoogle } from "@/lib/firebase";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const { t, isRTL } = useLanguage();
+  const { login, socialAuth } = useAuth();
   const [formData, setFormData] = useState({
-    emailOrUsername: "",
+    email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -24,16 +30,55 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Dummy submit - simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    alert(
-      `Login submitted!\n\nData:\n- Email/Username: ${formData.emailOrUsername}`
-    );
-    setIsLoading(false);
+    setError(null);
+
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+      toast.success(t("auth", "loginSuccess") || "Login successful!");
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleSignIn = () => {
-    alert("Google Sign In clicked! (This is a dummy action)");
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError(null);
+
+    try {
+      const result = await signInWithGoogle();
+      const idToken = await result.user.getIdToken();
+
+      const response = await socialAuth({ idToken });
+
+      if (response.requiresProfileCompletion) {
+        // Store firebase user info for profile completion
+        sessionStorage.setItem(
+          "pendingFirebaseUser",
+          JSON.stringify({
+            idToken,
+            ...response.firebaseUser,
+            missingFields: response.missingFields,
+          })
+        );
+        // Redirect to complete profile page
+        window.location.href = "/auth/complete-profile";
+      } else {
+        toast.success(t("auth", "loginSuccess") || "Login successful!");
+      }
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -83,11 +128,19 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
             {/* Google Sign In */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-(--border) bg-(--bg) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors mb-6"
+              disabled={isGoogleLoading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-(--border) bg-(--bg) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -108,7 +161,7 @@ export default function LoginPage() {
                 />
               </svg>
               <span className="font-medium text-(--text)">
-                {t("auth", "signInWithGoogle")}
+                {isGoogleLoading ? t("auth", "signingIn") : t("auth", "signInWithGoogle")}
               </span>
             </button>
 
@@ -138,10 +191,10 @@ export default function LoginPage() {
                   />
                   <input
                     type="text"
-                    name="emailOrUsername"
-                    value={formData.emailOrUsername}
+                    name="email"
+                    value={formData.email}
                     onChange={handleChange}
-                    placeholder={t("auth", "emailOrUsernamePlaceholder")}
+                    placeholder={t("auth", "emailPlaceholder") || "Enter your email"}
                     required
                     className={`w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 ${isRTL ? "pr-10 pl-4" : "pl-10 pr-4"}`}
                   />
