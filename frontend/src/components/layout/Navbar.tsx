@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Button } from "@/components/ui";
+import { Avatar, Button, Modal } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
   Search,
@@ -20,6 +20,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { CreatePost } from "@/components/home/CreatePost";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -31,6 +32,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -172,6 +174,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
             <Button
               variant="primary"
               size="sm"
+              onClick={() => setCreatePostModalOpen(true)}
               className={cn(
                 "hidden sm:flex gap-1.5 items-center",
                 "shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30",
@@ -187,6 +190,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
             <Button
               variant="primary"
               size="icon"
+              onClick={() => setCreatePostModalOpen(true)}
               className={cn(
                 "sm:hidden",
                 "shadow-md shadow-primary-500/20",
@@ -373,6 +377,20 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
           <p className="text-sm text-(--text-muted)">Recent searches</p>
         </div>
       </div>
+
+      {/* Create Post Modal */}
+      <Modal
+        isOpen={createPostModalOpen}
+        onClose={() => setCreatePostModalOpen(false)}
+        size="lg"
+        title="Create Post"
+        closeOnBackdropClick={true}
+        closeOnEscape={true}
+      >
+        <div className="p-0">
+          <CreatePost onClose={() => setCreatePostModalOpen(false)} inModal={true} />
+        </div>
+      </Modal>
     </>
   );
 }

@@ -418,7 +418,12 @@ function MediaPreview({
   );
 }
 
-export function CreatePost() {
+interface CreatePostProps {
+  onClose?: () => void;
+  inModal?: boolean;
+}
+
+export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [content, setContent] = useState("");
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityState>({
@@ -576,6 +581,11 @@ export function CreatePost() {
         { id: crypto.randomUUID(), text: "" },
       ]);
       setIsSubmitting(false);
+      
+      // Close modal if in modal mode
+      if (inModal && onClose) {
+        onClose();
+      }
     }, 1000);
   };
 
@@ -586,8 +596,8 @@ export function CreatePost() {
     (showPoll && pollOptions.some((o) => o.text.trim()));
 
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className={cn(inModal && "border-0 shadow-none")}>
+      <CardContent className={cn("p-4", inModal && "p-0")}>
         <div {...getRootProps()} className="relative">
           {/* Drag overlay */}
           {isDragActive && (
