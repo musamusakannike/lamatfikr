@@ -144,7 +144,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(() => {
     localStorage.removeItem("accessToken");
     setUser(null);
-    router.push("/login");
+    router.push("/auth/login");
   }, [router]);
 
   const forgotPassword = useCallback(async (data: ForgotPasswordInput) => {

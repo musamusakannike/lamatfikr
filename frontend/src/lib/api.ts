@@ -70,7 +70,7 @@ api.interceptors.response.use(
         // Refresh failed - clear tokens and redirect to login
         localStorage.removeItem("accessToken");
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          window.location.href = "/auth/login";
         }
         return Promise.reject(refreshError);
       }
