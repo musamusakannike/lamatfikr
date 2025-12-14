@@ -421,7 +421,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
         closeOnBackdropClick={true}
         closeOnEscape={true}
       >
-        <div className="p-0">
+        <div className="p-2">
           <CreatePost
             onClose={() => setCreatePostModalOpen(false)}
             inModal={true}
