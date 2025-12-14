@@ -23,6 +23,15 @@ import {
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 
+// Cross-browser compatible UUID generator
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // Visibility options
 // type VisibilityOption = "only_me" | "followers" | "following";
 
@@ -137,7 +146,7 @@ function PollCreator({
     if (options.length < 4) {
       onOptionsChange([
         ...options,
-        { id: crypto.randomUUID(), text: "" },
+        { id: generateId(), text: "" },
       ]);
     }
   };
@@ -435,8 +444,8 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [audioAttachment, setAudioAttachment] = useState<AudioAttachment | null>(null);
   const [showPoll, setShowPoll] = useState(false);
   const [pollOptions, setPollOptions] = useState<PollOption[]>([
-    { id: crypto.randomUUID(), text: "" },
-    { id: crypto.randomUUID(), text: "" },
+    { id: generateId(), text: "" },
+    { id: generateId(), text: "" },
   ]);
   const [showAudioRecorder, setShowAudioRecorder] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -449,7 +458,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
       .filter((file) => file.type.startsWith("image/") || file.type.startsWith("video/"))
       .slice(0, 4 - mediaAttachments.length)
       .map((file) => ({
-        id: crypto.randomUUID(),
+        id: generateId(),
         file,
         preview: URL.createObjectURL(file),
         type: file.type.startsWith("image/") ? "image" : "video",
@@ -491,7 +500,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const handleAudioRecordingComplete = (blob: Blob, duration: number) => {
     const url = URL.createObjectURL(blob);
     setAudioAttachment({
-      id: crypto.randomUUID(),
+      id: generateId(),
       blob,
       url,
       duration,
@@ -510,8 +519,8 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
     setShowPoll(!showPoll);
     if (!showPoll) {
       setPollOptions([
-        { id: crypto.randomUUID(), text: "" },
-        { id: crypto.randomUUID(), text: "" },
+        { id: generateId(), text: "" },
+        { id: generateId(), text: "" },
       ]);
     }
   };
@@ -577,8 +586,8 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
       setAudioAttachment(null);
       setShowPoll(false);
       setPollOptions([
-        { id: crypto.randomUUID(), text: "" },
-        { id: crypto.randomUUID(), text: "" },
+        { id: generateId(), text: "" },
+        { id: generateId(), text: "" },
       ]);
       setIsSubmitting(false);
       
