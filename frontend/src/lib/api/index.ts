@@ -3,3 +3,6 @@ export type { ProfileData, PrivacySettings, ProfileResponse, PublicProfile } fro
 
 export { socialApi } from "./social";
 export type { UserSummary, FollowersResponse, FollowingResponse, FriendsResponse } from "./social";
+
+export { uploadApi } from "./upload";
+export type { UploadResponse } from "./upload";

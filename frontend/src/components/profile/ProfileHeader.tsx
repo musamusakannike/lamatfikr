@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import { profileApi, socialApi } from "@/lib/api/index";
+import { profileApi, socialApi, uploadApi } from "@/lib/api/index";
 import type { User } from "@/types/auth";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "@/lib/api";
@@ -77,28 +77,13 @@ export function ProfileHeader({
     }
   }, [authUser]);
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "lamatfikr");
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
-    );
-
-    if (!response.ok) throw new Error("Failed to upload image");
-    const data = await response.json();
-    return data.secure_url;
-  };
-
   const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setIsUploadingCover(true);
-      const coverPhotoUrl = await uploadToCloudinary(file);
+      const { url: coverPhotoUrl } = await uploadApi.uploadImage(file, "covers");
       await profileApi.updateCoverPhoto(coverPhotoUrl);
       setProfile((prev) => prev ? { ...prev, coverPhoto: coverPhotoUrl } : null);
       toast.success("Cover photo updated!");
@@ -117,7 +102,7 @@ export function ProfileHeader({
 
     try {
       setIsUploadingAvatar(true);
-      const avatarUrl = await uploadToCloudinary(file);
+      const { url: avatarUrl } = await uploadApi.uploadImage(file, "avatars");
       await profileApi.updateAvatar(avatarUrl);
       setProfile((prev) => prev ? { ...prev, avatar: avatarUrl } : null);
       toast.success("Profile photo updated!");

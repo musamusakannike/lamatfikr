@@ -14,6 +14,7 @@ import { profileRouter } from "./routes/profile";
 import { verificationRouter } from "./routes/verification";
 import { socialRouter } from "./routes/social";
 import { postsRouter } from "./routes/posts";
+import { uploadRouter } from "./routes/upload";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -51,6 +52,7 @@ export function createApp() {
   app.use("/api/verification", verificationRouter);
   app.use("/api/social", socialRouter);
   app.use("/api/posts", postsRouter);
+  app.use("/api/upload", uploadRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

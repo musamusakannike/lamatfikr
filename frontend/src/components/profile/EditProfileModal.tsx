@@ -20,7 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
-import { profileApi } from "@/lib/api/index";
+import { profileApi, uploadApi } from "@/lib/api/index";
 import { getErrorMessage } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
@@ -139,21 +139,6 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
     fetchProfile();
   }, [isOpen]);
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "lamatfikr");
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
-    );
-
-    if (!response.ok) throw new Error("Failed to upload image");
-    const data = await response.json();
-    return data.secure_url;
-  };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -167,7 +152,7 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
 
     try {
       setIsUploadingAvatar(true);
-      const avatarUrl = await uploadToCloudinary(file);
+      const { url: avatarUrl } = await uploadApi.uploadImage(file, "avatars");
       await profileApi.updateAvatar(avatarUrl);
       setFormData((prev) => ({ ...prev, avatar: avatarUrl }));
       toast.success("Profile photo updated!");
@@ -184,7 +169,7 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
 
     try {
       setIsUploadingCover(true);
-      const coverPhotoUrl = await uploadToCloudinary(file);
+      const { url: coverPhotoUrl } = await uploadApi.uploadImage(file, "covers");
       await profileApi.updateCoverPhoto(coverPhotoUrl);
       setFormData((prev) => ({ ...prev, coverPhoto: coverPhotoUrl }));
       toast.success("Cover photo updated!");
