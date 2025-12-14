@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Modal, Button } from "@/components/ui";
 import {
@@ -17,13 +17,21 @@ import {
   FileText,
   Save,
   X,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
+import { profileApi } from "@/lib/api/index";
+import { getErrorMessage } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onProfileUpdate?: () => void;
 }
+
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
 interface ProfileFormData {
   firstName: string;
@@ -42,21 +50,21 @@ interface ProfileFormData {
   coverPhoto: string;
 }
 
-const initialFormData: ProfileFormData = {
-  firstName: "John",
-  lastName: "Doe",
-  username: "johndoe",
-  email: "john.doe@example.com",
-  phone: "+1 234 567 8900",
-  bio: "Full-stack developer passionate about building great products. Love coffee, coding, and creating meaningful connections.",
-  location: "San Francisco, CA",
-  workingAt: "Tech Startup Inc.",
-  school: "Stanford University",
-  website: "https://johndoe.dev",
-  birthday: "1995-01-15",
-  relationshipStatus: "Single",
-  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-  coverPhoto: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop",
+const emptyFormData: ProfileFormData = {
+  firstName: "",
+  lastName: "",
+  username: "",
+  email: "",
+  phone: "",
+  bio: "",
+  location: "",
+  workingAt: "",
+  school: "",
+  website: "",
+  birthday: "",
+  relationshipStatus: "",
+  avatar: "",
+  coverPhoto: "",
 };
 
 const relationshipOptions = [
@@ -88,12 +96,63 @@ function FormField({
   );
 }
 
-export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
-  const [formData, setFormData] = useState<ProfileFormData>(initialFormData);
+export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfileModalProps) {
+  const { refreshUser } = useAuth();
+  const [formData, setFormData] = useState<ProfileFormData>(emptyFormData);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [activeSection, setActiveSection] = useState<"basic" | "details" | "photos">("basic");
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!isOpen) return;
+      try {
+        setIsLoading(true);
+        const { profile } = await profileApi.getProfile();
+        setFormData({
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          username: profile.username || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          bio: profile.bio || "",
+          location: profile.address || "",
+          workingAt: profile.workingAt || "",
+          school: profile.school || "",
+          website: profile.website || "",
+          birthday: profile.birthday ? profile.birthday.split("T")[0] : "",
+          relationshipStatus: profile.relationshipStatus || "",
+          avatar: profile.avatar || "",
+          coverPhoto: profile.coverPhoto || "",
+        });
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [isOpen]);
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "lamatfikr");
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+
+    if (!response.ok) throw new Error("Failed to upload image");
+    const data = await response.json();
+    return data.secure_url;
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -102,19 +161,37 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, avatar: url }));
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const avatarUrl = await uploadToCloudinary(file);
+      await profileApi.updateAvatar(avatarUrl);
+      setFormData((prev) => ({ ...prev, avatar: avatarUrl }));
+      toast.success("Profile photo updated!");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, coverPhoto: url }));
+    if (!file) return;
+
+    try {
+      setIsUploadingCover(true);
+      const coverPhotoUrl = await uploadToCloudinary(file);
+      await profileApi.updateCoverPhoto(coverPhotoUrl);
+      setFormData((prev) => ({ ...prev, coverPhoto: coverPhotoUrl }));
+      toast.success("Cover photo updated!");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsUploadingCover(false);
     }
   };
 
@@ -122,13 +199,28 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
     e.preventDefault();
     setIsSaving(true);
 
-    // TODO: Implement actual API call
-    console.log("Saving profile:", formData);
-
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await profileApi.updateProfile({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone || undefined,
+        bio: formData.bio || undefined,
+        birthday: formData.birthday || undefined,
+        relationshipStatus: formData.relationshipStatus || undefined,
+        address: formData.location || undefined,
+        website: formData.website || undefined,
+        workingAt: formData.workingAt || undefined,
+        school: formData.school || undefined,
+      });
+      toast.success("Profile updated successfully!");
+      refreshUser();
+      onProfileUpdate?.();
       onClose();
-    }, 1000);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const inputClasses = cn(
@@ -139,6 +231,16 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
     "placeholder:text-(--text-muted)",
     "outline-none transition-all duration-200"
   );
+
+  if (isLoading) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Edit Profile">
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-primary-500" />
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Edit Profile">
@@ -364,16 +466,24 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                       className="object-cover"
                     />
                   )}
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <div className={cn(
+                    "absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity",
+                    isUploadingCover ? "opacity-100" : "opacity-0 hover:opacity-100"
+                  )}>
                     <Button
                       type="button"
                       variant="secondary"
                       size="sm"
                       onClick={() => coverInputRef.current?.click()}
                       className="gap-2"
+                      disabled={isUploadingCover}
                     >
-                      <Camera size={16} />
-                      Change Cover
+                      {isUploadingCover ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Camera size={16} />
+                      )}
+                      {isUploadingCover ? "Uploading..." : "Change Cover"}
                     </Button>
                   </div>
                   <input
@@ -402,14 +512,24 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        {formData.firstName.charAt(0)}
-                      </div>
+                      <Image
+                        src={DEFAULT_AVATAR}
+                        alt="Default avatar"
+                        fill
+                        className="object-cover"
+                      />
                     )}
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
-                      onClick={() => avatarInputRef.current?.click()}
+                    <div className={cn(
+                      "absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity cursor-pointer",
+                      isUploadingAvatar ? "opacity-100" : "opacity-0 hover:opacity-100"
+                    )}
+                      onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
                     >
-                      <Camera size={24} className="text-white" />
+                      {isUploadingAvatar ? (
+                        <Loader2 size={24} className="text-white animate-spin" />
+                      ) : (
+                        <Camera size={24} className="text-white" />
+                      )}
                     </div>
                     <input
                       ref={avatarInputRef}
@@ -426,9 +546,14 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
                       size="sm"
                       onClick={() => avatarInputRef.current?.click()}
                       className="gap-2"
+                      disabled={isUploadingAvatar}
                     >
-                      <Camera size={16} />
-                      Upload Photo
+                      {isUploadingAvatar ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Camera size={16} />
+                      )}
+                      {isUploadingAvatar ? "Uploading..." : "Upload Photo"}
                     </Button>
                     <p className="text-xs text-(--text-muted) mt-1">
                       JPG, PNG or GIF. Max 5MB.

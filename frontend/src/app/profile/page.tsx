@@ -47,10 +47,11 @@ export default function ProfilePage() {
             onEditProfile={() => setShowEditProfileModal(true)}
             onShowFollowers={handleShowFollowers}
             onShowFollowing={handleShowFollowing}
+            onProfileUpdate={() => {}}
           />
 
           {/* Profile Completion Section */}
-          <ProfileCompletion />
+          <ProfileCompletion onEditProfile={() => setShowEditProfileModal(true)} />
 
           {/* Create Post */}
           <CreatePost />
@@ -75,6 +76,7 @@ export default function ProfilePage() {
       <EditProfileModal
         isOpen={showEditProfileModal}
         onClose={() => setShowEditProfileModal(false)}
+        onProfileUpdate={() => {}}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button, Card, CardContent } from "@/components/ui";
 import {
@@ -16,64 +16,158 @@ import {
   Phone,
   CheckCircle,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import { profileApi, socialApi } from "@/lib/api/index";
+import type { User } from "@/types/auth";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "@/lib/api";
 
 interface ProfileHeaderProps {
   onEditProfile: () => void;
   onShowFollowers: () => void;
   onShowFollowing: () => void;
+  onProfileUpdate?: () => void;
 }
 
-// Mock user data - in real app, this would come from API/context
-const mockUser = {
-  id: "1",
-  firstName: "John",
-  lastName: "Doe",
-  username: "johndoe",
-  email: "john.doe@example.com",
-  phone: "+1 234 567 8900",
-  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-  coverPhoto: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop",
-  bio: "Full-stack developer passionate about building great products. Love coffee, coding, and creating meaningful connections. 🚀",
-  verified: true,
-  location: "San Francisco, CA",
-  workingAt: "Tech Startup Inc.",
-  school: "Stanford University",
-  website: "https://johndoe.dev",
-  birthday: "January 15",
-  relationshipStatus: "Single",
-  followersCount: 1234,
-  followingCount: 567,
-  postsCount: 89,
-  joinedDate: "March 2023",
-};
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
 export function ProfileHeader({
   onEditProfile,
   onShowFollowers,
   onShowFollowing,
+  onProfileUpdate,
 }: ProfileHeaderProps) {
+  const { user: authUser, refreshUser } = useAuth();
+  const [profile, setProfile] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [isHoveringBanner, setIsHoveringBanner] = useState(false);
   const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const [profileRes, followersRes, followingRes] = await Promise.all([
+          profileApi.getProfile(),
+          socialApi.getFollowers(),
+          socialApi.getFollowing(),
+        ]);
+        setProfile(profileRes.profile);
+        setFollowersCount(followersRes.pagination.total);
+        setFollowingCount(followingRes.pagination.total);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        toast.error(getErrorMessage(error));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (authUser) {
+      fetchProfile();
+    }
+  }, [authUser]);
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "lamatfikr");
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+
+    if (!response.ok) throw new Error("Failed to upload image");
+    const data = await response.json();
+    return data.secure_url;
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // TODO: Upload banner image
-      console.log("Banner file:", file);
+    if (!file) return;
+
+    try {
+      setIsUploadingCover(true);
+      const coverPhotoUrl = await uploadToCloudinary(file);
+      await profileApi.updateCoverPhoto(coverPhotoUrl);
+      setProfile((prev) => prev ? { ...prev, coverPhoto: coverPhotoUrl } : null);
+      toast.success("Cover photo updated!");
+      refreshUser();
+      onProfileUpdate?.();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsUploadingCover(false);
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // TODO: Upload avatar image
-      console.log("Avatar file:", file);
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const avatarUrl = await uploadToCloudinary(file);
+      await profileApi.updateAvatar(avatarUrl);
+      setProfile((prev) => prev ? { ...prev, avatar: avatarUrl } : null);
+      toast.success("Profile photo updated!");
+      refreshUser();
+      onProfileUpdate?.();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  };
+
+  const formatJoinedDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="overflow-hidden">
+        <div className="h-48 sm:h-56 md:h-64 bg-primary-100 dark:bg-primary-900/50 animate-pulse" />
+        <CardContent className="relative pt-0 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
+            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-primary-200 dark:bg-primary-800 animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-6 w-48 bg-primary-200 dark:bg-primary-800 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-primary-200 dark:bg-primary-800 rounded animate-pulse" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Card className="overflow-hidden">
+        <CardContent className="p-8 text-center">
+          <p className="text-(--text-muted)">Failed to load profile</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -83,9 +177,9 @@ export function ProfileHeader({
         onMouseEnter={() => setIsHoveringBanner(true)}
         onMouseLeave={() => setIsHoveringBanner(false)}
       >
-        {mockUser.coverPhoto && (
+        {profile.coverPhoto && (
           <Image
-            src={mockUser.coverPhoto}
+            src={profile.coverPhoto}
             alt="Cover photo"
             fill
             className="object-cover"
@@ -96,7 +190,7 @@ export function ProfileHeader({
         <div
           className={cn(
             "absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity",
-            isHoveringBanner ? "opacity-100" : "opacity-0"
+            isHoveringBanner || isUploadingCover ? "opacity-100" : "opacity-0"
           )}
         >
           <Button
@@ -104,9 +198,14 @@ export function ProfileHeader({
             size="sm"
             onClick={() => bannerInputRef.current?.click()}
             className="gap-2"
+            disabled={isUploadingCover}
           >
-            <Camera size={16} />
-            Change Cover
+            {isUploadingCover ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Camera size={16} />
+            )}
+            {isUploadingCover ? "Uploading..." : "Change Cover"}
           </Button>
         </div>
         <input
@@ -127,18 +226,22 @@ export function ProfileHeader({
             onMouseLeave={() => setIsHoveringAvatar(false)}
           >
             <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-(--bg-card) overflow-hidden bg-primary-100 dark:bg-primary-900">
-              {mockUser.avatar ? (
+              {profile.avatar ? (
                 <Image
-                  src={mockUser.avatar}
-                  alt={`${mockUser.firstName} ${mockUser.lastName}`}
+                  src={profile.avatar}
+                  alt={`${profile.firstName} ${profile.lastName}`}
                   width={144}
                   height={144}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-primary-600 dark:text-primary-400">
-                  {mockUser.firstName.charAt(0)}
-                </div>
+                <Image
+                  src={DEFAULT_AVATAR}
+                  alt="Default avatar"
+                  width={144}
+                  height={144}
+                  className="w-full h-full object-cover"
+                />
               )}
             </div>
             
@@ -146,11 +249,15 @@ export function ProfileHeader({
             <div
               className={cn(
                 "absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity cursor-pointer",
-                isHoveringAvatar ? "opacity-100" : "opacity-0"
+                isHoveringAvatar || isUploadingAvatar ? "opacity-100" : "opacity-0"
               )}
-              onClick={() => avatarInputRef.current?.click()}
+              onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
             >
-              <Camera size={24} className="text-white" />
+              {isUploadingAvatar ? (
+                <Loader2 size={24} className="text-white animate-spin" />
+              ) : (
+                <Camera size={24} className="text-white" />
+              )}
             </div>
             <input
               ref={avatarInputRef}
@@ -161,7 +268,7 @@ export function ProfileHeader({
             />
 
             {/* Verified badge */}
-            {mockUser.verified && (
+            {profile.verified && (
               <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center border-2 border-(--bg-card)">
                 <CheckCircle size={16} className="text-white" fill="currentColor" />
               </div>
@@ -173,10 +280,10 @@ export function ProfileHeader({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {mockUser.firstName} {mockUser.lastName}
+                  {profile.firstName} {profile.lastName}
                 </h1>
               </div>
-              <p className="text-(--text-muted)">@{mockUser.username}</p>
+              <p className="text-(--text-muted)">@{profile.username}</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -197,8 +304,8 @@ export function ProfileHeader({
         </div>
 
         {/* Bio */}
-        {mockUser.bio && (
-          <p className="mt-4 text-(--text) whitespace-pre-wrap">{mockUser.bio}</p>
+        {profile.bio && (
+          <p className="mt-4 text-(--text) whitespace-pre-wrap">{profile.bio}</p>
         )}
 
         {/* Stats */}
@@ -207,85 +314,83 @@ export function ProfileHeader({
             onClick={onShowFollowers}
             className="hover:underline"
           >
-            <span className="font-bold">{mockUser.followersCount.toLocaleString()}</span>
+            <span className="font-bold">{followersCount.toLocaleString()}</span>
             <span className="text-(--text-muted) ml-1">Followers</span>
           </button>
           <button
             onClick={onShowFollowing}
             className="hover:underline"
           >
-            <span className="font-bold">{mockUser.followingCount.toLocaleString()}</span>
+            <span className="font-bold">{followingCount.toLocaleString()}</span>
             <span className="text-(--text-muted) ml-1">Following</span>
           </button>
-          <div>
-            <span className="font-bold">{mockUser.postsCount}</span>
-            <span className="text-(--text-muted) ml-1">Posts</span>
-          </div>
         </div>
 
         {/* Personal Details */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {mockUser.location && (
+          {profile.address && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <MapPin size={16} className="text-primary-500" />
-              <span>{mockUser.location}</span>
+              <span>{profile.address}</span>
             </div>
           )}
-          {mockUser.workingAt && (
+          {profile.workingAt && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <Briefcase size={16} className="text-primary-500" />
-              <span>Works at {mockUser.workingAt}</span>
+              <span>Works at {profile.workingAt}</span>
             </div>
           )}
-          {mockUser.school && (
+          {profile.school && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <GraduationCap size={16} className="text-primary-500" />
-              <span>Studied at {mockUser.school}</span>
+              <span>Studied at {profile.school}</span>
             </div>
           )}
-          {mockUser.website && (
+          {profile.website && (
             <div className="flex items-center gap-2 text-sm">
               <LinkIcon size={16} className="text-primary-500" />
               <a
-                href={mockUser.website}
+                href={profile.website}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 dark:text-primary-400 hover:underline"
               >
-                {mockUser.website.replace(/^https?:\/\//, "")}
+                {profile.website.replace(/^https?:\/\//, "")}
               </a>
             </div>
           )}
-          {mockUser.birthday && (
+          {profile.birthday && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <Calendar size={16} className="text-primary-500" />
-              <span>Born on {mockUser.birthday}</span>
+              <span>Born on {formatDate(profile.birthday)}</span>
             </div>
           )}
-          {mockUser.relationshipStatus && (
+          {profile.relationshipStatus && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <Heart size={16} className="text-primary-500" />
-              <span>{mockUser.relationshipStatus}</span>
+              <span>{profile.relationshipStatus}</span>
             </div>
           )}
-          {mockUser.email && (
+          {profile.email && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <Mail size={16} className="text-primary-500" />
-              <span>{mockUser.email}</span>
+              <span>{profile.email}</span>
             </div>
           )}
-          {mockUser.phone && (
+          {profile.phone && (
             <div className="flex items-center gap-2 text-sm text-(--text-muted)">
               <Phone size={16} className="text-primary-500" />
-              <span>{mockUser.phone}</span>
+              <span>{profile.phone}</span>
             </div>
           )}
         </div>
 
         {/* Joined date */}
-        <p className="mt-4 text-sm text-(--text-muted)">
-          Joined {mockUser.joinedDate}
-        </p>
+        {profile.createdAt && (
+          <p className="mt-4 text-sm text-(--text-muted)">
+            Joined {formatJoinedDate(profile.createdAt)}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

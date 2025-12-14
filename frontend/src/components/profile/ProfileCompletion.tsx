@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, Button } from "@/components/ui";
 import {
@@ -13,7 +13,10 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Loader2,
 } from "lucide-react";
+import { profileApi } from "@/lib/api/index";
+import type { User as UserType } from "@/types/auth";
 
 interface CompletionStep {
   id: string;
@@ -24,13 +27,17 @@ interface CompletionStep {
   action: string;
 }
 
-const completionSteps: CompletionStep[] = [
+interface ProfileCompletionProps {
+  onEditProfile?: () => void;
+}
+
+const getCompletionSteps = (profile: UserType | null): CompletionStep[] => [
   {
     id: "avatar",
     label: "Add profile photo",
     description: "Help others recognize you",
     icon: Camera,
-    completed: true,
+    completed: !!profile?.avatar,
     action: "Upload Photo",
   },
   {
@@ -38,15 +45,15 @@ const completionSteps: CompletionStep[] = [
     label: "Write a bio",
     description: "Tell others about yourself",
     icon: FileText,
-    completed: true,
+    completed: !!profile?.bio,
     action: "Add Bio",
   },
   {
     id: "details",
     label: "Add personal details",
-    description: "Share your location, work, and education",
+    description: "Share your phone and birthday",
     icon: User,
-    completed: true,
+    completed: !!(profile?.phone || profile?.birthday),
     action: "Add Details",
   },
   {
@@ -54,7 +61,7 @@ const completionSteps: CompletionStep[] = [
     label: "Add your location",
     description: "Let others know where you're from",
     icon: MapPin,
-    completed: false,
+    completed: !!profile?.address,
     action: "Add Location",
   },
   {
@@ -62,18 +69,47 @@ const completionSteps: CompletionStep[] = [
     label: "Add work experience",
     description: "Share your professional background",
     icon: Briefcase,
-    completed: false,
+    completed: !!(profile?.workingAt || profile?.school),
     action: "Add Work",
   },
 ];
 
-export function ProfileCompletion() {
+export function ProfileCompletion({ onEditProfile }: ProfileCompletionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  
+  const [profile, setProfile] = useState<UserType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const { profile: profileData } = await profileApi.getProfile();
+        setProfile(profileData);
+      } catch (error) {
+        console.error("Failed to fetch profile for completion:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const completionSteps = getCompletionSteps(profile);
   const completedCount = completionSteps.filter((step) => step.completed).length;
   const totalSteps = completionSteps.length;
   const completionPercentage = Math.round((completedCount / totalSteps) * 100);
   const isComplete = completedCount === totalSteps;
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-4 flex items-center justify-center">
+          <Loader2 size={24} className="animate-spin text-primary-500" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isComplete) {
     return null;
@@ -182,7 +218,11 @@ export function ProfileCompletion() {
                   </p>
                 </div>
                 {!step.completed && (
-                  <Button variant="secondary" size="sm">
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    onClick={onEditProfile}
+                  >
                     {step.action}
                   </Button>
                 )}

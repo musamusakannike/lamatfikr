@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Modal, Avatar, Button } from "@/components/ui";
-import { Search, UserPlus, UserMinus, CheckCircle } from "lucide-react";
+import { Search, UserPlus, UserMinus, CheckCircle, Loader2 } from "lucide-react";
+import { socialApi, type UserSummary } from "@/lib/api/index";
+import { getErrorMessage } from "@/lib/api";
+import toast from "react-hot-toast";
 
 interface FollowersModalProps {
   isOpen: boolean;
@@ -16,95 +19,26 @@ interface UserItem {
   id: string;
   name: string;
   username: string;
-  avatar: string;
+  avatar?: string;
   verified?: boolean;
   bio?: string;
   isFollowing: boolean;
 }
 
-const mockFollowers: UserItem[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    username: "sarah_j",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    verified: true,
-    bio: "Product Designer at Tech Co.",
-    isFollowing: true,
-  },
-  {
-    id: "2",
-    name: "Mike Chen",
-    username: "mike_dev",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    bio: "Full-stack developer",
-    isFollowing: false,
-  },
-  {
-    id: "3",
-    name: "Emma Wilson",
-    username: "emma_art",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-    bio: "Artist & Creative Director",
-    isFollowing: true,
-  },
-  {
-    id: "4",
-    name: "Alex Rivera",
-    username: "alex_r",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-    verified: true,
-    bio: "Entrepreneur | Speaker",
-    isFollowing: false,
-  },
-  {
-    id: "5",
-    name: "Lisa Park",
-    username: "lisa_park",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
-    bio: "UX Researcher",
-    isFollowing: true,
-  },
-];
-
-const mockFollowing: UserItem[] = [
-  {
-    id: "6",
-    name: "David Kim",
-    username: "david_k",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    verified: true,
-    bio: "Tech Lead at Startup",
-    isFollowing: true,
-  },
-  {
-    id: "7",
-    name: "Rachel Green",
-    username: "rachel_g",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-    bio: "Fashion Designer",
-    isFollowing: true,
-  },
-  {
-    id: "8",
-    name: "Tom Anderson",
-    username: "tom_a",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop",
-    bio: "Photographer",
-    isFollowing: true,
-  },
-];
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
 function UserCard({
   user,
   onToggleFollow,
+  isToggling,
 }: {
   user: UserItem;
-  onToggleFollow: (id: string) => void;
+  onToggleFollow: (id: string, currentlyFollowing: boolean) => void;
+  isToggling: boolean;
 }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
-      <Avatar src={user.avatar} alt={user.name} size="lg" />
+      <Avatar src={user.avatar || DEFAULT_AVATAR} alt={user.name} size="lg" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="font-semibold text-sm truncate">{user.name}</span>
@@ -120,10 +54,13 @@ function UserCard({
       <Button
         variant={user.isFollowing ? "outline" : "primary"}
         size="sm"
-        onClick={() => onToggleFollow(user.id)}
+        onClick={() => onToggleFollow(user.id, user.isFollowing)}
         className="gap-1.5 shrink-0"
+        disabled={isToggling}
       >
-        {user.isFollowing ? (
+        {isToggling ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : user.isFollowing ? (
           <>
             <UserMinus size={14} />
             <span className="hidden sm:inline">Following</span>
@@ -146,8 +83,51 @@ export function FollowersModal({
   onTabChange,
 }: FollowersModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [followers, setFollowers] = useState(mockFollowers);
-  const [following, setFollowing] = useState(mockFollowing);
+  const [followers, setFollowers] = useState<UserItem[]>([]);
+  const [following, setFollowing] = useState<UserItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+
+  const transformUser = (user: UserSummary, isFollowing: boolean): UserItem => ({
+    id: user._id,
+    name: `${user.firstName} ${user.lastName}`,
+    username: user.username,
+    avatar: user.avatar,
+    verified: user.verified,
+    bio: user.bio,
+    isFollowing,
+  });
+
+  const fetchData = useCallback(async () => {
+    if (!isOpen) return;
+    
+    try {
+      setIsLoading(true);
+      const [followersRes, followingRes] = await Promise.all([
+        socialApi.getFollowers(),
+        socialApi.getFollowing(),
+      ]);
+
+      // Get the list of users I'm following to mark isFollowing correctly
+      const followingIds = new Set(followingRes.following.map((u) => u._id));
+
+      setFollowers(
+        followersRes.followers.map((u) => transformUser(u, followingIds.has(u._id)))
+      );
+      setFollowing(
+        followingRes.following.map((u) => transformUser(u, true))
+      );
+    } catch (error) {
+      console.error("Failed to fetch followers/following:", error);
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const currentList = activeTab === "followers" ? followers : following;
   const filteredList = currentList.filter(
@@ -156,19 +136,34 @@ export function FollowersModal({
       user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleFollow = (id: string) => {
-    if (activeTab === "followers") {
-      setFollowers((prev) =>
-        prev.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
-        )
-      );
-    } else {
-      setFollowing((prev) =>
-        prev.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
-        )
-      );
+  const handleToggleFollow = async (id: string, currentlyFollowing: boolean) => {
+    setTogglingIds((prev) => new Set(prev).add(id));
+
+    try {
+      if (currentlyFollowing) {
+        await socialApi.unfollowUser(id);
+        toast.success("Unfollowed successfully");
+      } else {
+        await socialApi.followUser(id);
+        toast.success("Now following!");
+      }
+
+      // Update local state
+      const updateList = (list: UserItem[]) =>
+        list.map((user) =>
+          user.id === id ? { ...user, isFollowing: !currentlyFollowing } : user
+        );
+
+      setFollowers(updateList);
+      setFollowing(updateList);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -231,12 +226,17 @@ export function FollowersModal({
 
         {/* User list */}
         <div className="space-y-1 max-h-96 overflow-y-auto">
-          {filteredList.length > 0 ? (
+          {isLoading ? (
+            <div className="py-8 flex justify-center">
+              <Loader2 size={24} className="animate-spin text-primary-500" />
+            </div>
+          ) : filteredList.length > 0 ? (
             filteredList.map((user) => (
               <UserCard
                 key={user.id}
                 user={user}
                 onToggleFollow={handleToggleFollow}
+                isToggling={togglingIds.has(user.id)}
               />
             ))
           ) : (
