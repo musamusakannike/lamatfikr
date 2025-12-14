@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 import { UserModel } from "../models/user.model";
 import { AuthProvider, Gender } from "../models/common";
-import { signAccessToken } from "../utils/jwt";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 import { generateVerificationToken } from "../utils/crypto";
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from "../services/email";
 import { getFirebaseUserInfo } from "../config/firebase";
@@ -143,6 +143,15 @@ export const login: RequestHandler = async (req, res, next) => {
     await UserModel.updateOne({ _id: user._id }, { lastActive: new Date() });
 
     const accessToken = signAccessToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+
+    // Set refresh token as HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.json({
       message: "Login successful",
@@ -157,6 +166,55 @@ export const login: RequestHandler = async (req, res, next) => {
         verified: user.verified,
         role: user.role,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refreshAccessToken: RequestHandler = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      res.status(401).json({ message: "Refresh token not found" });
+      return;
+    }
+
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(refreshToken);
+    } catch {
+      res.status(401).json({ message: "Invalid or expired refresh token" });
+      return;
+    }
+
+    const user = await UserModel.findById(decoded.sub);
+
+    if (!user) {
+      res.status(401).json({ message: "User not found" });
+      return;
+    }
+
+    if (user.isBanned) {
+      res.status(403).json({ message: "Your account has been suspended" });
+      return;
+    }
+
+    const accessToken = signAccessToken(user._id.toString());
+    const newRefreshToken = signRefreshToken(user._id.toString());
+
+    // Update refresh token cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({
+      message: "Token refreshed",
+      accessToken,
     });
   } catch (error) {
     next(error);
@@ -210,6 +268,14 @@ export const socialAuth: RequestHandler = async (req, res, next) => {
       await UserModel.updateOne({ _id: user._id }, { lastActive: new Date() });
 
       const accessToken = signAccessToken(user._id.toString());
+      const refreshToken = signRefreshToken(user._id.toString());
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
 
       res.json({
         message: "Login successful",
@@ -300,6 +366,14 @@ export const socialAuth: RequestHandler = async (req, res, next) => {
     });
 
     const accessToken = signAccessToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(201).json({
       message: "Registration successful",
@@ -388,6 +462,14 @@ export const completeSocialProfile: RequestHandler = async (req, res, next) => {
     });
 
     const accessToken = signAccessToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(201).json({
       message: "Profile completed successfully",

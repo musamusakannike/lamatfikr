@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   register,
   login,
+  refreshAccessToken,
   socialAuth,
   completeSocialProfile,
   verifyEmail,
@@ -17,6 +18,7 @@ export const authRouter = Router();
 
 authRouter.post("/register", register);
 authRouter.post("/login", login);
+authRouter.post("/refresh", refreshAccessToken);
 authRouter.post("/social", socialAuth);
 authRouter.post("/social/complete-profile", completeSocialProfile);
 authRouter.get("/verify-email", verifyEmail);
