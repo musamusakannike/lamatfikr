@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar, NotificationBadge } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Home,
   MessageSquare,
@@ -59,9 +60,12 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
   );
 }
 
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { t, isRTL } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
 
   const navItems: NavItem[] = [
     { icon: Home, label: t("nav", "home"), href: "/" },
@@ -117,15 +121,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}
           >
             <Avatar
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
-              alt="John Doe"
+              src={user?.avatar || DEFAULT_AVATAR}
+              alt={user?.firstName || "User"}
               size="md"
-              online
+              online={isAuthenticated}
             />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">John Doe</p>
+              <p className="font-semibold text-sm truncate">
+                {user ? `${user.firstName} ${user.lastName}` : "Guest"}
+              </p>
               <p className="text-xs text-(--text-muted) truncate">
-                @johndoe
+                {user ? `@${user.username}` : ""}
               </p>
             </div>
             <ChevronRight

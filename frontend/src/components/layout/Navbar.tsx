@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, Button, Modal, LanguageSwitcher } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Search,
   Bell,
@@ -29,9 +30,12 @@ interface NavbarProps {
   isSidebarOpen: boolean;
 }
 
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
+
 export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const { t, isRTL } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -307,10 +311,10 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 aria-expanded={userMenuOpen}
               >
                 <Avatar
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
-                  alt="User"
+                  src={user?.avatar || DEFAULT_AVATAR}
+                  alt={user?.firstName || "User"}
                   size="sm"
-                  online
+                  online={isAuthenticated}
                 />
                 <ChevronDown
                   size={14}
@@ -337,9 +341,11 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               >
                 <div className="px-4 py-3 border-b border-(--border)">
                   <p className="font-semibold text-sm text-(--text)">
-                    John Doe
+                    {user ? `${user.firstName} ${user.lastName}` : "Guest"}
                   </p>
-                  <p className="text-xs text-(--text-muted)">@johndoe</p>
+                  <p className="text-xs text-(--text-muted)">
+                    {user ? `@${user.username}` : ""}
+                  </p>
                 </div>
                 <div className="py-1">
                   <DropdownItem
@@ -365,7 +371,10 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                     icon={LogOut}
                     label={t("nav", "logout")}
                     danger
-                    onClick={() => {}}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      logout();
+                    }}
                   />
                 </div>
               </div>
