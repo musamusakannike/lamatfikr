@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Badge, Button, Card, CardContent } from "@/components/ui";
+import { Avatar, Button, Card, CardContent } from "@/components/ui";
 import {
   Search,
   ArrowBigUp,
@@ -22,7 +22,6 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { postsApi, type Post } from "@/lib/api/posts";
 import toast from "react-hot-toast";
-import { getErrorMessage } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 
 type FilterType = "all" | "images" | "announcements";
@@ -110,6 +109,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
         await postsApi.votePost(post._id, type);
       }
     } catch (error) {
+      console.error(error);
       // Revert
       setPost({ ...post, upvotes: previousUpvotes, downvotes: previousDownvotes, userVote: previousVote } as ExtendedPost);
       toast.error("Failed to vote");
@@ -130,6 +130,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
         toast.success("Post saved");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to save post");
     }
   }
