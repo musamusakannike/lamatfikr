@@ -14,6 +14,7 @@ export interface Post {
     privacy: "public" | "followers" | "friends" | "friends_only" | "me_only";
     location?: string;
     feeling?: string;
+    isEdited?: boolean;
     media?: Array<{
         _id: string;
         type: "image" | "video" | "audio" | "voice_note" | "file";
@@ -32,9 +33,11 @@ export interface Post {
         }>;
         allowMultipleVotes: boolean;
         endsAt?: string;
+        userVotes?: string[];
     };
     upvotes: number;
     downvotes: number;
+    likeCount?: number;
     commentCount: number;
     shareCount: number;
     hasPoll: boolean;

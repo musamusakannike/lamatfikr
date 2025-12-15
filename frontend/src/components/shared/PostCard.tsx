@@ -15,6 +15,12 @@ import {
     Loader2,
     ChevronDown,
     ChevronUp,
+    MapPin,
+    Smile,
+    Edit3,
+    BarChart3,
+    Play,
+    Volume2,
 } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
@@ -187,10 +193,37 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                                     </Badge>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-(--text-muted)">
+                            <div className="flex items-center gap-2 text-sm text-(--text-muted) flex-wrap">
                                 <span>@{post.userId.username}</span>
                                 <span>•</span>
                                 <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
+                                {post.isEdited && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="flex items-center gap-1">
+                                            <Edit3 size={12} />
+                                            Edited
+                                        </span>
+                                    </>
+                                )}
+                                {post.location && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="flex items-center gap-1">
+                                            <MapPin size={12} />
+                                            {post.location}
+                                        </span>
+                                    </>
+                                )}
+                                {post.feeling && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="flex items-center gap-1">
+                                            <Smile size={12} />
+                                            {post.feeling}
+                                        </span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -202,28 +235,117 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                 {/* Content */}
                 {post.contentText && <p className="text-(--text) mb-3 whitespace-pre-wrap">{post.contentText}</p>}
 
-                {/* Images */}
-                {images.length > 0 && (
-                    <div
-                        className={cn(
-                            "rounded-xl overflow-hidden mb-3",
-                            images.length === 1 ? "grid-cols-1" : "grid grid-cols-2 gap-1"
+                {/* Media */}
+                {post.media && post.media.length > 0 && (
+                    <div className="mb-3 space-y-2">
+                        {/* Images */}
+                        {images.length > 0 && (
+                            <div
+                                className={cn(
+                                    "rounded-xl overflow-hidden",
+                                    images.length === 1 ? "grid-cols-1" : "grid grid-cols-2 gap-1"
+                                )}
+                            >
+                                {images.map((image, index) => (
+                                    <Image
+                                        key={index}
+                                        src={image}
+                                        alt={`Post image ${index + 1}`}
+                                        width={600}
+                                        height={images.length === 1 ? 400 : 200}
+                                        className={cn("w-full object-cover", images.length === 1 ? "max-h-96" : "h-48")}
+                                    />
+                                ))}
+                            </div>
                         )}
-                    >
-                        {images.map((image, index) => (
-                            <Image
-                                key={index}
-                                src={image}
-                                alt={`Post image ${index + 1}`}
-                                width={600}
-                                height={images.length === 1 ? 400 : 200}
-                                className={cn("w-full object-cover", images.length === 1 ? "max-h-96" : "h-48")}
-                            />
+
+                        {/* Videos */}
+                        {post.media.filter((m) => m.type === "video").map((video, index) => (
+                            <div key={`video-${index}`} className="rounded-xl overflow-hidden bg-black">
+                                <video
+                                    controls
+                                    className="w-full max-h-96"
+                                    poster={video.thumbnail}
+                                >
+                                    <source src={video.url} type="video/mp4" />
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        ))}
+
+                        {/* Audio */}
+                        {post.media.filter((m) => m.type === "audio" || m.type === "voice_note").map((audio, index) => (
+                            <div key={`audio-${index}`} className="rounded-xl bg-primary-50 dark:bg-primary-900/30 p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <Volume2 size={20} className="text-primary-600" />
+                                    <span className="text-sm font-medium">
+                                        {audio.type === "voice_note" ? "Voice Note" : "Audio"}
+                                    </span>
+                                </div>
+                                <audio controls className="w-full">
+                                    <source src={audio.url} type="audio/mpeg" />
+                                    Your browser does not support the audio tag.
+                                </audio>
+                            </div>
                         ))}
                     </div>
                 )}
 
-                {/* Actions */}
+                {/* Poll */}
+                {post.hasPoll && post.poll && (
+                    <div className="mb-3 p-4 rounded-xl bg-primary-50/50 dark:bg-primary-900/20 border border-(--border)">
+                        <div className="flex items-start gap-2 mb-3">
+                            <BarChart3 size={18} className="text-primary-600 mt-0.5" />
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-(--text) mb-1">{post.poll.question}</h4>
+                                {post.poll.endsAt && (
+                                    <p className="text-xs text-(--text-muted)">
+                                        {new Date(post.poll.endsAt) > new Date()
+                                            ? `Ends ${formatDistanceToNow(new Date(post.poll.endsAt), { addSuffix: true })}`
+                                            : "Poll ended"}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            {post.poll.options.map((option) => {
+                                const totalVotes = post.poll!.options.reduce((sum, opt) => sum + opt.voteCount, 0);
+                                const percentage = totalVotes > 0 ? Math.round((option.voteCount / totalVotes) * 100) : 0;
+                                const isUserVoted = post.poll?.userVotes?.includes(option._id);
+
+                                return (
+                                    <div
+                                        key={option._id}
+                                        className={cn(
+                                            "relative p-3 rounded-lg border transition-all cursor-pointer",
+                                            isUserVoted
+                                                ? "border-primary-500 bg-primary-100/50 dark:bg-primary-900/30"
+                                                : "border-(--border) hover:border-primary-300 dark:hover:border-primary-700"
+                                        )}
+                                    >
+                                        <div className="relative z-10 flex items-center justify-between">
+                                            <span className={cn("text-sm font-medium", isUserVoted && "text-primary-700 dark:text-primary-300")}>
+                                                {option.text}
+                                            </span>
+                                            <span className="text-sm font-semibold text-(--text-muted)">
+                                                {percentage}%
+                                            </span>
+                                        </div>
+                                        <div
+                                            className="absolute inset-0 bg-primary-200/30 dark:bg-primary-800/20 rounded-lg transition-all"
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <p className="text-xs text-(--text-muted) mt-2">
+                            {post.poll.options.reduce((sum, opt) => sum + opt.voteCount, 0)} total votes
+                            {post.poll.allowMultipleVotes && " • Multiple votes allowed"}
+                        </p>
+                    </div>
+                )}
+
                 <div className="flex items-center justify-between pt-2 border-t border-(--border)">
                     <div className="flex items-center gap-1">
                         {/* Vote buttons */}

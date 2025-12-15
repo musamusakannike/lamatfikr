@@ -157,6 +157,7 @@ function convertDummyPost(dummyPost: Post): ApiPost {
     },
     contentText: dummyPost.content,
     privacy: "public" as const,
+    isEdited: false,
     media: dummyPost.images?.map((url, index) => ({
       _id: `media-${index}`,
       type: "image" as const,
@@ -164,6 +165,7 @@ function convertDummyPost(dummyPost: Post): ApiPost {
     })),
     upvotes: dummyPost.upvotes,
     downvotes: 0,
+    likeCount: 0,
     commentCount: dummyPost.comments,
     shareCount: dummyPost.shares,
     hasPoll: false,
