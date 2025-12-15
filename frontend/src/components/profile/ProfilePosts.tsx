@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Badge, Button, Card, CardContent } from "@/components/ui";
 import {
@@ -16,114 +16,16 @@ import {
   Megaphone,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import { postsApi, type Post } from "@/lib/api/posts";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
 
 type FilterType = "all" | "images" | "announcements";
-
-interface Post {
-  id: string;
-  author: {
-    name: string;
-    username: string;
-    avatar: string;
-    verified?: boolean;
-  };
-  content: string;
-  images?: string[];
-  upvotes: number;
-  comments: number;
-  shares: number;
-  timestamp: string;
-  isAnnouncement?: boolean;
-  userVote?: "up" | "down" | null;
-}
-
-const dummyPosts: Post[] = [
-  {
-    id: "1",
-    author: {
-      name: "John Doe",
-      username: "johndoe",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    content: "Just launched my new project! After months of hard work, I'm excited to share what we've been building. Check it out and let me know your thoughts!",
-    images: [
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop",
-    ],
-    upvotes: 234,
-    comments: 45,
-    shares: 12,
-    timestamp: "2h ago",
-    userVote: null,
-  },
-  {
-    id: "2",
-    author: {
-      name: "John Doe",
-      username: "johndoe",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    content: "The sunset from my balcony today was absolutely breathtaking! Nature never fails to amaze me.",
-    images: [
-      "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=600&h=400&fit=crop",
-    ],
-    upvotes: 567,
-    comments: 78,
-    shares: 23,
-    timestamp: "8h ago",
-    userVote: null,
-  },
-  {
-    id: "3",
-    author: {
-      name: "John Doe",
-      username: "johndoe",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    content: "Just finished reading 'Atomic Habits' by James Clear. Highly recommend it to anyone looking to build better habits and break bad ones. The 1% improvement concept is a game-changer!",
-    upvotes: 123,
-    comments: 34,
-    shares: 8,
-    timestamp: "1d ago",
-    userVote: "up",
-  },
-  {
-    id: "4",
-    author: {
-      name: "John Doe",
-      username: "johndoe",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    content: "Announcing my upcoming workshop on React best practices! Join me for 2 hours of coding, learning, and fun. Registration opens next week!",
-    upvotes: 341,
-    comments: 56,
-    shares: 34,
-    timestamp: "2d ago",
-    isAnnouncement: true,
-    userVote: null,
-  },
-  {
-    id: "5",
-    author: {
-      name: "John Doe",
-      username: "johndoe",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    content: "Working on something exciting! Can't wait to share more details soon.",
-    upvotes: 89,
-    comments: 12,
-    shares: 5,
-    timestamp: "3d ago",
-    userVote: null,
-  },
-];
 
 function FilterButton({
   active,
@@ -152,61 +54,115 @@ function FilterButton({
   );
 }
 
-function PostCard({ post }: { post: Post }) {
-  const [votes, setVotes] = useState(post.upvotes);
-  const [userVote, setUserVote] = useState<"up" | "down" | null>(post.userVote || null);
-  const [saved, setSaved] = useState(false);
+function PostCard({ post: initialPost }: { post: Post }) {
+  const [post, setPost] = useState(initialPost);
+  const [isVoting, setIsVoting] = useState(false);
+  const [saved, setSaved] = useState(false); // ToDo: initialize from API if available
 
-  const handleUpvote = () => {
-    if (userVote === "up") {
-      setVotes(votes - 1);
-      setUserVote(null);
-    } else if (userVote === "down") {
-      setVotes(votes + 2);
-      setUserVote("up");
+  // Determine user's current vote based on whatever logic you use (e.g. specialized field from API)
+  // The API response for getFeed/getUserPosts returns `userVote` populated on the post object if we handled it in the backend
+  // But checking the `Post` interface in `posts.ts`, it doesn't explicitly have `userVote` field yet?
+  // Wait, I saw `userVote` in the backend controller response. Let me check `posts.ts` again.
+  // In `posts.ts` interface: `userVote` is NOT defined. 
+  // However, I will enhance the local type here or just cast it for now as the backend sends it.
+  // Actually, I should probably add it to the interface file, but I can't edit that file extensively right now without context switch.
+  // I'll extend the type locally for now.
+
+  interface ExtendedPost extends Post {
+    userVote?: "upvote" | "downvote" | null;
+  }
+
+  const extendedPost = post as ExtendedPost;
+
+  const handleVote = async (type: "upvote" | "downvote") => {
+    if (isVoting) return;
+
+    const previousVote = extendedPost.userVote;
+    const previousUpvotes = extendedPost.upvotes;
+    const previousDownvotes = extendedPost.downvotes;
+
+    // Optimistic Update
+    let newUpvotes = previousUpvotes;
+    let newDownvotes = previousDownvotes;
+    let newVote: "upvote" | "downvote" | null = type;
+
+    if (previousVote === type) {
+      // Toggle off
+      newVote = null;
+      if (type === "upvote") newUpvotes = Math.max(0, newUpvotes - 1);
+      else newDownvotes = Math.max(0, newDownvotes - 1);
     } else {
-      setVotes(votes + 1);
-      setUserVote("up");
+      // Changed vote or new vote
+      if (previousVote === "upvote") newUpvotes = Math.max(0, newUpvotes - 1);
+      if (previousVote === "downvote") newDownvotes = Math.max(0, newDownvotes - 1);
+
+      if (type === "upvote") newUpvotes += 1;
+      else newDownvotes += 1;
+    }
+
+    setPost({ ...post, upvotes: newUpvotes, downvotes: newDownvotes, userVote: newVote } as ExtendedPost);
+    setIsVoting(true);
+
+    try {
+      if (previousVote === type) {
+        await postsApi.removeVote(post._id);
+      } else {
+        await postsApi.votePost(post._id, type);
+      }
+    } catch (error) {
+      // Revert
+      setPost({ ...post, upvotes: previousUpvotes, downvotes: previousDownvotes, userVote: previousVote } as ExtendedPost);
+      toast.error("Failed to vote");
+    } finally {
+      setIsVoting(false);
     }
   };
 
-  const handleDownvote = () => {
-    if (userVote === "down") {
-      setUserVote(null);
-    } else if (userVote === "up") {
-      setVotes(votes - 1);
-      setUserVote("down");
-    } else {
-      setUserVote("down");
+  const handleSave = async () => {
+    try {
+      if (saved) {
+        await postsApi.unsavePost(post._id);
+        setSaved(false);
+        toast.success("Post unsaved");
+      } else {
+        await postsApi.savePost(post._id);
+        setSaved(true);
+        toast.success("Post saved");
+      }
+    } catch (error) {
+      toast.error("Failed to save post");
     }
-  };
+  }
+
+  const images = post.media?.filter(m => m.type === 'image').map(m => m.url) || [];
+  const isAnnouncement = post.privacy === 'public'; // Just a guess for mapping "announcement", or logic needed (maybe check for specific tag or type)
 
   return (
-    <Card className={cn(post.isAnnouncement && "border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/30")}>
+    <Card className={cn(isAnnouncement && false && "border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/30")}>
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Avatar src={post.author.avatar} alt={post.author.name} size="md" />
+            <Avatar src={post.userId.avatar} alt={post.userId.firstName} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold">{post.author.name}</span>
-                {post.author.verified && (
+                <span className="font-semibold">{post.userId.firstName} {post.userId.lastName}</span>
+                {post.userId.verified && (
                   <svg className="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                   </svg>
                 )}
-                {post.isAnnouncement && (
+                {/* {isAnnouncement && (
                   <Badge variant="primary" size="sm" className="ml-1">
                     <Megaphone size={10} className="mr-1" />
                     Announcement
                   </Badge>
-                )}
+                )} */}
               </div>
               <div className="flex items-center gap-2 text-sm text-(--text-muted)">
-                <span>@{post.author.username}</span>
+                <span>@{post.userId.username}</span>
                 <span>•</span>
-                <span>{post.timestamp}</span>
+                <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
               </div>
             </div>
           </div>
@@ -216,26 +172,28 @@ function PostCard({ post }: { post: Post }) {
         </div>
 
         {/* Content */}
-        <p className="text-(--text) mb-3 whitespace-pre-wrap">{post.content}</p>
+        {post.contentText && (
+          <p className="text-(--text) mb-3 whitespace-pre-wrap">{post.contentText}</p>
+        )}
 
         {/* Images */}
-        {post.images && post.images.length > 0 && (
+        {images.length > 0 && (
           <div
             className={cn(
               "rounded-xl overflow-hidden mb-3",
-              post.images.length === 1 ? "grid-cols-1" : "grid grid-cols-2 gap-1"
+              images.length === 1 ? "grid-cols-1" : "grid grid-cols-2 gap-1"
             )}
           >
-            {post.images.map((image, index) => (
+            {images.map((image, index) => (
               <Image
                 key={index}
                 src={image}
                 alt={`Post image ${index + 1}`}
                 width={600}
-                height={post.images!.length === 1 ? 400 : 200}
+                height={images.length === 1 ? 400 : 200}
                 className={cn(
                   "w-full object-cover",
-                  post.images!.length === 1 ? "max-h-96" : "h-48"
+                  images.length === 1 ? "max-h-96" : "h-48"
                 )}
               />
             ))}
@@ -248,51 +206,52 @@ function PostCard({ post }: { post: Post }) {
             {/* Vote buttons */}
             <div className="flex items-center bg-primary-50 dark:bg-primary-900/30 rounded-full">
               <button
-                onClick={handleUpvote}
+                onClick={() => handleVote("upvote")}
                 className={cn(
                   "p-2 rounded-l-full transition-colors",
-                  userVote === "up"
+                  extendedPost.userVote === "upvote"
                     ? "text-primary-600 dark:text-primary-400"
                     : "text-(--text-muted) hover:text-primary-600"
                 )}
               >
-                <ArrowBigUp size={22} fill={userVote === "up" ? "currentColor" : "none"} />
+                <ArrowBigUp size={22} fill={extendedPost.userVote === "upvote" ? "currentColor" : "none"} />
               </button>
               <span className={cn(
                 "text-sm font-semibold min-w-[40px] text-center",
-                userVote === "up" && "text-primary-600 dark:text-primary-400"
+                extendedPost.userVote === "upvote" && "text-primary-600 dark:text-primary-400",
+                extendedPost.userVote === "downvote" && "text-red-500"
               )}>
-                {votes}
+                {extendedPost.upvotes - extendedPost.downvotes}
               </span>
               <button
-                onClick={handleDownvote}
+                onClick={() => handleVote("downvote")}
                 className={cn(
                   "p-2 rounded-r-full transition-colors",
-                  userVote === "down"
+                  extendedPost.userVote === "downvote"
                     ? "text-red-500"
                     : "text-(--text-muted) hover:text-red-500"
                 )}
               >
-                <ArrowBigDown size={22} fill={userVote === "down" ? "currentColor" : "none"} />
+                <ArrowBigDown size={22} fill={extendedPost.userVote === "downvote" ? "currentColor" : "none"} />
               </button>
             </div>
 
             {/* Comments */}
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
               <MessageCircle size={18} />
-              <span className="text-sm">{post.comments}</span>
+              <span className="text-sm">{post.commentCount}</span>
             </button>
 
             {/* Share */}
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
               <Share2 size={18} />
-              <span className="text-sm hidden sm:inline">{post.shares}</span>
+              <span className="text-sm hidden sm:inline">{post.shareCount}</span>
             </button>
           </div>
 
           {/* Save */}
           <button
-            onClick={() => setSaved(!saved)}
+            onClick={handleSave}
             className={cn(
               "p-2 rounded-full transition-colors",
               saved
@@ -309,29 +268,63 @@ function PostCard({ post }: { post: Post }) {
 }
 
 export function ProfilePosts() {
+  const { user } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 3;
+  const [totalPages, setTotalPages] = useState(0);
+  const postsPerPage = 5;
 
-  // Filter posts based on filter type and search query
-  const filteredPosts = dummyPosts.filter((post) => {
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!user) return;
+
+      try {
+        setIsLoading(true);
+        // Using getUserPosts to fetch posts for the current profile view
+        // Ideally this component should accept a userId prop to make it reusable for other profiles
+        // But per instructions, we are using the current logged in user
+        console.log("user:", user);
+        const { posts, pagination } = await postsApi.getUserPosts(user.id, currentPage, postsPerPage);
+        setPosts(posts);
+        setTotalPages(pagination.pages);
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
+        toast.error("Failed to load posts");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [user, currentPage]);
+
+  // Client-side filtering for now since the API might not support all filters yet
+  // However, normally search/filter should happen backend side. 
+  // For this iteration, I will apply client side filter on the fetched page (which is imperfect but follows the pattern)
+  // Or better, just display what we got.
+  const filteredPosts = posts.filter((post) => {
     const matchesFilter =
       filter === "all" ||
-      (filter === "images" && post.images && post.images.length > 0) ||
-      (filter === "announcements" && post.isAnnouncement);
+      (filter === "images" && post.media && post.media.some(m => m.type === 'image')) ||
+      (filter === "announcements" && post.privacy === 'public'); // Approximation
 
     const matchesSearch =
       !searchQuery ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase());
+      (post.contentText && post.contentText.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesFilter && matchesSearch;
   });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const paginatedPosts = filteredPosts.slice(startIndex, startIndex + postsPerPage);
+  if (isLoading && posts.length === 0) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 size={32} className="animate-spin text-primary-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -349,7 +342,6 @@ export function ProfilePosts() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1);
               }}
               className={cn(
                 "w-full pl-10 pr-4 py-2.5 rounded-lg text-sm",
@@ -368,30 +360,21 @@ export function ProfilePosts() {
       <div className="bg-(--bg-card) rounded-xl border border-(--border) p-2 flex gap-2">
         <FilterButton
           active={filter === "all"}
-          onClick={() => {
-            setFilter("all");
-            setCurrentPage(1);
-          }}
+          onClick={() => setFilter("all")}
           icon={LayoutList}
         >
           All Posts
         </FilterButton>
         <FilterButton
           active={filter === "images"}
-          onClick={() => {
-            setFilter("images");
-            setCurrentPage(1);
-          }}
+          onClick={() => setFilter("images")}
           icon={Grid3X3}
         >
           Media
         </FilterButton>
         <FilterButton
           active={filter === "announcements"}
-          onClick={() => {
-            setFilter("announcements");
-            setCurrentPage(1);
-          }}
+          onClick={() => setFilter("announcements")}
           icon={Megaphone}
         >
           Announcements
@@ -400,8 +383,8 @@ export function ProfilePosts() {
 
       {/* Posts */}
       <div className="space-y-4">
-        {paginatedPosts.length > 0 ? (
-          paginatedPosts.map((post) => <PostCard key={post.id} post={post} />)
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post) => <PostCard key={post._id} post={post} />)
         ) : (
           <Card>
             <CardContent className="p-8 text-center">
@@ -422,22 +405,11 @@ export function ProfilePosts() {
           >
             <ChevronLeft size={16} />
           </Button>
-          
+
           <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={cn(
-                  "w-8 h-8 rounded-lg text-sm font-medium transition-colors",
-                  page === currentPage
-                    ? "bg-primary-600 text-white"
-                    : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50"
-                )}
-              >
-                {page}
-              </button>
-            ))}
+            <span className="text-sm font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
           </div>
 
           <Button

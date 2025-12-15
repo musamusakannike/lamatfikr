@@ -64,10 +64,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const response = await apiClient.get<{ user: User }>("/auth/me");
+      console.log("response:", response)
       const userData = response.user;
+      console.log("context's user:", userData)
 
       setUser({
-        id: userData.id,
+        id: userData._id,
         firstName: userData.firstName,
         lastName: userData.lastName,
         username: userData.username,
