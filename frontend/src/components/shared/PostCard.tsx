@@ -21,6 +21,9 @@ import {
     BarChart3,
     Play,
     Volume2,
+    X,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
@@ -45,6 +48,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const [commentPage, setCommentPage] = useState(1);
     const [hasMoreComments, setHasMoreComments] = useState(false);
     const [isVotingPoll, setIsVotingPoll] = useState(false);
+    const [fullscreenImage, setFullscreenImage] = useState<{ url: string; index: number } | null>(null);
 
     // Sync post state when initialPost prop changes
     useEffect(() => {
@@ -254,7 +258,8 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                                         alt={`Post image ${index + 1}`}
                                         width={600}
                                         height={images.length === 1 ? 400 : 200}
-                                        className={cn("w-full object-cover", images.length === 1 ? "max-h-96" : "h-48")}
+                                        className={cn("w-full object-cover cursor-pointer hover:opacity-90 transition-opacity", images.length === 1 ? "max-h-96" : "h-48")}
+                                        onClick={() => setFullscreenImage({ url: image, index })}
                                     />
                                 ))}
                             </div>
@@ -444,7 +449,109 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                     </div>
                 )}
             </CardContent>
+
+            {/* Fullscreen Image Modal */}
+            {fullscreenImage && (
+                <ImageFullscreenModal
+                    images={images}
+                    currentIndex={fullscreenImage.index}
+                    onClose={() => setFullscreenImage(null)}
+                    onNavigate={(index) => setFullscreenImage({ url: images[index], index })}
+                />
+            )}
         </Card>
+    );
+}
+
+interface ImageFullscreenModalProps {
+    images: string[];
+    currentIndex: number;
+    onClose: () => void;
+    onNavigate: (index: number) => void;
+}
+
+function ImageFullscreenModal({ images, currentIndex, onClose, onNavigate }: ImageFullscreenModalProps) {
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                onClose();
+            } else if (e.key === "ArrowLeft" && currentIndex > 0) {
+                onNavigate(currentIndex - 1);
+            } else if (e.key === "ArrowRight" && currentIndex < images.length - 1) {
+                onNavigate(currentIndex + 1);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = "";
+        };
+    }, [currentIndex, images.length, onClose, onNavigate]);
+
+    return (
+        <div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+            onClick={onClose}
+        >
+            {/* Close button */}
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+            >
+                <X size={24} />
+            </button>
+
+            {/* Image counter */}
+            {images.length > 1 && (
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/50 text-white text-sm z-10">
+                    {currentIndex + 1} / {images.length}
+                </div>
+            )}
+
+            {/* Previous button */}
+            {currentIndex > 0 && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onNavigate(currentIndex - 1);
+                    }}
+                    className="absolute left-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+                >
+                    <ChevronLeft size={32} />
+                </button>
+            )}
+
+            {/* Next button */}
+            {currentIndex < images.length - 1 && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onNavigate(currentIndex + 1);
+                    }}
+                    className="absolute right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+                >
+                    <ChevronRight size={32} />
+                </button>
+            )}
+
+            {/* Image */}
+            <div
+                className="max-w-[90vw] max-h-[90vh] relative"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <Image
+                    src={images[currentIndex]}
+                    alt={`Fullscreen image ${currentIndex + 1}`}
+                    width={1200}
+                    height={800}
+                    className="max-w-full max-h-[90vh] object-contain"
+                    priority
+                />
+            </div>
+        </div>
     );
 }
 
