@@ -44,7 +44,7 @@ async function processHashtagsAndMentions(postId: Types.ObjectId, contentText: s
     await PostHashtagModel.insertMany(
       hashtagDocs.map((h) => ({ postId, hashtagId: h._id })),
       { ordered: false }
-    ).catch(() => {});
+    ).catch(() => { });
   }
 
   if (mentions.length > 0) {
@@ -56,7 +56,7 @@ async function processHashtagsAndMentions(postId: Types.ObjectId, contentText: s
       await MentionModel.insertMany(
         mentionedUsers.map((u) => ({ postId, mentionedUserId: u._id })),
         { ordered: false }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 }
@@ -214,6 +214,8 @@ export const getPost: RequestHandler = async (req, res, next) => {
     res.json({
       post: {
         ...post,
+        upvotes: post.upvoteCount,
+        downvotes: post.downvoteCount,
         media,
         poll: poll ? { ...poll, userVotes: userPollVotes } : null,
         userVote: userVote?.voteType || null,
@@ -398,6 +400,8 @@ export const getFeed: RequestHandler = async (req, res, next) => {
 
     const enrichedPosts = posts.map((post) => ({
       ...post,
+      upvotes: post.upvoteCount,
+      downvotes: post.downvoteCount,
       media: mediaByPost.get(post._id.toString()) || [],
       poll: pollByPost.get(post._id.toString()) || null,
       userVote: voteByPost.get(post._id.toString()) || null,
@@ -526,6 +530,8 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
 
     const enrichedPosts = posts.map((post) => ({
       ...post,
+      upvotes: post.upvoteCount,
+      downvotes: post.downvoteCount,
       media: mediaByPost.get(post._id.toString()) || [],
       poll: pollByPost.get(post._id.toString()) || null,
       userVote: voteByPost.get(post._id.toString()) || null,
