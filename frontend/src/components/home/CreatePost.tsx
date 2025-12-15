@@ -15,11 +15,13 @@ import {
   Users,
   UserCheck,
   Lock,
+  Smile,
   Play,
   Pause,
   Trash2,
   Send,
 } from "lucide-react";
+import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { uploadApi } from "@/lib/api/upload";
@@ -454,6 +456,7 @@ interface CreatePostProps {
 export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [content, setContent] = useState("");
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityState>({
     only_me: false,
     followers: false,
@@ -471,6 +474,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Handle file drop
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -686,6 +690,30 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
     audioAttachment ||
     (showPoll && pollQuestion.trim() && pollOptions.some((o) => o.text.trim()));
 
+  const insertEmojiAtCursor = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setContent((prev) => prev + emoji);
+      return;
+    }
+
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
+    const nextValue = content.slice(0, start) + emoji + content.slice(end);
+    const nextCursorPos = start + emoji.length;
+
+    setContent(nextValue);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(nextCursorPos, nextCursorPos);
+    });
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    insertEmojiAtCursor(emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
   return (
     <Card className={cn(inModal && "border-0 shadow-none")}>
       <CardContent className={cn("p-4", inModal && "p-0")}>
@@ -711,6 +739,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
             />
             <div className="flex-1">
               <textarea
+                ref={textareaRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="What's on your mind?"
@@ -769,6 +798,40 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           <div className="flex items-center justify-between pt-3 border-t border-(--border)">
             {/* Attachment buttons */}
             <div className="flex items-center gap-1">
+              <div className="relative">
+                <button
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    showEmojiPicker
+                      ? "text-primary-600 bg-primary-100 dark:bg-primary-900/50"
+                      : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
+                  )}
+                  title="Add emoji"
+                  type="button"
+                >
+                  <Smile size={20} />
+                </button>
+
+                {showEmojiPicker && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowEmojiPicker(false)}
+                    />
+                    <div className="absolute left-0 bottom-full mb-2 z-20 bg-(--bg-card) rounded-xl border border-(--border) shadow-lg p-2">
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        height={350}
+                        width={320}
+                        searchPlaceHolder="Search"
+                        lazyLoadEmojis={true}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={handleMediaButtonClick}
                 disabled={mediaAttachments.length >= 4}
