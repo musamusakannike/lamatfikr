@@ -5,7 +5,7 @@ import { Navbar, Sidebar } from "@/components/layout";
 import { Avatar, Button, Modal } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
-import { dummyStories, Story } from "@/components/home/StoriesSection";
+import { Story } from "@/components/home/StoriesSection";
 import { 
   ArrowLeft, 
   X, 
@@ -246,13 +246,13 @@ export default function StoriesPage() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [stories, setStories] = useState<Story[]>(dummyStories);
+  const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
 
   const fetchStories = useCallback(async () => {
     if (!isAuthenticated) {
-      setStories(dummyStories);
+      setStories([]);
       setIsLoading(false);
       return;
     }
@@ -261,28 +261,10 @@ export default function StoriesPage() {
     try {
       const mediaType: MediaFilterType = filter;
       const response = await storiesApi.getStories(1, 50, mediaType);
-      if (response.stories.length > 0) {
-        setStories(response.stories.map(transformApiStory));
-      } else {
-        // Fallback to filtered dummy stories if no real stories
-        const filtered = dummyStories.filter((story) => {
-          if (filter === "all") return true;
-          if (filter === "images") return story.mediaType === "image";
-          if (filter === "videos") return story.mediaType === "video";
-          return true;
-        });
-        setStories(filtered);
-      }
+      setStories(response.stories.map(transformApiStory));
     } catch (error) {
       console.error("Failed to fetch stories:", error);
-      // Fallback to filtered dummy stories on error
-      const filtered = dummyStories.filter((story) => {
-        if (filter === "all") return true;
-        if (filter === "images") return story.mediaType === "image";
-        if (filter === "videos") return story.mediaType === "video";
-        return true;
-      });
-      setStories(filtered);
+      setStories([]);
     } finally {
       setIsLoading(false);
     }

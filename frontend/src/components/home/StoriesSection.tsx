@@ -34,81 +34,6 @@ function transformApiStory(apiStory: ApiStory): Story {
   };
 }
 
-// Dummy stories for fallback when not authenticated or API fails
-export const dummyStories: Story[] = [
-  {
-    id: "1",
-    username: "sarah_j",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=1200&fit=crop",
-    timestamp: "2h ago",
-  },
-  {
-    id: "2",
-    username: "mike_dev",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "video",
-    mediaUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    timestamp: "4h ago",
-  },
-  {
-    id: "3",
-    username: "emma_art",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1682695796954-bad0d0f59ff1?w=800&h=1200&fit=crop",
-    timestamp: "5h ago",
-  },
-  {
-    id: "4",
-    username: "alex_photo",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    hasUnviewed: false,
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1682686581580-d99b0e6f8431?w=800&h=1200&fit=crop",
-    timestamp: "8h ago",
-  },
-  {
-    id: "5",
-    username: "lisa_music",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "video",
-    mediaUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    timestamp: "10h ago",
-  },
-  {
-    id: "6",
-    username: "david_fit",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop",
-    hasUnviewed: false,
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=800&h=1200&fit=crop",
-    timestamp: "12h ago",
-  },
-  {
-    id: "7",
-    username: "nina_cook",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1682695794947-17061dc284dd?w=800&h=1200&fit=crop",
-    timestamp: "14h ago",
-  },
-  {
-    id: "8",
-    username: "tom_travel",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-    hasUnviewed: true,
-    mediaType: "video",
-    mediaUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-    timestamp: "18h ago",
-  },
-];
 
 function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => void; onView?: (storyId: string) => void }) {
   const handleClick = () => {
@@ -386,28 +311,23 @@ export function StoriesSection() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [stories, setStories] = useState<Story[]>(dummyStories);
+  const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
 
   const fetchStories = useCallback(async () => {
     if (!isAuthenticated) {
-      setStories(dummyStories);
+      setStories([]);
       setIsLoading(false);
       return;
     }
 
     try {
       const response = await storiesApi.getStories(1, 20);
-      if (response.stories.length > 0) {
-        setStories(response.stories.map(transformApiStory));
-      } else {
-        // Fallback to dummy stories if no real stories
-        setStories(dummyStories);
-      }
+      setStories(response.stories.map(transformApiStory));
     } catch (error) {
       console.error("Failed to fetch stories:", error);
-      setStories(dummyStories);
+      setStories([]);
     } finally {
       setIsLoading(false);
     }
