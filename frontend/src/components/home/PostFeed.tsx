@@ -2,19 +2,14 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Badge, Button, Card, CardContent } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
-  ArrowBigUp,
-  ArrowBigDown,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  MoreHorizontal,
   LayoutList,
   Grid3X3,
   Megaphone,
 } from "lucide-react";
-import Image from "next/image";
+import { PostCard } from "@/components/shared/PostCard";
+import type { Post as ApiPost } from "@/lib/api/posts";
 
 type FilterType = "all" | "images" | "announcements";
 
@@ -148,160 +143,34 @@ function FilterButton({
   );
 }
 
-function PostCard({ post }: { post: Post }) {
-  const [votes, setVotes] = useState(post.upvotes);
-  const [userVote, setUserVote] = useState<"up" | "down" | null>(post.userVote || null);
-  const [saved, setSaved] = useState(false);
-
-  const handleUpvote = () => {
-    if (userVote === "up") {
-      setVotes(votes - 1);
-      setUserVote(null);
-    } else if (userVote === "down") {
-      setVotes(votes + 2);
-      setUserVote("up");
-    } else {
-      setVotes(votes + 1);
-      setUserVote("up");
-    }
+// Helper function to convert dummy post to API Post format
+function convertDummyPost(dummyPost: Post): ApiPost {
+  return {
+    _id: dummyPost.id,
+    userId: {
+      _id: "dummy",
+      firstName: dummyPost.author.name.split(" ")[0],
+      lastName: dummyPost.author.name.split(" ").slice(1).join(" "),
+      username: dummyPost.author.username,
+      avatar: dummyPost.author.avatar,
+      verified: dummyPost.author.verified,
+    },
+    contentText: dummyPost.content,
+    privacy: "public" as const,
+    media: dummyPost.images?.map((url, index) => ({
+      _id: `media-${index}`,
+      type: "image" as const,
+      url,
+    })),
+    upvotes: dummyPost.upvotes,
+    downvotes: 0,
+    commentCount: dummyPost.comments,
+    shareCount: dummyPost.shares,
+    hasPoll: false,
+    userVote: dummyPost.userVote === "up" ? ("upvote" as const) : dummyPost.userVote === "down" ? ("downvote" as const) : null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
-
-  const handleDownvote = () => {
-    if (userVote === "down") {
-      setUserVote(null);
-    } else if (userVote === "up") {
-      setVotes(votes - 1);
-      setUserVote("down");
-    } else {
-      setUserVote("down");
-    }
-  };
-
-  return (
-    <Card className={cn(post.isAnnouncement && "border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/30")}>
-      <CardContent className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <Avatar src={post.author.avatar} alt={post.author.name} size="md" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold">{post.author.name}</span>
-                {post.author.verified && (
-                  <svg className="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                  </svg>
-                )}
-                {post.isAnnouncement && (
-                  <Badge variant="primary" size="sm" className="ml-1">
-                    <Megaphone size={10} className="mr-1" />
-                    Announcement
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-(--text-muted)">
-                <span>@{post.author.username}</span>
-                <span>•</span>
-                <span>{post.timestamp}</span>
-              </div>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" className="text-(--text-muted)">
-            <MoreHorizontal size={18} />
-          </Button>
-        </div>
-
-        {/* Content */}
-        <p className="text-(--text) mb-3 whitespace-pre-wrap">{post.content}</p>
-
-        {/* Images */}
-        {post.images && post.images.length > 0 && (
-          <div
-            className={cn(
-              "rounded-xl overflow-hidden mb-3",
-              post.images.length === 1 ? "grid-cols-1" : "grid grid-cols-2 gap-1"
-            )}
-          >
-            {post.images.map((image, index) => (
-              <Image
-                key={index}
-                src={image}
-                alt={`Post image ${index + 1}`}
-                width={600}
-                height={post.images!.length === 1 ? 400 : 200}
-                className={cn(
-                  "w-full object-cover",
-                  post.images!.length === 1 ? "max-h-96" : "h-48"
-                )}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-(--border)">
-          <div className="flex items-center gap-1">
-            {/* Vote buttons */}
-            <div className="flex items-center bg-primary-50 dark:bg-primary-900/30 rounded-full">
-              <button
-                onClick={handleUpvote}
-                className={cn(
-                  "p-2 rounded-l-full transition-colors",
-                  userVote === "up"
-                    ? "text-primary-600 dark:text-primary-400"
-                    : "text-(--text-muted) hover:text-primary-600"
-                )}
-              >
-                <ArrowBigUp size={22} fill={userVote === "up" ? "currentColor" : "none"} />
-              </button>
-              <span className={cn(
-                "text-sm font-semibold min-w-[40px] text-center",
-                userVote === "up" && "text-primary-600 dark:text-primary-400"
-              )}>
-                {votes}
-              </span>
-              <button
-                onClick={handleDownvote}
-                className={cn(
-                  "p-2 rounded-r-full transition-colors",
-                  userVote === "down"
-                    ? "text-red-500"
-                    : "text-(--text-muted) hover:text-red-500"
-                )}
-              >
-                <ArrowBigDown size={22} fill={userVote === "down" ? "currentColor" : "none"} />
-              </button>
-            </div>
-
-            {/* Comments */}
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
-              <MessageCircle size={18} />
-              <span className="text-sm">{post.comments}</span>
-            </button>
-
-            {/* Share */}
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
-              <Share2 size={18} />
-              <span className="text-sm hidden sm:inline">{post.shares}</span>
-            </button>
-          </div>
-
-          {/* Save */}
-          <button
-            onClick={() => setSaved(!saved)}
-            className={cn(
-              "p-2 rounded-full transition-colors",
-              saved
-                ? "text-primary-600 dark:text-primary-400"
-                : "text-(--text-muted) hover:text-primary-600"
-            )}
-          >
-            <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
-          </button>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function PostFeed() {
@@ -343,7 +212,7 @@ export function PostFeed() {
       {/* Posts */}
       <div className="space-y-4">
         {filteredPosts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={convertDummyPost(post)} showAnnouncement={post.isAnnouncement} />
         ))}
       </div>
 

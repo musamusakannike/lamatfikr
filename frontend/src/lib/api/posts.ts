@@ -38,6 +38,7 @@ export interface Post {
     commentCount: number;
     shareCount: number;
     hasPoll: boolean;
+    userVote?: "upvote" | "downvote" | null;
     createdAt: string;
     updatedAt: string;
 }
