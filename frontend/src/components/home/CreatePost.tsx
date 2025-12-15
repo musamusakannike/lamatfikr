@@ -24,9 +24,12 @@ import {
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
+import { useAuth } from "@/contexts/AuthContext";
 import { uploadApi } from "@/lib/api/upload";
 import { postsApi } from "@/lib/api/posts";
 import type { CreatePostData } from "@/lib/api/posts";
+
+const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
 // Cross-browser compatible UUID generator
 function generateId(): string {
@@ -454,6 +457,7 @@ interface CreatePostProps {
 }
 
 export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
+  const { user } = useAuth();
   const [content, setContent] = useState("");
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -733,8 +737,8 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           {/* Header */}
           <div className="flex items-start gap-3 mb-3">
             <Avatar
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
-              alt="Your avatar"
+              src={user?.avatar || DEFAULT_AVATAR}
+              alt={user?.firstName || "User"}
               size="md"
             />
             <div className="flex-1">
