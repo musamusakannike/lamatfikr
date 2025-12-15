@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Badge, Button, Card, CardContent } from "@/components/ui";
 import {
@@ -38,6 +38,11 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentPage, setCommentPage] = useState(1);
     const [hasMoreComments, setHasMoreComments] = useState(false);
+
+    // Sync post state when initialPost prop changes
+    useEffect(() => {
+        setPost(initialPost);
+    }, [initialPost]);
 
     const handleVote = async (type: "upvote" | "downvote") => {
         if (isVoting) return;
