@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useDropzone } from "react-dropzone";
+import { uploadApi } from "@/lib/api/upload";
+import { postsApi } from "@/lib/api/posts";
+import type { CreatePostData } from "@/lib/api/posts";
 
 // Cross-browser compatible UUID generator
 function generateId(): string {
@@ -453,7 +456,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityState>({
     only_me: false,
-    followers: true,
+    followers: false,
     following: false,
   });
   const [mediaAttachments, setMediaAttachments] = useState<MediaAttachment[]>([]);
@@ -590,7 +593,6 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
       // Upload images and videos
       for (const attachment of mediaAttachments) {
         try {
-          const { uploadApi } = await import("@/lib/api");
           const result = await uploadApi.uploadMedia(attachment.file, "posts");
           uploadedMedia.push({
             type: attachment.type,
@@ -609,7 +611,6 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           const audioFile = new File([audioAttachment.blob], "voice-note.webm", {
             type: "audio/webm",
           });
-          const { uploadApi } = await import("@/lib/api");
           const result = await uploadApi.uploadMedia(audioFile, "posts");
           uploadedMedia.push({
             type: "voice_note",
@@ -636,8 +637,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
       }
 
       // Step 3: Prepare post data
-      const { postsApi } = await import("@/lib/api");
-      const postData: import("@/lib/api").CreatePostData = {
+      const postData: CreatePostData = {
         contentText: content.trim() || undefined,
         privacy,
         media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
