@@ -398,14 +398,29 @@ export const getFeed: RequestHandler = async (req, res, next) => {
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
 
-    const enrichedPosts = posts.map((post) => ({
-      ...post,
-      upvotes: post.upvoteCount,
-      downvotes: post.downvoteCount,
-      media: mediaByPost.get(post._id.toString()) || [],
-      poll: pollByPost.get(post._id.toString()) || null,
-      userVote: voteByPost.get(post._id.toString()) || null,
-    }));
+    // Fetch user's poll votes
+    const pollIds = allPolls.map((p) => p._id);
+    const userPollVotes = pollIds.length > 0
+      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+      : [];
+    const pollVotesByPoll = new Map<string, string[]>();
+    userPollVotes.forEach((v) => {
+      const key = v.pollId.toString();
+      if (!pollVotesByPoll.has(key)) pollVotesByPoll.set(key, []);
+      pollVotesByPoll.get(key)!.push(v.optionId.toString());
+    });
+
+    const enrichedPosts = posts.map((post) => {
+      const poll = pollByPost.get(post._id.toString());
+      return {
+        ...post,
+        upvotes: post.upvoteCount,
+        downvotes: post.downvoteCount,
+        media: mediaByPost.get(post._id.toString()) || [],
+        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        userVote: voteByPost.get(post._id.toString()) || null,
+      };
+    });
 
     const total = await PostModel.countDocuments({
       deletedAt: null,
@@ -528,14 +543,29 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
 
-    const enrichedPosts = posts.map((post) => ({
-      ...post,
-      upvotes: post.upvoteCount,
-      downvotes: post.downvoteCount,
-      media: mediaByPost.get(post._id.toString()) || [],
-      poll: pollByPost.get(post._id.toString()) || null,
-      userVote: voteByPost.get(post._id.toString()) || null,
-    }));
+    // Fetch user's poll votes
+    const pollIds = allPolls.map((p) => p._id);
+    const userPollVotes = pollIds.length > 0 && viewerId
+      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId: viewerId }).lean()
+      : [];
+    const pollVotesByPoll = new Map<string, string[]>();
+    userPollVotes.forEach((v) => {
+      const key = v.pollId.toString();
+      if (!pollVotesByPoll.has(key)) pollVotesByPoll.set(key, []);
+      pollVotesByPoll.get(key)!.push(v.optionId.toString());
+    });
+
+    const enrichedPosts = posts.map((post) => {
+      const poll = pollByPost.get(post._id.toString());
+      return {
+        ...post,
+        upvotes: post.upvoteCount,
+        downvotes: post.downvoteCount,
+        media: mediaByPost.get(post._id.toString()) || [],
+        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        userVote: voteByPost.get(post._id.toString()) || null,
+      };
+    });
 
     const total = await PostModel.countDocuments({
       userId: targetUserId,
@@ -883,14 +913,27 @@ export const getSavedPosts: RequestHandler = async (req, res, next) => {
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
 
+    // Fetch user's poll votes
+    const pollIds = allPolls.map((p) => p._id);
+    const userPollVotes = pollIds.length > 0
+      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+      : [];
+    const pollVotesByPoll = new Map<string, string[]>();
+    userPollVotes.forEach((v) => {
+      const key = v.pollId.toString();
+      if (!pollVotesByPoll.has(key)) pollVotesByPoll.set(key, []);
+      pollVotesByPoll.get(key)!.push(v.optionId.toString());
+    });
+
     const enrichedPosts = savedItems
       .map((saved) => {
         const post = postMap.get(saved.itemId.toString());
         if (!post) return null;
+        const poll = pollByPost.get(post._id.toString());
         return {
           ...post,
           media: mediaByPost.get(post._id.toString()) || [],
-          poll: pollByPost.get(post._id.toString()) || null,
+          poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
           userVote: voteByPost.get(post._id.toString()) || null,
           savedAt: (saved as any).createdAt,
         };
@@ -971,12 +1014,27 @@ export const getPostsByHashtag: RequestHandler = async (req, res, next) => {
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
 
-    const enrichedPosts = posts.map((post) => ({
-      ...post,
-      media: mediaByPost.get(post._id.toString()) || [],
-      poll: pollByPost.get(post._id.toString()) || null,
-      userVote: voteByPost.get(post._id.toString()) || null,
-    }));
+    // Fetch user's poll votes
+    const pollIds = allPolls.map((p) => p._id);
+    const userPollVotes = pollIds.length > 0 && viewerId
+      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId: viewerId }).lean()
+      : [];
+    const pollVotesByPoll = new Map<string, string[]>();
+    userPollVotes.forEach((v) => {
+      const key = v.pollId.toString();
+      if (!pollVotesByPoll.has(key)) pollVotesByPoll.set(key, []);
+      pollVotesByPoll.get(key)!.push(v.optionId.toString());
+    });
+
+    const enrichedPosts = posts.map((post) => {
+      const poll = pollByPost.get(post._id.toString());
+      return {
+        ...post,
+        media: mediaByPost.get(post._id.toString()) || [],
+        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        userVote: voteByPost.get(post._id.toString()) || null,
+      };
+    });
 
     const total = await PostHashtagModel.countDocuments({ hashtagId: hashtag._id });
 

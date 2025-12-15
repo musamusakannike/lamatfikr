@@ -110,4 +110,7 @@ export const postsApi = {
         apiClient.get<{ posts: Post[]; pagination: { page: number; limit: number; total: number; pages: number } }>(
             `/posts/saved?page=${page}&limit=${limit}`
         ),
+
+    votePoll: (postId: string, optionIds: string[]) =>
+        apiClient.post<{ message: string; poll: Post["poll"] }>(`/posts/${postId}/poll/vote`, { optionIds }),
 };

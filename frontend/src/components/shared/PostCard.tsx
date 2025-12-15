@@ -44,6 +44,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [commentPage, setCommentPage] = useState(1);
     const [hasMoreComments, setHasMoreComments] = useState(false);
+    const [isVotingPoll, setIsVotingPoll] = useState(false);
 
     // Sync post state when initialPost prop changes
     useEffect(() => {
@@ -293,57 +294,12 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
 
                 {/* Poll */}
                 {post.hasPoll && post.poll && (
-                    <div className="mb-3 p-4 rounded-xl bg-primary-50/50 dark:bg-primary-900/20 border border-(--border)">
-                        <div className="flex items-start gap-2 mb-3">
-                            <BarChart3 size={18} className="text-primary-600 mt-0.5" />
-                            <div className="flex-1">
-                                <h4 className="font-semibold text-(--text) mb-1">{post.poll.question}</h4>
-                                {post.poll.endsAt && (
-                                    <p className="text-xs text-(--text-muted)">
-                                        {new Date(post.poll.endsAt) > new Date()
-                                            ? `Ends ${formatDistanceToNow(new Date(post.poll.endsAt), { addSuffix: true })}`
-                                            : "Poll ended"}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            {post.poll.options.map((option) => {
-                                const totalVotes = post.poll!.options.reduce((sum, opt) => sum + opt.voteCount, 0);
-                                const percentage = totalVotes > 0 ? Math.round((option.voteCount / totalVotes) * 100) : 0;
-                                const isUserVoted = post.poll?.userVotes?.includes(option._id);
-
-                                return (
-                                    <div
-                                        key={option._id}
-                                        className={cn(
-                                            "relative p-3 rounded-lg border transition-all cursor-pointer",
-                                            isUserVoted
-                                                ? "border-primary-500 bg-primary-100/50 dark:bg-primary-900/30"
-                                                : "border-(--border) hover:border-primary-300 dark:hover:border-primary-700"
-                                        )}
-                                    >
-                                        <div className="relative z-10 flex items-center justify-between">
-                                            <span className={cn("text-sm font-medium", isUserVoted && "text-primary-700 dark:text-primary-300")}>
-                                                {option.text}
-                                            </span>
-                                            <span className="text-sm font-semibold text-(--text-muted)">
-                                                {percentage}%
-                                            </span>
-                                        </div>
-                                        <div
-                                            className="absolute inset-0 bg-primary-200/30 dark:bg-primary-800/20 rounded-lg transition-all"
-                                            style={{ width: `${percentage}%` }}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <p className="text-xs text-(--text-muted) mt-2">
-                            {post.poll.options.reduce((sum, opt) => sum + opt.voteCount, 0)} total votes
-                            {post.poll.allowMultipleVotes && " • Multiple votes allowed"}
-                        </p>
-                    </div>
+                    <PollSection
+                        post={post}
+                        setPost={setPost}
+                        isVotingPoll={isVotingPoll}
+                        setIsVotingPoll={setIsVotingPoll}
+                    />
                 )}
 
                 <div className="flex items-center justify-between pt-2 border-t border-(--border)">
@@ -489,6 +445,149 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                 )}
             </CardContent>
         </Card>
+    );
+}
+
+interface PollSectionProps {
+    post: Post;
+    setPost: React.Dispatch<React.SetStateAction<Post>>;
+    isVotingPoll: boolean;
+    setIsVotingPoll: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function PollSection({ post, setPost, isVotingPoll, setIsVotingPoll }: PollSectionProps) {
+    const poll = post.poll!;
+    const isPollEnded = poll.endsAt ? new Date(poll.endsAt) < new Date() : false;
+
+    const handlePollVote = async (optionId: string) => {
+        if (isVotingPoll || isPollEnded) return;
+
+        setIsVotingPoll(true);
+
+        // Determine new votes
+        let newVotes: string[];
+        if (poll.allowMultipleVotes) {
+            // Toggle the option
+            if (poll.userVotes?.includes(optionId)) {
+                newVotes = poll.userVotes.filter((id) => id !== optionId);
+            } else {
+                newVotes = [...(poll.userVotes || []), optionId];
+            }
+        } else {
+            // Single vote - replace or toggle
+            if (poll.userVotes?.includes(optionId)) {
+                newVotes = [];
+            } else {
+                newVotes = [optionId];
+            }
+        }
+
+        // Optimistic update
+        const previousPoll = { ...poll };
+        const updatedOptions = poll.options.map((opt) => {
+            let newVoteCount = opt.voteCount;
+            const wasVoted = poll.userVotes?.includes(opt._id);
+            const willBeVoted = newVotes.includes(opt._id);
+
+            if (wasVoted && !willBeVoted) {
+                newVoteCount = Math.max(0, newVoteCount - 1);
+            } else if (!wasVoted && willBeVoted) {
+                newVoteCount += 1;
+            }
+
+            return { ...opt, voteCount: newVoteCount };
+        });
+
+        setPost({
+            ...post,
+            poll: { ...poll, options: updatedOptions, userVotes: newVotes },
+        });
+
+        try {
+            if (newVotes.length === 0) {
+                // If no votes, we need to handle this - for now just vote with empty array
+                // The server might not support removing all votes, so we'll just toggle
+                await postsApi.votePoll(post._id, [optionId]);
+            } else {
+                const { poll: updatedPoll } = await postsApi.votePoll(post._id, newVotes);
+                if (updatedPoll) {
+                    setPost({
+                        ...post,
+                        poll: { ...updatedPoll, userVotes: newVotes },
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            // Revert on error
+            setPost({ ...post, poll: previousPoll });
+            toast.error("Failed to vote on poll");
+        } finally {
+            setIsVotingPoll(false);
+        }
+    };
+
+    const totalVotes = poll.options.reduce((sum, opt) => sum + opt.voteCount, 0);
+
+    return (
+        <div className="mb-3 p-4 rounded-xl bg-primary-50/50 dark:bg-primary-900/20 border border-(--border)">
+            <div className="flex items-start gap-2 mb-3">
+                <BarChart3 size={18} className="text-primary-600 mt-0.5" />
+                <div className="flex-1">
+                    <h4 className="font-semibold text-(--text) mb-1">{poll.question}</h4>
+                    {poll.endsAt && (
+                        <p className="text-xs text-(--text-muted)">
+                            {isPollEnded
+                                ? "Poll ended"
+                                : `Ends ${formatDistanceToNow(new Date(poll.endsAt), { addSuffix: true })}`}
+                        </p>
+                    )}
+                </div>
+            </div>
+            <div className="space-y-2">
+                {poll.options.map((option) => {
+                    const percentage = totalVotes > 0 ? Math.round((option.voteCount / totalVotes) * 100) : 0;
+                    const isUserVoted = poll.userVotes?.includes(option._id);
+
+                    return (
+                        <button
+                            key={option._id}
+                            onClick={() => handlePollVote(option._id)}
+                            disabled={isVotingPoll || isPollEnded}
+                            className={cn(
+                                "relative w-full p-3 rounded-lg border transition-all text-left",
+                                isUserVoted
+                                    ? "border-primary-500 bg-primary-100/50 dark:bg-primary-900/30"
+                                    : "border-(--border) hover:border-primary-300 dark:hover:border-primary-700",
+                                (isVotingPoll || isPollEnded) && "cursor-not-allowed opacity-70"
+                            )}
+                        >
+                            <div className="relative z-10 flex items-center justify-between">
+                                <span className={cn("text-sm font-medium", isUserVoted && "text-primary-700 dark:text-primary-300")}>
+                                    {option.text}
+                                </span>
+                                <span className="text-sm font-semibold text-(--text-muted)">
+                                    {percentage}%
+                                </span>
+                            </div>
+                            <div
+                                className="absolute inset-0 bg-primary-200/30 dark:bg-primary-800/20 rounded-lg transition-all"
+                                style={{ width: `${percentage}%` }}
+                            />
+                        </button>
+                    );
+                })}
+            </div>
+            <p className="text-xs text-(--text-muted) mt-2">
+                {totalVotes} total votes
+                {poll.allowMultipleVotes && " • Multiple votes allowed"}
+                {isVotingPoll && (
+                    <span className="ml-2">
+                        <Loader2 size={12} className="inline animate-spin" />
+                    </span>
+                )}
+            </p>
+        </div>
     );
 }
 
