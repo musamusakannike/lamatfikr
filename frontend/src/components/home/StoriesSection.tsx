@@ -1,10 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Button, Modal } from "@/components/ui";
-import { Plus, ChevronRight, Image, Video, X, Upload } from "lucide-react";
+import { Plus, ChevronRight, Image, Video, X, Upload, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { storiesApi, Story as ApiStory } from "@/lib/api/stories";
+import { uploadApi } from "@/lib/api/upload";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDistanceToNow } from "date-fns";
 
 export interface Story {
   id: string;
@@ -16,6 +20,21 @@ export interface Story {
   timestamp: string;
 }
 
+// Transform API story to local Story format
+function transformApiStory(apiStory: ApiStory): Story {
+  const firstMedia = apiStory.mediaItems[0];
+  return {
+    id: apiStory._id,
+    username: apiStory.userId.username,
+    avatar: apiStory.userId.avatar || "/images/default-avatar.png",
+    hasUnviewed: apiStory.hasUnviewed,
+    mediaType: firstMedia?.type || "image",
+    mediaUrl: firstMedia?.url || "",
+    timestamp: formatDistanceToNow(new Date(apiStory.createdAt), { addSuffix: true }),
+  };
+}
+
+// Dummy stories for fallback when not authenticated or API fails
 export const dummyStories: Story[] = [
   {
     id: "1",
@@ -91,9 +110,16 @@ export const dummyStories: Story[] = [
   },
 ];
 
-function StoryItem({ story, onClick }: { story: Story; onClick: () => void }) {
+function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => void; onView?: (storyId: string) => void }) {
+  const handleClick = () => {
+    onClick();
+    if (onView && story.hasUnviewed) {
+      onView(story.id);
+    }
+  };
+
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group">
+    <button onClick={handleClick} className="flex flex-col items-center gap-1.5 group">
       <div
         className={cn(
           "p-0.5 rounded-full",
@@ -118,12 +144,12 @@ function StoryItem({ story, onClick }: { story: Story; onClick: () => void }) {
   );
 }
 
-function AddStoryButton({ onClick }: { onClick: () => void }) {
+function AddStoryButton({ onClick, userAvatar }: { onClick: () => void; userAvatar?: string }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group">
       <div className="relative">
         <Avatar
-          src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+          src={userAvatar || "/images/default-avatar.png"}
           alt="Your story"
           size="lg"
           className="opacity-80"
@@ -140,11 +166,15 @@ function AddStoryButton({ onClick }: { onClick: () => void }) {
 interface AddStoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onStoryCreated?: () => void;
 }
 
-function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
+function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) {
   const [selectedType, setSelectedType] = useState<"image" | "video" | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,6 +182,8 @@ function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      setSelectedFile(file);
+      setError(null);
     }
   };
 
@@ -163,16 +195,38 @@ function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
   const handleClear = () => {
     setSelectedType(null);
     setPreviewUrl(null);
+    setSelectedFile(null);
+    setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const handleSubmit = () => {
-    // In a real app, this would upload the file and create the story
-    alert("Story created! (This is a dummy action)");
-    handleClear();
-    onClose();
+  const handleSubmit = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Upload the media file
+      const uploadResponse = await uploadApi.uploadMedia(selectedFile, "stories");
+      
+      // Create the story with the uploaded media URL
+      await storiesApi.createStory({
+        media: [uploadResponse.url],
+        expiresInHours: 24,
+      });
+
+      handleClear();
+      onClose();
+      onStoryCreated?.();
+    } catch (err) {
+      console.error("Failed to create story:", err);
+      setError(err instanceof Error ? err.message : "Failed to create story");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleClose = () => {
@@ -247,13 +301,21 @@ function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
               </button>
             </div>
 
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={handleClear}>
+              <Button variant="outline" className="flex-1" onClick={handleClear} disabled={isUploading}>
                 Change
               </Button>
-              <Button variant="primary" className="flex-1 gap-2" onClick={handleSubmit}>
-                <Upload size={18} />
-                Share Story
+              <Button variant="primary" className="flex-1 gap-2" onClick={handleSubmit} disabled={isUploading}>
+                {isUploading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Upload size={18} />
+                )}
+                {isUploading ? "Uploading..." : "Share Story"}
               </Button>
             </div>
           </div>
@@ -267,9 +329,16 @@ interface StoryViewerModalProps {
   story: Story | null;
   isOpen: boolean;
   onClose: () => void;
+  onView?: (storyId: string) => void;
 }
 
-function StoryViewerModal({ story, isOpen, onClose }: StoryViewerModalProps) {
+function StoryViewerModal({ story, isOpen, onClose, onView }: StoryViewerModalProps) {
+  useEffect(() => {
+    if (isOpen && story && onView) {
+      onView(story.id);
+    }
+  }, [isOpen, story, onView]);
+
   if (!story) return null;
 
   return (
@@ -317,6 +386,36 @@ export function StoriesSection() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [stories, setStories] = useState<Story[]>(dummyStories);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated } = useAuth();
+
+  const fetchStories = useCallback(async () => {
+    if (!isAuthenticated) {
+      setStories(dummyStories);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await storiesApi.getStories(1, 20);
+      if (response.stories.length > 0) {
+        setStories(response.stories.map(transformApiStory));
+      } else {
+        // Fallback to dummy stories if no real stories
+        setStories(dummyStories);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stories:", error);
+      setStories(dummyStories);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
 
   const scrollRight = () => {
     if (scrollRef.current) {
@@ -327,6 +426,20 @@ export function StoriesSection() {
   const handleStoryClick = (story: Story) => {
     setSelectedStory(story);
     setIsViewerOpen(true);
+  };
+
+  const handleViewStory = async (storyId: string) => {
+    if (!isAuthenticated) return;
+    
+    try {
+      await storiesApi.viewStory(storyId);
+      // Update local state to mark as viewed
+      setStories((prev) =>
+        prev.map((s) => (s.id === storyId ? { ...s, hasUnviewed: false } : s))
+      );
+    } catch (error) {
+      console.error("Failed to mark story as viewed:", error);
+    }
   };
 
   return (
@@ -347,14 +460,23 @@ export function StoriesSection() {
             ref={scrollRef}
             className="flex gap-4 overflow-x-auto hide-scrollbar pb-2"
           >
-            <AddStoryButton onClick={() => setIsAddModalOpen(true)} />
-            {dummyStories.map((story) => (
-              <StoryItem 
-                key={story.id} 
-                story={story} 
-                onClick={() => handleStoryClick(story)}
-              />
-            ))}
+            {isAuthenticated && (
+              <AddStoryButton onClick={() => setIsAddModalOpen(true)} userAvatar={user?.avatar} />
+            )}
+            {isLoading ? (
+              <div className="flex items-center justify-center w-full py-4">
+                <Loader2 size={24} className="animate-spin text-primary-500" />
+              </div>
+            ) : (
+              stories.map((story) => (
+                <StoryItem
+                  key={story.id}
+                  story={story}
+                  onClick={() => handleStoryClick(story)}
+                  onView={isAuthenticated ? handleViewStory : undefined}
+                />
+              ))
+            )}
           </div>
 
           {/* Scroll indicator */}
@@ -367,11 +489,16 @@ export function StoriesSection() {
         </div>
       </div>
 
-      <AddStoryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-      <StoryViewerModal 
-        story={selectedStory} 
-        isOpen={isViewerOpen} 
-        onClose={() => setIsViewerOpen(false)} 
+      <AddStoryModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onStoryCreated={fetchStories}
+      />
+      <StoryViewerModal
+        story={selectedStory}
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        onView={isAuthenticated ? handleViewStory : undefined}
       />
     </>
   );

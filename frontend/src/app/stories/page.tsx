@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Avatar, Button, Modal } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,11 +14,29 @@ import {
   Play, 
   Image as ImageIcon,
   Video,
-  Filter
+  Filter,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { storiesApi, Story as ApiStory, MediaFilterType } from "@/lib/api/stories";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDistanceToNow } from "date-fns";
 
 type FilterType = "all" | "images" | "videos";
+
+// Transform API story to local Story format
+function transformApiStory(apiStory: ApiStory): Story {
+  const firstMedia = apiStory.mediaItems[0];
+  return {
+    id: apiStory._id,
+    username: apiStory.userId.username,
+    avatar: apiStory.userId.avatar || "/images/default-avatar.png",
+    hasUnviewed: apiStory.hasUnviewed,
+    mediaType: firstMedia?.type || "image",
+    mediaUrl: firstMedia?.url || "",
+    timestamp: formatDistanceToNow(new Date(apiStory.createdAt), { addSuffix: true }),
+  };
+}
 
 function StoryCard({ story, onClick }: { story: Story; onClick: () => void }) {
   return (
@@ -95,10 +113,18 @@ interface FullScreenViewerProps {
   initialIndex: number;
   isOpen: boolean;
   onClose: () => void;
+  onView?: (storyId: string) => void;
 }
 
-function FullScreenViewer({ stories, initialIndex, isOpen, onClose }: FullScreenViewerProps) {
+function FullScreenViewer({ stories, initialIndex, isOpen, onClose, onView }: FullScreenViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Mark story as viewed when it changes
+  useEffect(() => {
+    if (isOpen && stories[currentIndex] && onView) {
+      onView(stories[currentIndex].id);
+    }
+  }, [isOpen, currentIndex, stories, onView]);
 
   const currentStory = stories[currentIndex];
 
@@ -220,22 +246,77 @@ export default function StoriesPage() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [stories, setStories] = useState<Story[]>(dummyStories);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
-  const filteredStories = dummyStories.filter((story) => {
-    if (filter === "all") return true;
-    if (filter === "images") return story.mediaType === "image";
-    if (filter === "videos") return story.mediaType === "video";
-    return true;
-  });
+  const fetchStories = useCallback(async () => {
+    if (!isAuthenticated) {
+      setStories(dummyStories);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const mediaType: MediaFilterType = filter;
+      const response = await storiesApi.getStories(1, 50, mediaType);
+      if (response.stories.length > 0) {
+        setStories(response.stories.map(transformApiStory));
+      } else {
+        // Fallback to filtered dummy stories if no real stories
+        const filtered = dummyStories.filter((story) => {
+          if (filter === "all") return true;
+          if (filter === "images") return story.mediaType === "image";
+          if (filter === "videos") return story.mediaType === "video";
+          return true;
+        });
+        setStories(filtered);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stories:", error);
+      // Fallback to filtered dummy stories on error
+      const filtered = dummyStories.filter((story) => {
+        if (filter === "all") return true;
+        if (filter === "images") return story.mediaType === "image";
+        if (filter === "videos") return story.mediaType === "video";
+        return true;
+      });
+      setStories(filtered);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, filter]);
+
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  // For display counts, filter locally from current stories
+  const filteredStories = stories;
 
   const handleStoryClick = (index: number) => {
     setSelectedStoryIndex(index);
     setIsViewerOpen(true);
   };
 
-  const unviewedCount = dummyStories.filter((s) => s.hasUnviewed).length;
-  const imageCount = dummyStories.filter((s) => s.mediaType === "image").length;
-  const videoCount = dummyStories.filter((s) => s.mediaType === "video").length;
+  const handleViewStory = async (storyId: string) => {
+    if (!isAuthenticated) return;
+
+    try {
+      await storiesApi.viewStory(storyId);
+      // Update local state to mark as viewed
+      setStories((prev) =>
+        prev.map((s) => (s.id === storyId ? { ...s, hasUnviewed: false } : s))
+      );
+    } catch (error) {
+      console.error("Failed to mark story as viewed:", error);
+    }
+  };
+
+  const unviewedCount = stories.filter((s) => s.hasUnviewed).length;
+  const imageCount = stories.filter((s) => s.mediaType === "image").length;
+  const videoCount = stories.filter((s) => s.mediaType === "video").length;
 
   return (
     <div className="min-h-screen">
@@ -278,7 +359,7 @@ export default function StoriesPage() {
                         : "text-(--text-muted) hover:text-(--text)"
                     )}
                   >
-                    {t("common", "all")} ({dummyStories.length})
+                    {t("common", "all")} ({stories.length})
                   </button>
                   <button
                     onClick={() => setFilter("images")}
@@ -310,7 +391,11 @@ export default function StoriesPage() {
           </div>
 
           {/* Stories Grid */}
-          {filteredStories.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 size={32} className="animate-spin text-primary-500" />
+            </div>
+          ) : filteredStories.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {filteredStories.map((story, index) => (
                 <StoryCard
@@ -351,6 +436,7 @@ export default function StoriesPage() {
         initialIndex={selectedStoryIndex ?? 0}
         isOpen={isViewerOpen}
         onClose={() => setIsViewerOpen(false)}
+        onView={isAuthenticated ? handleViewStory : undefined}
       />
     </div>
   );

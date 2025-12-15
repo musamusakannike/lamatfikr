@@ -9,3 +9,6 @@ export type { UploadResponse } from "./upload";
 
 export { postsApi } from "./posts";
 export type { Post, CreatePostData, CreatePostResponse } from "./posts";
+
+export { storiesApi } from "./stories";
+export type { Story, StoryUser, StoryMediaItem, StoryViewer, CreateStoryData, StoriesResponse, StoryViewersResponse, MediaFilterType } from "./stories";
