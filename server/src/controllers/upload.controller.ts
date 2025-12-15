@@ -18,6 +18,14 @@ const ALLOWED_VIDEO_TYPES = [
   "video/quicktime",
 ];
 
+const ALLOWED_AUDIO_TYPES = [
+  "audio/webm",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg",
+];
+
 export const uploadImage: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -78,16 +86,17 @@ export const uploadMedia: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const allowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+    const allowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_AUDIO_TYPES];
     if (!allowedTypes.includes(file.mimetype)) {
       res.status(400).json({
-        message: "Invalid file type. Allowed: images (JPEG, PNG, GIF, WebP, SVG) and videos (MP4, WebM, MOV)",
+        message: "Invalid file type. Allowed: images (JPEG, PNG, GIF, WebP, SVG), videos (MP4, WebM, MOV), and audio (WebM, MP3, WAV, OGG)",
       });
       return;
     }
 
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.mimetype);
-    const folder = (req.query.folder as string) || (isVideo ? "videos" : "images");
+    const isAudio = ALLOWED_AUDIO_TYPES.includes(file.mimetype);
+    const folder = (req.query.folder as string) || (isVideo ? "videos" : isAudio ? "audio" : "images");
     const ext = path.extname(file.originalname) || `.${file.mimetype.split("/")[1]}`;
     const key = `${folder}/${userId}/${uuidv4()}${ext}`;
 
@@ -106,7 +115,7 @@ export const uploadMedia: RequestHandler = async (req, res, next) => {
       message: "File uploaded successfully",
       url: result.url,
       key: result.key,
-      type: isVideo ? "video" : "image",
+      type: isVideo ? "video" : isAudio ? "audio" : "image",
     });
   } catch (error) {
     next(error);

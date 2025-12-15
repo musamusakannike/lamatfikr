@@ -134,10 +134,14 @@ function VisibilityCheckbox({
 
 // Poll creator component
 function PollCreator({
+  question,
+  onQuestionChange,
   options,
   onOptionsChange,
   onRemove,
 }: {
+  question: string;
+  onQuestionChange: (question: string) => void;
   options: PollOption[];
   onOptionsChange: (options: PollOption[]) => void;
   onRemove: () => void;
@@ -178,6 +182,18 @@ function PollCreator({
         </button>
       </div>
 
+      {/* Poll Question */}
+      <div>
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => onQuestionChange(e.target.value)}
+          placeholder="Ask a question..."
+          className="w-full px-3 py-2 rounded-lg bg-(--bg-card) border border-(--border) text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+      </div>
+
+      {/* Poll Options */}
       <div className="space-y-2">
         {options.map((option, index) => (
           <div key={option.id} className="flex items-center gap-2">
@@ -374,10 +390,10 @@ function MediaPreview({
         attachments.length === 1
           ? "grid-cols-1"
           : attachments.length === 2
-          ? "grid-cols-2"
-          : attachments.length === 3
-          ? "grid-cols-2"
-          : "grid-cols-2"
+            ? "grid-cols-2"
+            : attachments.length === 3
+              ? "grid-cols-2"
+              : "grid-cols-2"
       )}
     >
       {attachments.map((attachment, index) => (
@@ -443,6 +459,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const [mediaAttachments, setMediaAttachments] = useState<MediaAttachment[]>([]);
   const [audioAttachment, setAudioAttachment] = useState<AudioAttachment | null>(null);
   const [showPoll, setShowPoll] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState<PollOption[]>([
     { id: generateId(), text: "" },
     { id: generateId(), text: "" },
@@ -518,6 +535,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
   const togglePoll = () => {
     setShowPoll(!showPoll);
     if (!showPoll) {
+      setPollQuestion("");
       setPollOptions([
         { id: generateId(), text: "" },
         { id: generateId(), text: "" },
@@ -559,50 +577,114 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
 
     setIsSubmitting(true);
 
-    // Prepare post data
-    const postData = {
-      content: content.trim(),
-      visibility: Object.entries(visibility)
-        .filter(([, value]) => value)
-        .map(([key]) => key),
-      media: mediaAttachments.map((a) => ({ type: a.type, file: a.file })),
-      audio: audioAttachment?.blob,
-      poll: showPoll
-        ? {
+    try {
+      // Step 1: Upload media files
+      const uploadedMedia: Array<{
+        type: "image" | "video" | "audio" | "voice_note" | "file";
+        url: string;
+        thumbnail?: string;
+        size?: number;
+        duration?: number;
+      }> = [];
+
+      // Upload images and videos
+      for (const attachment of mediaAttachments) {
+        try {
+          const { uploadApi } = await import("@/lib/api");
+          const result = await uploadApi.uploadMedia(attachment.file, "posts");
+          uploadedMedia.push({
+            type: attachment.type,
+            url: result.url,
+            size: attachment.file.size,
+          });
+        } catch (error) {
+          console.error("Failed to upload media:", error);
+          throw new Error(`Failed to upload ${attachment.type}`);
+        }
+      }
+
+      // Upload audio if present
+      if (audioAttachment) {
+        try {
+          const audioFile = new File([audioAttachment.blob], "voice-note.webm", {
+            type: "audio/webm",
+          });
+          const { uploadApi } = await import("@/lib/api");
+          const result = await uploadApi.uploadMedia(audioFile, "posts");
+          uploadedMedia.push({
+            type: "voice_note",
+            url: result.url,
+            duration: audioAttachment.duration,
+          });
+        } catch (error) {
+          console.error("Failed to upload audio:", error);
+          throw new Error("Failed to upload voice note");
+        }
+      }
+
+      // Step 2: Map visibility to privacy
+      let privacy: "public" | "followers" | "friends" | "friends_only" | "me_only" = "public";
+
+      if (visibility.only_me) {
+        privacy = "me_only";
+      } else if (visibility.followers && visibility.following) {
+        privacy = "public";
+      } else if (visibility.followers) {
+        privacy = "followers";
+      } else if (visibility.following) {
+        privacy = "friends";
+      }
+
+      // Step 3: Prepare post data
+      const { postsApi } = await import("@/lib/api");
+      const postData: import("@/lib/api").CreatePostData = {
+        contentText: content.trim() || undefined,
+        privacy,
+        media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+        poll: showPoll
+          ? {
+            question: pollQuestion.trim() || "Poll",
             options: pollOptions.filter((o) => o.text.trim()).map((o) => o.text),
+            allowMultipleVotes: false,
           }
-        : null,
-    };
+          : undefined,
+      };
 
-    console.log("Post data:", postData);
+      // Step 4: Create post
+      await postsApi.createPost(postData);
 
-    // TODO: Implement actual API call
-    // await apiClient.post('/posts', formData);
-
-    // Reset form
-    setTimeout(() => {
+      // Step 5: Reset form
       setContent("");
       setMediaAttachments([]);
       setAudioAttachment(null);
       setShowPoll(false);
+      setPollQuestion("");
       setPollOptions([
         { id: generateId(), text: "" },
         { id: generateId(), text: "" },
       ]);
       setIsSubmitting(false);
-      
+
       // Close modal if in modal mode
       if (inModal && onClose) {
         onClose();
       }
-    }, 1000);
+
+      // TODO: Optionally trigger feed refresh or show success notification
+      console.log("Post created successfully!");
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      setIsSubmitting(false);
+      // TODO: Show error notification to user
+      alert(error instanceof Error ? error.message : "Failed to create post. Please try again.");
+    }
   };
 
   const hasContent =
     content.trim() ||
     mediaAttachments.length > 0 ||
     audioAttachment ||
-    (showPoll && pollOptions.some((o) => o.text.trim()));
+    (showPoll && pollQuestion.trim() && pollOptions.some((o) => o.text.trim()));
 
   return (
     <Card className={cn(inModal && "border-0 shadow-none")}>
@@ -663,6 +745,8 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           {showPoll && (
             <div className="mb-3">
               <PollCreator
+                question={pollQuestion}
+                onQuestionChange={setPollQuestion}
                 options={pollOptions}
                 onOptionsChange={setPollOptions}
                 onRemove={() => setShowPoll(false)}
