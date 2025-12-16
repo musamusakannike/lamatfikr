@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": ["node", "multer"],
     "sourceMap": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
