@@ -17,6 +17,7 @@ import { postsRouter } from "./routes/posts";
 import { uploadRouter } from "./routes/upload";
 import { storiesRouter } from "./routes/stories";
 import { roomsRouter } from "./routes/rooms";
+import { communitiesRouter } from "./routes/communities";
 import { messagesRouter } from "./routes/messages";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
@@ -58,6 +59,7 @@ export function createApp() {
   app.use("/api/upload", uploadRouter);
   app.use("/api/stories", storiesRouter);
   app.use("/api/rooms", roomsRouter);
+  app.use("/api/communities", communitiesRouter);
   app.use("/api/messages", messagesRouter);
 
   app.use(notFoundHandler);

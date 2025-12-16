@@ -7,6 +7,7 @@ import { Avatar, NotificationBadge } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { roomsApi } from "@/lib/api/rooms";
+import { communitiesApi } from "@/lib/api/communities";
 import {
   Home,
   MessageSquare,
@@ -69,29 +70,34 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { t, isRTL } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const [roomsUnreadCount, setRoomsUnreadCount] = useState(0);
+  const [communitiesUnreadCount, setCommunitiesUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const fetchUnreadCount = async () => {
+    const fetchUnreadCounts = async () => {
       try {
-        const response = await roomsApi.getTotalUnreadCount();
-        setRoomsUnreadCount(response.totalUnreadCount);
-      } catch (err) {
+        const [roomsResponse, communitiesResponse] = await Promise.all([
+          roomsApi.getTotalUnreadCount(),
+          communitiesApi.getTotalUnreadCount(),
+        ]);
+        setRoomsUnreadCount(roomsResponse.totalUnreadCount);
+        setCommunitiesUnreadCount(communitiesResponse.totalUnreadCount);
+      } catch {
         // Silently ignore errors
       }
     };
 
-    fetchUnreadCount();
+    fetchUnreadCounts();
     // Refresh every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(fetchUnreadCounts, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
   const navItems: NavItem[] = [
     { icon: Home, label: t("nav", "home"), href: "/" },
     { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: roomsUnreadCount > 0 ? roomsUnreadCount : undefined },
-    { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: 3 },
+    { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: FileText, label: isRTL ? "المقالات" : "Articles", href: "/articles" },
     { icon: Newspaper, label: isRTL ? "المنشورات" : "Posts", href: "/posts" },

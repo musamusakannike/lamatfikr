@@ -54,3 +54,7 @@ export * from "./room-member.model";
 export * from "./room-message.model";
 export * from "./room-payment.model";
 export * from "./room-invite-link.model";
+
+export * from "./community.model";
+export * from "./community-member.model";
+export * from "./community-message.model";
