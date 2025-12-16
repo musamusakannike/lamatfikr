@@ -17,8 +17,12 @@ import {
   Plus,
   MessageCircle,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/contexts/CartContext";
+import { marketplaceApi } from "@/lib/api/marketplace";
+import toast from "react-hot-toast";
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -32,8 +36,11 @@ export function ProductDetailsModal({
   product,
 }: ProductDetailsModalProps) {
   const [quantity, setQuantity] = useState(1);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(product?.isFavorited || false);
   const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const { addToCart, openCart } = useCart();
 
   // Memoize calculations to avoid impure function calls during render
   const discount = useMemo(() => 
@@ -51,6 +58,33 @@ export function ProductDetailsModal({
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     return createdDate > sevenDaysAgo;
   }, [product]);
+
+  const handleAddToCart = async () => {
+    if (!product || isAddingToCart) return;
+    
+    setIsAddingToCart(true);
+    const success = await addToCart(product._id, quantity);
+    setIsAddingToCart(false);
+    
+    if (success) {
+      openCart();
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!product || isTogglingFavorite) return;
+    
+    setIsTogglingFavorite(true);
+    try {
+      const response = await marketplaceApi.toggleFavorite(product._id);
+      setIsLiked(response.isFavorited);
+      toast.success(response.isFavorited ? "Added to favorites" : "Removed from favorites");
+    } catch {
+      toast.error("Failed to update favorites");
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  };
 
   if (!product) return null;
 
@@ -203,18 +237,28 @@ export function ProductDetailsModal({
                 variant="primary"
                 size="lg"
                 className="flex-1"
-                disabled={!product.inStock}
+                disabled={!(product.inStock !== undefined ? product.inStock : product.quantity > 0) || isAddingToCart}
+                onClick={handleAddToCart}
               >
-                <ShoppingCart size={20} className="mr-2" />
-                Add to Cart
+                {isAddingToCart ? (
+                  <Loader2 size={20} className="mr-2 animate-spin" />
+                ) : (
+                  <ShoppingCart size={20} className="mr-2" />
+                )}
+                {isAddingToCart ? "Adding..." : "Add to Cart"}
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setIsLiked(!isLiked)}
+                onClick={handleToggleFavorite}
+                disabled={isTogglingFavorite}
                 className={cn(isLiked && "text-red-500 border-red-500")}
               >
-                <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
+                {isTogglingFavorite ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
+                )}
               </Button>
               <Button variant="outline" size="icon">
                 <Share2 size={20} />

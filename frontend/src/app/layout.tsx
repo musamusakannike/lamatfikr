@@ -5,6 +5,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { CartDrawer } from "@/components/cart";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   variable: "--font-arabic",
@@ -38,18 +40,21 @@ export default function RootLayout({
         <LanguageProvider>
           <ThemeProvider>
             <AuthProvider>
-              {children}
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: "var(--bg-card)",
-                    color: "var(--text)",
-                    border: "1px solid var(--border)",
-                  },
-                }}
-              />
+              <CartProvider>
+                {children}
+                <CartDrawer />
+                <Toaster
+                  position="top-center"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: "var(--bg-card)",
+                      color: "var(--text)",
+                      border: "1px solid var(--border)",
+                    },
+                  }}
+                />
+              </CartProvider>
             </AuthProvider>
           </ThemeProvider>
         </LanguageProvider>

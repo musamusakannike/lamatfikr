@@ -7,6 +7,7 @@ import { Heart, ShoppingCart, Star, Eye, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
+import { useCart } from "@/contexts/CartContext";
 
 export interface Product {
   _id: string;
@@ -57,6 +58,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
   const [isLiked, setIsLiked] = useState(product.isFavorited || false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { addToCart: cartAddToCart, openCart } = useCart();
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -93,12 +95,11 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
 
     setIsAddingToCart(true);
     try {
-      await marketplaceApi.addToCart(product._id, 1);
-      onAddToCart?.(product._id);
-      toast.success("Added to cart");
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to add to cart");
+      const success = await cartAddToCart(product._id, 1);
+      if (success) {
+        onAddToCart?.(product._id);
+        openCart();
+      }
     } finally {
       setIsAddingToCart(false);
     }

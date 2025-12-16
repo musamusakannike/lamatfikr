@@ -20,10 +20,12 @@ import {
   Settings,
   LogOut,
   HelpCircle,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 import { CreatePost } from "@/components/home/CreatePost";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/contexts/CartContext";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -36,6 +38,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const { t, isRTL } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount, openCart } = useCart();
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -215,6 +218,32 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               aria-label="Create post"
             >
               <Plus size={18} strokeWidth={2.5} />
+            </Button>
+
+            {/* Cart */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={openCart}
+              className="relative hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+              aria-label="Shopping Cart"
+            >
+              <ShoppingCart size={20} />
+              {itemCount > 0 && (
+                <span
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5",
+                    "min-w-[20px] h-[20px] px-1.5",
+                    "flex items-center justify-center",
+                    "text-[10px] font-bold text-white",
+                    "bg-linear-to-r from-primary-500 to-primary-600",
+                    "rounded-full shadow-sm",
+                    "ring-2 ring-(--bg-card)"
+                  )}
+                >
+                  {itemCount > 99 ? "99+" : itemCount}
+                </span>
+              )}
             </Button>
 
             {/* Messages */}
