@@ -40,7 +40,7 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
-const TAP_API_URL = "https://api.tap.company/v2/charges";
+const TAP_API_URL = <https://api.tap.company/v2/charges>;
 
 // Create a payment charge
 app.post("/api/pay", async (req: Request, res: Response) => {
