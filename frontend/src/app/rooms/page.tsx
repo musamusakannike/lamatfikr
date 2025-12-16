@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
+import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
 import {
   Plus,
@@ -27,11 +28,12 @@ import {
   Send,
   Loader2,
   ArrowLeft,
+  Smile,
 } from "lucide-react";
 import Image from "next/image";
+import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 
 type MembershipType = "free" | "paid";
-type RoomRole = "owner" | "admin" | "member";
 
 const categories = [
   "Technology",
@@ -665,6 +667,12 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -693,18 +701,84 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isSending) return;
+    if ((!newMessage.trim() && selectedImages.length === 0) || isSending) return;
 
+    const savedMessage = newMessage;
+    const savedImages = [...selectedImages];
+    setNewMessage("");
+    setSelectedImages([]);
     setIsSending(true);
+
     try {
-      const response = await roomsApi.sendMessage(room.id, { content: newMessage.trim() });
+      // Upload images first
+      const uploadedMediaUrls: string[] = [];
+      if (savedImages.length > 0) {
+        setIsUploading(true);
+        for (const img of savedImages) {
+          const result = await uploadApi.uploadImage(img.file, "rooms");
+          uploadedMediaUrls.push(result.url);
+        }
+        setIsUploading(false);
+      }
+
+      const response = await roomsApi.sendMessage(room.id, {
+        content: savedMessage.trim() || undefined,
+        media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
+      });
       setMessages((prev) => [...prev, response.data]);
-      setNewMessage("");
+
+      // Cleanup previews
+      savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
     } catch (err) {
       console.error("Failed to send message:", err);
+      // Restore on error
+      setNewMessage(savedMessage);
+      setSelectedImages(savedImages);
     } finally {
       setIsSending(false);
+      setIsUploading(false);
     }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    const newImages = imageFiles.slice(0, 4 - selectedImages.length).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4));
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => {
+      const newImages = [...prev];
+      URL.revokeObjectURL(newImages[index].preview);
+      newImages.splice(index, 1);
+      return newImages;
+    });
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    const input = inputRef.current;
+    if (input) {
+      const start = input.selectionStart ?? newMessage.length;
+      const end = input.selectionEnd ?? newMessage.length;
+      const nextValue = newMessage.slice(0, start) + emojiData.emoji + newMessage.slice(end);
+      setNewMessage(nextValue);
+
+      requestAnimationFrame(() => {
+        input.focus();
+        const newPos = start + emojiData.emoji.length;
+        input.setSelectionRange(newPos, newPos);
+      });
+    } else {
+      setNewMessage((prev) => prev + emojiData.emoji);
+    }
+    setShowEmojiPicker(false);
   };
 
   const formatTime = (dateStr: string) => {
@@ -774,7 +848,23 @@ function ChatView({ room, onBack }: ChatViewProps) {
                       </span>
                       <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
                     </div>
-                    <p className="text-(--text) text-sm mt-0.5 break-words">{msg.content}</p>
+                    {msg.content && (
+                      <p className="text-(--text) text-sm mt-0.5 wrap-break-word">{msg.content}</p>
+                    )}
+                    {msg.media && msg.media.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {msg.media.map((url, i) => (
+                          <Image
+                            key={i}
+                            src={url}
+                            alt="Media"
+                            width={200}
+                            height={150}
+                            className="rounded-lg max-w-[200px] object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -783,16 +873,103 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
           {/* Message Input */}
           <form onSubmit={handleSendMessage} className="p-4 border-t border-(--border) bg-(--bg-card)">
-            <div className="flex gap-2">
+            {/* Image Previews */}
+            {selectedImages.length > 0 && (
+              <div className="flex gap-2 mb-3 flex-wrap">
+                {selectedImages.map((img, index) => (
+                  <div key={index} className="relative group">
+                    <Image
+                      src={img.preview}
+                      alt={`Selected ${index + 1}`}
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 items-center">
+              {/* Image Upload Button */}
               <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={selectedImages.length >= 4}
+                className={cn(
+                  "p-2.5 rounded-lg transition-colors",
+                  selectedImages.length > 0
+                    ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                    : "text-(--text-muted) hover:bg-(--bg)",
+                  selectedImages.length >= 4 && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <ImageIcon size={20} />
+              </button>
+
+              {/* Emoji Picker Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-colors",
+                    showEmojiPicker
+                      ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                      : "text-(--text-muted) hover:bg-(--bg)"
+                  )}
+                >
+                  <Smile size={20} />
+                </button>
+
+                {showEmojiPicker && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowEmojiPicker(false)}
+                    />
+                    <div className="absolute left-0 bottom-full mb-2 z-20">
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        height={350}
+                        width={320}
+                        searchPlaceHolder="Search emoji..."
+                        lazyLoadEmojis={true}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <input
+                ref={inputRef}
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
                 className="flex-1 px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <Button type="submit" variant="primary" disabled={!newMessage.trim() || isSending}>
-                {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={(!newMessage.trim() && selectedImages.length === 0) || isSending || isUploading}
+              >
+                {isSending || isUploading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               </Button>
             </div>
           </form>
