@@ -32,6 +32,11 @@ export interface FriendsResponse extends PaginatedResponse<UserSummary> {
   friends: UserSummary[];
 }
 
+export interface FollowStatusResponse {
+  isFollowing: boolean;
+  isOwnProfile: boolean;
+}
+
 export const socialApi = {
   // Follow endpoints
   followUser: (followingId: string) =>
@@ -39,6 +44,9 @@ export const socialApi = {
 
   unfollowUser: (followingId: string) =>
     apiClient.post<{ message: string }>("/social/unfollow", { followingId }),
+
+  checkFollowStatus: (targetUserId: string) =>
+    apiClient.get<FollowStatusResponse>(`/social/follow-status/${targetUserId}`),
 
   getFollowers: (userId?: string, page = 1, limit = 20) => {
     const url = userId

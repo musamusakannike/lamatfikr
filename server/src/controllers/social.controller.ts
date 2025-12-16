@@ -483,6 +483,41 @@ export const getFollowing: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const checkFollowStatus: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { targetUserId } = req.params;
+
+    if (!targetUserId) {
+      res.status(400).json({ message: "Target user ID is required" });
+      return;
+    }
+
+    if (userId === targetUserId) {
+      res.json({ isFollowing: false, isOwnProfile: true });
+      return;
+    }
+
+    const follow = await FollowModel.findOne({
+      followerId: userId,
+      followingId: targetUserId,
+      status: FollowStatus.accepted,
+    });
+
+    res.json({
+      isFollowing: !!follow,
+      isOwnProfile: false,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ==================== BLOCK ====================
 
 export const blockUser: RequestHandler = async (req, res, next) => {

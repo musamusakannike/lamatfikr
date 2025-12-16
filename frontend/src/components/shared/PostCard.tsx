@@ -24,11 +24,16 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
+    UserPlus,
+    UserCheck,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { postsApi, type Post } from "@/lib/api/posts";
 import { commentsApi, type Comment } from "@/lib/api/comments";
+import { socialApi } from "@/lib/api/social";
+import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
 
 interface PostCardProps {
@@ -37,6 +42,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post: initialPost, showAnnouncement = false }: PostCardProps) {
+    const { user: currentUser, isAuthenticated } = useAuth();
     const [post, setPost] = useState(initialPost);
     const [isVoting, setIsVoting] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -49,11 +55,55 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const [hasMoreComments, setHasMoreComments] = useState(false);
     const [isVotingPoll, setIsVotingPoll] = useState(false);
     const [fullscreenImage, setFullscreenImage] = useState<{ url: string; index: number } | null>(null);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+    const isOwnPost = currentUser?.id === post.userId._id;
 
     // Sync post state when initialPost prop changes
     useEffect(() => {
         setPost(initialPost);
     }, [initialPost]);
+
+    // Check follow status on mount
+    useEffect(() => {
+        const checkFollowStatus = async () => {
+            if (!isAuthenticated || isOwnPost) return;
+            try {
+                const { isFollowing: following } = await socialApi.checkFollowStatus(post.userId._id);
+                setIsFollowing(following);
+            } catch (error) {
+                console.error("Failed to check follow status:", error);
+            }
+        };
+        checkFollowStatus();
+    }, [isAuthenticated, isOwnPost, post.userId._id]);
+
+    const handleFollow = async () => {
+        if (isFollowLoading || !isAuthenticated) return;
+
+        const previousFollowing = isFollowing;
+        // Optimistic update
+        setIsFollowing(!isFollowing);
+        setIsFollowLoading(true);
+
+        try {
+            if (previousFollowing) {
+                await socialApi.unfollowUser(post.userId._id);
+                toast.success(`Unfollowed ${post.userId.firstName}`);
+            } else {
+                await socialApi.followUser(post.userId._id);
+                toast.success(`Following ${post.userId.firstName}`);
+            }
+        } catch (error) {
+            // Revert on error
+            setIsFollowing(previousFollowing);
+            console.error(error);
+            toast.error(previousFollowing ? "Failed to unfollow" : "Failed to follow");
+        } finally {
+            setIsFollowLoading(false);
+        }
+    };
 
     const handleVote = async (type: "upvote" | "downvote") => {
         if (isVoting) return;
@@ -180,12 +230,16 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <Avatar src={post.userId.avatar} alt={post.userId.firstName} size="md" />
+                        <Link href={`/user/${post.userId.username}`}>
+                            <Avatar src={post.userId.avatar} alt={post.userId.firstName} size="md" className="cursor-pointer hover:opacity-80 transition-opacity" />
+                        </Link>
                         <div>
                             <div className="flex items-center gap-1.5">
-                                <span className="font-semibold">
-                                    {post.userId.firstName} {post.userId.lastName}
-                                </span>
+                                <Link href={`/user/${post.userId.username}`} className="hover:underline">
+                                    <span className="font-semibold">
+                                        {post.userId.firstName} {post.userId.lastName}
+                                    </span>
+                                </Link>
                                 {post.userId.verified && (
                                     <svg className="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
@@ -197,9 +251,39 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                                         Announcement
                                     </Badge>
                                 )}
+                                {/* Follow Button */}
+                                {isAuthenticated && !isOwnPost && (
+                                    <button
+                                        onClick={handleFollow}
+                                        disabled={isFollowLoading}
+                                        className={cn(
+                                            "ml-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
+                                            isFollowing
+                                                ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                                                : "bg-primary-500 text-white hover:bg-primary-600",
+                                            isFollowLoading && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    >
+                                        {isFollowLoading ? (
+                                            <Loader2 size={12} className="animate-spin" />
+                                        ) : isFollowing ? (
+                                            <>
+                                                <UserCheck size={12} />
+                                                <span className="hidden sm:inline">Following</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <UserPlus size={12} />
+                                                <span className="hidden sm:inline">Follow</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-(--text-muted) flex-wrap">
-                                <span>@{post.userId.username}</span>
+                                <Link href={`/user/${post.userId.username}`} className="hover:underline">
+                                    <span>@{post.userId.username}</span>
+                                </Link>
                                 <span>•</span>
                                 <span>{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
                                 {post.isEdited && (

@@ -12,6 +12,7 @@ import {
   unfollowUser,
   getFollowers,
   getFollowing,
+  checkFollowStatus,
   blockUser,
   unblockUser,
   getBlockedUsers,
@@ -37,6 +38,7 @@ socialRouter.get("/followers", requireAuth, getFollowers);
 socialRouter.get("/followers/:userId", getFollowers);
 socialRouter.get("/following", requireAuth, getFollowing);
 socialRouter.get("/following/:userId", getFollowing);
+socialRouter.get("/follow-status/:targetUserId", requireAuth, checkFollowStatus);
 
 // Block routes
 socialRouter.post("/block", requireAuth, blockUser);
