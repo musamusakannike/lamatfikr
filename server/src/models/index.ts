@@ -49,4 +49,7 @@ export * from "./setting.model";
 export * from "./audit-log.model";
 export * from "./verification-request.model";
 
-
+export * from "./room.model";
+export * from "./room-member.model";
+export * from "./room-message.model";
+export * from "./room-payment.model";

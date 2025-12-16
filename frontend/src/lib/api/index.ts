@@ -7,6 +7,8 @@ export type { UserSummary, FollowersResponse, FollowingResponse, FriendsResponse
 export { uploadApi } from "./upload";
 export type { UploadResponse } from "./upload";
 
+export * from "./rooms";
+
 export { postsApi } from "./posts";
 export type { Post, CreatePostData, CreatePostResponse } from "./posts";
 

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
-import { getErrorMessage } from "@/lib/api";
 import {
   Plus,
   Users,
@@ -24,14 +22,158 @@ import {
   X,
   Image as ImageIcon,
   Check,
-  Send,
-  Loader2,
-  ArrowLeft,
 } from "lucide-react";
 import Image from "next/image";
 
+// Room types
 type MembershipType = "free" | "paid";
 type RoomRole = "owner" | "admin" | "member";
+
+interface RoomChat {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  memberCount: number;
+  activeNow: number;
+  category: string;
+  membershipType: MembershipType;
+  price?: number;
+  currency?: string;
+  isPrivate: boolean;
+  role: RoomRole;
+  lastMessage?: {
+    sender: string;
+    text: string;
+    time: string;
+  };
+  unreadCount: number;
+  createdAt: string;
+}
+
+// Dummy data for room chats
+const dummyRoomChats: RoomChat[] = [
+  {
+    id: "1",
+    name: "Tech Innovators",
+    description: "Discuss the latest in AI, Web3, and emerging technologies",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=200&fit=crop",
+    memberCount: 2453,
+    activeNow: 89,
+    category: "Technology",
+    membershipType: "free",
+    isPrivate: false,
+    role: "member",
+    lastMessage: {
+      sender: "Sarah",
+      text: "Has anyone tried the new GPT-5 API?",
+      time: "2m ago",
+    },
+    unreadCount: 5,
+    createdAt: "2024-01-15",
+  },
+  {
+    id: "2",
+    name: "Premium Traders Club",
+    description: "Exclusive trading signals and market analysis for serious traders",
+    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=300&h=200&fit=crop",
+    memberCount: 456,
+    activeNow: 34,
+    category: "Finance",
+    membershipType: "paid",
+    price: 29.99,
+    currency: "USD",
+    isPrivate: true,
+    role: "owner",
+    lastMessage: {
+      sender: "You",
+      text: "Check out the new analysis I posted",
+      time: "15m ago",
+    },
+    unreadCount: 0,
+    createdAt: "2024-02-20",
+  },
+  {
+    id: "3",
+    name: "Creative Minds",
+    description: "A space for artists, designers, and creative professionals",
+    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&h=200&fit=crop",
+    memberCount: 1876,
+    activeNow: 45,
+    category: "Art & Design",
+    membershipType: "free",
+    isPrivate: false,
+    role: "admin",
+    lastMessage: {
+      sender: "Mike",
+      text: "Just shared my latest artwork!",
+      time: "1h ago",
+    },
+    unreadCount: 12,
+    createdAt: "2024-01-10",
+  },
+  {
+    id: "4",
+    name: "Startup Founders Elite",
+    description: "Premium networking and mentorship for startup founders",
+    image: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=300&h=200&fit=crop",
+    memberCount: 234,
+    activeNow: 18,
+    category: "Business",
+    membershipType: "paid",
+    price: 99.99,
+    currency: "USD",
+    isPrivate: true,
+    role: "member",
+    lastMessage: {
+      sender: "Alex",
+      text: "Weekly pitch session starts in 30 mins",
+      time: "30m ago",
+    },
+    unreadCount: 3,
+    createdAt: "2024-03-01",
+  },
+  {
+    id: "5",
+    name: "Fitness Warriors",
+    description: "Daily workout tips, nutrition advice, and motivation",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=200&fit=crop",
+    memberCount: 3421,
+    activeNow: 156,
+    category: "Health & Fitness",
+    membershipType: "free",
+    isPrivate: false,
+    role: "member",
+    lastMessage: {
+      sender: "Coach Dan",
+      text: "New HIIT workout video is up!",
+      time: "45m ago",
+    },
+    unreadCount: 8,
+    createdAt: "2024-01-05",
+  },
+  {
+    id: "6",
+    name: "Pro Photography Masterclass",
+    description: "Learn advanced photography techniques from industry experts",
+    image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=300&h=200&fit=crop",
+    memberCount: 567,
+    activeNow: 23,
+    category: "Photography",
+    membershipType: "paid",
+    price: 49.99,
+    currency: "USD",
+    isPrivate: true,
+    role: "member",
+    lastMessage: {
+      sender: "Emma",
+      text: "Check out my night photography tips",
+      time: "2h ago",
+    },
+    unreadCount: 0,
+    createdAt: "2024-02-10",
+  },
+];
 
 const categories = [
   "Technology",
@@ -46,40 +188,20 @@ const categories = [
   "Lifestyle",
 ];
 
-type FilterType = "all" | "owned" | "joined" | "paid" | "free";
+type FilterType = "all" | "owned" | "paid" | "free";
 
-function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
-  const formatTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return "now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
-
+function RoomChatCard({ room, onClick }: { room: RoomChat; onClick: () => void }) {
   return (
     <Card hover className="overflow-hidden cursor-pointer">
       <div className="flex gap-4 p-4" onClick={onClick}>
-        <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-(--bg)">
-          {room.image ? (
-            <Image
-              src={room.image}
-              alt={room.name}
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MessageSquare size={24} className="text-(--text-muted)" />
-            </div>
-          )}
+        <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
+          <Image
+            src={room.image}
+            alt={room.name}
+            width={64}
+            height={64}
+            className="w-full h-full object-cover"
+          />
           {room.membershipType === "paid" && (
             <div className="absolute top-0 right-0 w-5 h-5 bg-yellow-500 flex items-center justify-center">
               <Crown size={12} className="text-white" />
@@ -95,11 +217,9 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
                 {room.isPrivate && <Lock size={14} className="text-(--text-muted) shrink-0" />}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                {room.role && (
-                  <Badge variant={room.role === "owner" ? "primary" : room.role === "admin" ? "secondary" : "default"} className="text-xs">
-                    {room.role}
-                  </Badge>
-                )}
+                <Badge variant={room.role === "owner" ? "primary" : room.role === "admin" ? "secondary" : "default"} className="text-xs">
+                  {room.role}
+                </Badge>
                 <span className="text-xs text-(--text-muted)">{room.category}</span>
               </div>
             </div>
@@ -112,7 +232,7 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
 
           {room.lastMessage && (
             <p className="text-sm text-(--text-muted) mt-2 truncate">
-              {room.lastMessage.content}
+              <span className="font-medium">{room.lastMessage.sender}:</span> {room.lastMessage.text}
             </p>
           )}
 
@@ -121,15 +241,17 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
               <Users size={12} />
               {room.memberCount.toLocaleString()}
             </span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+              {room.activeNow} online
+            </span>
             {room.membershipType === "paid" && (
               <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
                 <DollarSign size={12} />
-                {room.price} {room.currency}
+                {room.price}/{room.currency}
               </span>
             )}
-            {room.lastMessage && (
-              <span className="ml-auto">{formatTime(room.lastMessage.createdAt)}</span>
-            )}
+            <span className="ml-auto">{room.lastMessage?.time}</span>
           </div>
         </div>
       </div>
@@ -140,10 +262,9 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRoomCreated: () => void;
 }
 
-function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProps) {
+function CreateRoomModal({ isOpen, onClose }: CreateRoomModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -152,8 +273,6 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   const [currency, setCurrency] = useState("USD");
   const [isPrivate, setIsPrivate] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,31 +282,12 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await roomsApi.createRoom({
-        name,
-        description,
-        image: imagePreview || undefined,
-        category,
-        membershipType,
-        price: membershipType === "paid" ? parseFloat(price) : undefined,
-        currency: membershipType === "paid" ? currency : undefined,
-        isPrivate,
-      });
-
-      handleReset();
-      onClose();
-      onRoomCreated();
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
+    // In a real app, this would create the room
+    alert(`Room "${name}" created! (This is a dummy action)\n\nDetails:\n- Category: ${category}\n- Membership: ${membershipType}${membershipType === "paid" ? ` ($${price} ${currency})` : ""}\n- Private: ${isPrivate ? "Yes" : "No"}`);
+    handleReset();
+    onClose();
   };
 
   const handleReset = () => {
@@ -199,7 +299,6 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     setCurrency("USD");
     setIsPrivate(false);
     setImagePreview(null);
-    setError(null);
   };
 
   const handleClose = () => {
@@ -210,12 +309,6 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Create New Room Chat" size="lg">
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
         {/* Room Image */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
@@ -425,9 +518,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                  <option value="SAR">SAR (SAR)</option>
-                  <option value="AED">AED (AED)</option>
-                  <option value="KWD">KWD (KWD)</option>
+                  <option value="NGN">SAR (SAR)</option>
                 </select>
               </div>
             </div>
@@ -440,15 +531,11 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
 
         {/* Submit Buttons */}
         <div className="flex gap-3 pt-4 border-t border-(--border)">
-          <Button type="button" variant="outline" className="flex-1" onClick={handleClose} disabled={isLoading}>
+          <Button type="button" variant="outline" className="flex-1" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" className="flex-1 gap-2" disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Plus size={18} />
-            )}
+          <Button type="submit" variant="primary" className="flex-1 gap-2">
+            <Plus size={18} />
             Create Room
           </Button>
         </div>
@@ -458,61 +545,28 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
 }
 
 interface RoomDetailsModalProps {
-  room: Room | null;
+  room: RoomChat | null;
   isOpen: boolean;
   onClose: () => void;
-  onJoin: (room: Room) => void;
-  onLeave: (roomId: string) => void;
-  onDelete: (roomId: string) => void;
-  onOpenChat: (room: Room) => void;
 }
 
-function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, onOpenChat }: RoomDetailsModalProps) {
+function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProps) {
   const [showMenu, setShowMenu] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   if (!room) return null;
-
-  const handleJoin = async () => {
-    setIsLoading(true);
-    await onJoin(room);
-    setIsLoading(false);
-  };
-
-  const handleLeave = async () => {
-    setIsLoading(true);
-    await onLeave(room.id);
-    setIsLoading(false);
-    onClose();
-  };
-
-  const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this room? This action cannot be undone.")) {
-      setIsLoading(true);
-      await onDelete(room.id);
-      setIsLoading(false);
-      onClose();
-    }
-  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={room.name} size="md">
       <div className="p-4">
         {/* Room Header */}
-        <div className="relative h-40 rounded-xl overflow-hidden mb-4 bg-(--bg)">
-          {room.image ? (
-            <Image
-              src={room.image}
-              alt={room.name}
-              width={500}
-              height={200}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MessageSquare size={48} className="text-(--text-muted)" />
-            </div>
-          )}
+        <div className="relative h-40 rounded-xl overflow-hidden mb-4">
+          <Image
+            src={room.image}
+            alt={room.name}
+            width={500}
+            height={200}
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4">
             <div className="flex items-center gap-2 mb-1">
@@ -533,56 +587,46 @@ function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, on
           </div>
 
           {/* Menu button */}
-          {room.isMember && (
-            <div className="absolute top-4 right-4">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
-              >
-                <MoreVertical size={18} className="text-white" />
-              </button>
-              {showMenu && (
-                <div className="absolute top-10 right-0 w-48 bg-(--bg-card) border border-(--border) rounded-xl shadow-lg overflow-hidden z-10">
-                  {(room.role === "owner" || room.role === "admin") && (
-                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--text) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
-                      <Settings size={16} />
-                      Room Settings
-                    </button>
-                  )}
-                  {room.role !== "owner" && (
-                    <button
-                      onClick={handleLeave}
-                      disabled={isLoading}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                    >
-                      <LogOut size={16} />
-                      Leave Room
-                    </button>
-                  )}
-                  {room.role === "owner" && (
-                    <button
-                      onClick={handleDelete}
-                      disabled={isLoading}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                      Delete Room
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="absolute top-4 right-4">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <MoreVertical size={18} className="text-white" />
+            </button>
+            {showMenu && (
+              <div className="absolute top-10 right-0 w-48 bg-(--bg-card) border border-(--border) rounded-xl shadow-lg overflow-hidden z-10">
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--text) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+                  <Settings size={16} />
+                  Room Settings
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                  <LogOut size={16} />
+                  Leave Room
+                </button>
+                {room.role === "owner" && (
+                  <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                    <Trash2 size={16} />
+                    Delete Room
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Description */}
         <p className="text-(--text-muted) mb-4">{room.description}</p>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center p-3 rounded-lg bg-(--bg)">
             <p className="text-2xl font-bold text-(--text)">{room.memberCount.toLocaleString()}</p>
             <p className="text-xs text-(--text-muted)">Members</p>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-(--bg)">
+            <p className="text-2xl font-bold text-green-600">{room.activeNow}</p>
+            <p className="text-xs text-(--text-muted)">Online</p>
           </div>
           <div className="text-center p-3 rounded-lg bg-(--bg)">
             <p className="text-2xl font-bold text-(--text)">{room.unreadCount}</p>
@@ -591,7 +635,7 @@ function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, on
         </div>
 
         {/* Membership Info */}
-        {room.membershipType === "paid" && !room.isMember && (
+        {room.membershipType === "paid" && (
           <div className="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Crown size={18} className="text-yellow-600" />
@@ -604,231 +648,20 @@ function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, on
         )}
 
         {/* Your Role */}
-        {room.isMember && room.role && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-(--bg) mb-4">
-            <span className="text-sm text-(--text-muted)">Your Role</span>
-            <Badge variant={room.role === "owner" ? "primary" : room.role === "admin" ? "secondary" : "default"}>
-              {room.role.charAt(0).toUpperCase() + room.role.slice(1)}
-            </Badge>
-          </div>
-        )}
-
-        {/* Pending Status */}
-        {room.membershipStatus === "pending" && (
-          <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 text-sm mb-4">
-            Your membership request is pending approval.
-          </div>
-        )}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-(--bg) mb-4">
+          <span className="text-sm text-(--text-muted)">Your Role</span>
+          <Badge variant={room.role === "owner" ? "primary" : room.role === "admin" ? "secondary" : "default"}>
+            {room.role.charAt(0).toUpperCase() + room.role.slice(1)}
+          </Badge>
+        </div>
 
         {/* Action Button */}
-        {room.isMember ? (
-          <Button variant="primary" className="w-full gap-2" onClick={() => onOpenChat(room)}>
-            <MessageSquare size={18} />
-            Open Chat
-          </Button>
-        ) : (
-          <Button
-            variant={room.membershipType === "paid" ? "secondary" : "primary"}
-            className="w-full gap-2"
-            onClick={handleJoin}
-            disabled={isLoading || room.membershipStatus === "pending"}
-          >
-            {isLoading ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : room.membershipType === "paid" ? (
-              <>
-                <Crown size={18} />
-                Pay ${room.price} to Join
-              </>
-            ) : (
-              <>
-                <Users size={18} />
-                Join Room
-              </>
-            )}
-          </Button>
-        )}
+        <Button variant="primary" className="w-full gap-2">
+          <MessageSquare size={18} />
+          Open Chat
+        </Button>
       </div>
     </Modal>
-  );
-}
-
-interface ChatViewProps {
-  room: Room;
-  onBack: () => void;
-}
-
-function ChatView({ room, onBack }: ChatViewProps) {
-  const [messages, setMessages] = useState<RoomMessage[]>([]);
-  const [members, setMembers] = useState<RoomMember[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const [showMembers, setShowMembers] = useState(false);
-
-  const loadMessages = useCallback(async () => {
-    try {
-      const response = await roomsApi.getMessages(room.id, { limit: 50 });
-      setMessages(response.messages);
-    } catch (err) {
-      console.error("Failed to load messages:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [room.id]);
-
-  const loadMembers = useCallback(async () => {
-    try {
-      const response = await roomsApi.getMembers(room.id, { limit: 50 });
-      setMembers(response.members);
-    } catch (err) {
-      console.error("Failed to load members:", err);
-    }
-  }, [room.id]);
-
-  useEffect(() => {
-    loadMessages();
-    loadMembers();
-  }, [loadMessages, loadMembers]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || isSending) return;
-
-    setIsSending(true);
-    try {
-      const response = await roomsApi.sendMessage(room.id, { content: newMessage.trim() });
-      setMessages((prev) => [...prev, response.data]);
-      setNewMessage("");
-    } catch (err) {
-      console.error("Failed to send message:", err);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      {/* Chat Header */}
-      <div className="flex items-center gap-4 p-4 border-b border-(--border) bg-(--bg-card)">
-        <button onClick={onBack} className="p-2 hover:bg-(--bg) rounded-lg transition-colors">
-          <ArrowLeft size={20} className="text-(--text)" />
-        </button>
-        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-(--bg)">
-          {room.image ? (
-            <Image src={room.image} alt={room.name} width={40} height={40} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MessageSquare size={16} className="text-(--text-muted)" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-(--text) truncate">{room.name}</h2>
-          <p className="text-xs text-(--text-muted)">{room.memberCount} members</p>
-        </div>
-        <button
-          onClick={() => setShowMembers(!showMembers)}
-          className={cn(
-            "p-2 rounded-lg transition-colors",
-            showMembers ? "bg-primary-100 dark:bg-primary-900/30 text-primary-600" : "hover:bg-(--bg) text-(--text-muted)"
-          )}
-        >
-          <Users size={20} />
-        </button>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Messages Area */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 size={32} className="animate-spin text-primary-600" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-(--text-muted)">
-                <MessageSquare size={48} className="mb-4" />
-                <p>No messages yet. Start the conversation!</p>
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg) shrink-0">
-                    {msg.sender.avatar ? (
-                      <Image src={msg.sender.avatar} alt={msg.sender.username} width={32} height={32} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-medium text-(--text-muted)">
-                        {msg.sender.username.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-medium text-(--text) text-sm">
-                        {msg.sender.displayName || msg.sender.username}
-                      </span>
-                      <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
-                    </div>
-                    <p className="text-(--text) text-sm mt-0.5 break-words">{msg.content}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="p-4 border-t border-(--border) bg-(--bg-card)">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <Button type="submit" variant="primary" disabled={!newMessage.trim() || isSending}>
-                {isSending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        {/* Members Sidebar */}
-        {showMembers && (
-          <div className="w-64 border-l border-(--border) bg-(--bg-card) overflow-y-auto">
-            <div className="p-4 border-b border-(--border)">
-              <h3 className="font-semibold text-(--text)">Members ({members.length})</h3>
-            </div>
-            <div className="p-2">
-              {members.map((member) => (
-                <div key={member.user._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-(--bg)">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg)">
-                    {member.user.avatar ? (
-                      <Image src={member.user.avatar} alt={member.user.username} width={32} height={32} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-medium text-(--text-muted)">
-                        {member.user.username.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-(--text) truncate">
-                      {member.user.displayName || member.user.username}
-                    </p>
-                    <p className="text-xs text-(--text-muted) capitalize">{member.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -838,105 +671,36 @@ export default function RoomsPage() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<RoomChat | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeChat, setActiveChat] = useState<Room | null>(null);
 
-  const loadRooms = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const params: {
-        search?: string;
-        filter?: "all" | "owned" | "joined";
-        membershipType?: string;
-      } = {};
+  const filteredRooms = dummyRoomChats.filter((room) => {
+    // Apply filter
+    if (filter === "owned" && room.role !== "owner") return false;
+    if (filter === "paid" && room.membershipType !== "paid") return false;
+    if (filter === "free" && room.membershipType !== "free") return false;
 
-      if (searchQuery) params.search = searchQuery;
-      if (filter === "owned") params.filter = "owned";
-      if (filter === "joined") params.filter = "joined";
-      if (filter === "paid") params.membershipType = "paid";
-      if (filter === "free") params.membershipType = "free";
-
-      const response = await roomsApi.getRooms(params);
-      setRooms(response.rooms);
-    } catch (err) {
-      console.error("Failed to load rooms:", err);
-    } finally {
-      setIsLoading(false);
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        room.name.toLowerCase().includes(query) ||
+        room.description.toLowerCase().includes(query) ||
+        room.category.toLowerCase().includes(query)
+      );
     }
-  }, [searchQuery, filter]);
 
-  useEffect(() => {
-    loadRooms();
-  }, [loadRooms]);
+    return true;
+  });
 
-  const handleRoomClick = (room: Room) => {
+  const handleRoomClick = (room: RoomChat) => {
     setSelectedRoom(room);
     setIsDetailsModalOpen(true);
   };
 
-  const handleJoinRoom = async (room: Room) => {
-    try {
-      if (room.membershipType === "paid") {
-        const response = await roomsApi.initiatePaidJoin(room.id);
-        if (response.redirectUrl) {
-          window.location.href = response.redirectUrl;
-        }
-      } else {
-        await roomsApi.joinFreeRoom(room.id);
-        loadRooms();
-        setIsDetailsModalOpen(false);
-      }
-    } catch (err) {
-      alert(getErrorMessage(err));
-    }
-  };
-
-  const handleLeaveRoom = async (roomId: string) => {
-    try {
-      await roomsApi.leaveRoom(roomId);
-      loadRooms();
-    } catch (err) {
-      alert(getErrorMessage(err));
-    }
-  };
-
-  const handleDeleteRoom = async (roomId: string) => {
-    try {
-      await roomsApi.deleteRoom(roomId);
-      loadRooms();
-    } catch (err) {
-      alert(getErrorMessage(err));
-    }
-  };
-
-  const handleOpenChat = (room: Room) => {
-    setIsDetailsModalOpen(false);
-    setActiveChat(room);
-  };
-
-  const ownedCount = rooms.filter((r) => r.role === "owner").length;
-  const paidCount = rooms.filter((r) => r.membershipType === "paid").length;
-  const freeCount = rooms.filter((r) => r.membershipType === "free").length;
-
-  // Show chat view if active
-  if (activeChat) {
-    return (
-      <div className="min-h-screen">
-        <Navbar
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-          isSidebarOpen={sidebarOpen}
-        />
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
-          <ChatView room={activeChat} onBack={() => setActiveChat(null)} />
-        </main>
-      </div>
-    );
-  }
+  const ownedCount = dummyRoomChats.filter((r) => r.role === "owner").length;
+  const paidCount = dummyRoomChats.filter((r) => r.membershipType === "paid").length;
+  const freeCount = dummyRoomChats.filter((r) => r.membershipType === "free").length;
 
   return (
     <div className="min-h-screen">
@@ -953,7 +717,7 @@ export default function RoomsPage() {
             <div>
               <h1 className="text-2xl font-bold text-(--text)">{t("rooms", "title")}</h1>
               <p className="text-(--text-muted) text-sm mt-1">
-                {rooms.length} rooms • {rooms.reduce((acc, r) => acc + r.unreadCount, 0)} unread messages
+                {dummyRoomChats.length} rooms • {dummyRoomChats.reduce((acc, r) => acc + r.unreadCount, 0)} unread messages
               </p>
             </div>
             <Button variant="primary" className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
@@ -989,7 +753,7 @@ export default function RoomsPage() {
                       : "text-(--text-muted) hover:text-(--text)"
                   )}
                 >
-                  {t("common", "all")} ({rooms.length})
+                  {t("common", "all")} ({dummyRoomChats.length})
                 </button>
                 <button
                   onClick={() => setFilter("owned")}
@@ -1030,13 +794,9 @@ export default function RoomsPage() {
           </div>
 
           {/* Room List */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 size={32} className="animate-spin text-primary-600" />
-            </div>
-          ) : rooms.length > 0 ? (
+          {filteredRooms.length > 0 ? (
             <div className="space-y-3">
-              {rooms.map((room) => (
+              {filteredRooms.map((room) => (
                 <RoomChatCard
                   key={room.id}
                   room={room}
@@ -1065,19 +825,11 @@ export default function RoomsPage() {
       </main>
 
       {/* Modals */}
-      <CreateRoomModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onRoomCreated={loadRooms}
-      />
+      <CreateRoomModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       <RoomDetailsModal
         room={selectedRoom}
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
-        onJoin={handleJoinRoom}
-        onLeave={handleLeaveRoom}
-        onDelete={handleDeleteRoom}
-        onOpenChat={handleOpenChat}
       />
     </div>
   );

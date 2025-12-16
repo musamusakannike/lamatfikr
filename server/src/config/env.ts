@@ -33,6 +33,9 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z.string().min(1).optional(),
 
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+
+  TAP_SECRET_KEY: z.string().min(1).optional(),
+  TAP_PUBLIC_KEY: z.string().min(1).optional(),
 });
 
 export const env = envSchema.parse(process.env);
