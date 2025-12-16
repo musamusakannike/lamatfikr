@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { InviteLinkModal } from "@/components/rooms/InviteLinkModal";
+import { PendingRequestsModal } from "@/components/rooms/PendingRequestsModal";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
@@ -31,6 +32,7 @@ import {
   ArrowLeft,
   Smile,
   Share2,
+  UserPlus,
 } from "lucide-react";
 import Image from "next/image";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
@@ -894,6 +896,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showPendingRequests, setShowPendingRequests] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1030,13 +1033,22 @@ function ChatView({ room, onBack }: ChatViewProps) {
           <p className="text-xs text-(--text-muted)">{room.memberCount} members</p>
         </div>
         {room.isPrivate && (room.role === "owner" || room.role === "admin") && (
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="p-2 hover:bg-(--bg) rounded-lg transition-colors text-(--text-muted) hover:text-primary-600"
-            title="Share invite link"
-          >
-            <Share2 size={20} />
-          </button>
+          <>
+            <button
+              onClick={() => setShowPendingRequests(true)}
+              className="p-2 hover:bg-(--bg) rounded-lg transition-colors text-(--text-muted) hover:text-yellow-600"
+              title="Pending requests"
+            >
+              <UserPlus size={20} />
+            </button>
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="p-2 hover:bg-(--bg) rounded-lg transition-colors text-(--text-muted) hover:text-primary-600"
+              title="Share invite link"
+            >
+              <Share2 size={20} />
+            </button>
+          </>
         )}
         <button
           onClick={() => setShowMembers(!showMembers)}
@@ -1246,6 +1258,15 @@ function ChatView({ room, onBack }: ChatViewProps) {
         roomId={room.id}
         isPrivate={room.isPrivate}
       />
+
+      {/* Pending Requests Modal */}
+      <PendingRequestsModal
+        isOpen={showPendingRequests}
+        onClose={() => setShowPendingRequests(false)}
+        roomId={room.id}
+        roomName={room.name}
+        isPaidRoom={room.membershipType === "paid"}
+      />
     </div>
   );
 }
@@ -1292,9 +1313,20 @@ export default function RoomsPage() {
     loadRooms();
   }, [loadRooms]);
 
-  const handleRoomClick = (room: Room) => {
-    setSelectedRoom(room);
-    setIsDetailsModalOpen(true);
+  const handleRoomClick = async (room: Room) => {
+    try {
+      // Verify access to the room (will throw 403 if private and not a member)
+      await roomsApi.getRoom(room.id);
+      setSelectedRoom(room);
+      setIsDetailsModalOpen(true);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage.includes("access to this private room")) {
+        alert("You don't have access to this private room");
+      } else {
+        alert(errorMessage);
+      }
+    }
   };
 
   const handleJoinRoom = async (room: Room) => {

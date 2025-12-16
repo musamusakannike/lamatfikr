@@ -13,6 +13,7 @@ export const RoomMemberStatus = {
   pending: "pending",
   approved: "approved",
   rejected: "rejected",
+  awaitingPayment: "awaiting_payment", // For paid private rooms - approved but needs to pay
 } as const;
 export type RoomMemberStatus = (typeof RoomMemberStatus)[keyof typeof RoomMemberStatus];
 

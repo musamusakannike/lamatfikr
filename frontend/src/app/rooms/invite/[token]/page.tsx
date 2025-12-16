@@ -4,52 +4,66 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Button, Card } from "@/components/ui";
-import { roomsApi, Room } from "@/lib/api/rooms";
+import { roomsApi } from "@/lib/api/rooms";
 import { getErrorMessage } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import {
   Loader2,
   CheckCircle,
   AlertCircle,
   Lock,
-  Users,
-  MessageSquare,
+  Clock,
+  Crown,
   ArrowRight,
 } from "lucide-react";
 import Image from "next/image";
+
+interface JoinRoomData {
+  id: string;
+  name: string;
+  description: string;
+  image?: string;
+  category: string;
+  membershipType?: string;
+  price?: number;
+  currency?: string;
+}
+
+type JoinStatus = "loading" | "approved" | "pending" | "error";
 
 export default function JoinViaInviteLinkPage() {
   const router = useRouter();
   const params = useParams();
   const token = params.token as string;
 
-  const [loading, setLoading] = useState(true);
-  const [joining, setJoining] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [room, setRoom] = useState<Room | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isValidToken = Boolean(token);
+  const [status, setStatus] = useState<JoinStatus>(isValidToken ? "loading" : "error");
+  const [error, setError] = useState(isValidToken ? "" : "Invalid invite link");
+  const [room, setRoom] = useState<JoinRoomData | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!token) {
-      setError("Invalid invite link");
-      setLoading(false);
-      return;
-    }
+    if (!token) return;
 
     const joinRoom = async () => {
       try {
-        setLoading(true);
-        setError("");
         const response = await roomsApi.joinViaInviteLink(token);
-        setRoom(response.data.room);
-        setSuccess(true);
-
-        setTimeout(() => {
-          router.push(`/rooms?roomId=${response.data.room.id}`);
-        }, 2000);
+        
+        setRoom(response.room);
+        setMessage(response.message);
+        
+        if (response.status === "pending") {
+          setStatus("pending");
+        } else {
+          setStatus("approved");
+          setTimeout(() => {
+            router.push(`/rooms?roomId=${response.room.id}`);
+          }, 2000);
+        }
       } catch (err) {
         setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
+        setStatus("error");
       }
     };
 
@@ -57,14 +71,17 @@ export default function JoinViaInviteLinkPage() {
   }, [token, router]);
 
   return (
-    <div className="flex h-screen bg-(--bg)">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto">
+    <div className="min-h-screen bg-(--bg)">
+      <Navbar
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        isSidebarOpen={sidebarOpen}
+      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className={cn("pt-16", "lg:pl-64")}>
+        <div className="flex-1 overflow-y-auto">
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
             <Card className="w-full max-w-md p-8 text-center space-y-6">
-              {loading ? (
+              {status === "loading" ? (
                 <>
                   <div className="flex justify-center">
                     <Loader2 size={48} className="animate-spin text-primary-500" />
@@ -78,7 +95,7 @@ export default function JoinViaInviteLinkPage() {
                     </p>
                   </div>
                 </>
-              ) : success && room ? (
+              ) : status === "approved" && room ? (
                 <>
                   <div className="flex justify-center">
                     <CheckCircle size={48} className="text-green-500" />
@@ -88,7 +105,7 @@ export default function JoinViaInviteLinkPage() {
                       Welcome to {room.name}!
                     </h1>
                     <p className="text-(--text-muted) mb-4">
-                      You've successfully joined the room. Redirecting you now...
+                      You&apos;ve successfully joined the room. Redirecting you now...
                     </p>
                   </div>
 
@@ -112,24 +129,10 @@ export default function JoinViaInviteLinkPage() {
                         {room.description}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-3 text-sm">
-                      <div className="flex items-center gap-1 text-(--text-muted)">
-                        <Users size={16} />
-                        <span>{room.memberCount} members</span>
-                      </div>
-                      {room.isPrivate && (
-                        <div className="flex items-center gap-1 text-(--text-muted)">
-                          <Lock size={16} />
-                          <span>Private</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   <Button
-                    onClick={() =>
-                      router.push(`/rooms?roomId=${room.id}`)
-                    }
+                    onClick={() => router.push(`/rooms?roomId=${room.id}`)}
                     variant="primary"
                     className="w-full"
                   >
@@ -137,7 +140,87 @@ export default function JoinViaInviteLinkPage() {
                     <ArrowRight size={18} />
                   </Button>
                 </>
-              ) : error ? (
+              ) : status === "pending" && room ? (
+                <>
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                      <Clock size={32} className="text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-(--text) mb-2">
+                      Request Submitted
+                    </h1>
+                    <p className="text-(--text-muted) mb-2">
+                      {message}
+                    </p>
+                  </div>
+
+                  {/* Room Preview */}
+                  <div className="bg-(--bg-secondary) rounded-lg p-4 space-y-3 text-left">
+                    {room.image && (
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden">
+                        <Image
+                          src={room.image}
+                          alt={room.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-(--text) flex items-center gap-2">
+                        {room.name}
+                        {room.membershipType === "paid" && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs">
+                            <Crown size={12} />
+                            Premium
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-sm text-(--text-muted) mt-1">
+                        {room.description}
+                      </p>
+                    </div>
+                    {room.membershipType === "paid" && room.price && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-(--text-muted)">Membership fee:</span>
+                        <span className="font-semibold text-(--text)">
+                          ${room.price} {room.currency || "USD"}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 text-(--text-muted) text-sm">
+                      <Lock size={14} />
+                      <span>Private Room</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <div className="flex items-start gap-3">
+                      <Clock size={20} className="text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                      <div className="text-left">
+                        <p className="font-medium text-yellow-800 dark:text-yellow-300 text-sm">
+                          Awaiting Approval
+                        </p>
+                        <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                          {room.membershipType === "paid"
+                            ? "The room owner will review your request. Once approved, you'll be able to complete the payment and join."
+                            : "The room owner will review your request. You'll be notified once your request is approved."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => router.push("/rooms")}
+                    variant="primary"
+                    className="w-full"
+                  >
+                    Back to Rooms
+                  </Button>
+                </>
+              ) : status === "error" ? (
                 <>
                   <div className="flex justify-center">
                     <AlertCircle size={48} className="text-red-500" />
@@ -179,8 +262,8 @@ export default function JoinViaInviteLinkPage() {
               ) : null}
             </Card>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

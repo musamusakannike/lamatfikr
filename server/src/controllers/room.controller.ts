@@ -125,6 +125,12 @@ export async function getRooms(req: Request, res: Response, next: NextFunction) 
       query.ownerId = userId;
     } else if (filter === "joined") {
       query._id = { $in: userMemberships.map((m) => m.roomId) };
+    } else {
+      // For "all" filter: show public rooms + private rooms where user is a member
+      query.$or = [
+        { isPrivate: false },
+        { _id: { $in: userMemberships.map((m) => m.roomId) } },
+      ];
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -236,6 +242,12 @@ export async function getRoom(req: Request, res: Response, next: NextFunction) {
       userId,
       deletedAt: null,
     });
+
+    // Check privacy: private rooms can only be accessed by members
+    if (room.isPrivate && !membership) {
+      res.status(403).json({ message: "You don't have access to this private room" });
+      return;
+    }
 
     // Get member count and online count (approximation)
     const memberCount = await RoomMemberModel.countDocuments({
@@ -362,16 +374,30 @@ export async function initiatePaidRoomJoin(req: Request, res: Response, next: Ne
       return;
     }
 
-    // Check if already a member
+    // Check existing membership
     const existingMembership = await RoomMemberModel.findOne({
       roomId,
       userId,
       deletedAt: null,
-      status: RoomMemberStatus.approved,
     });
 
     if (existingMembership) {
-      res.status(400).json({ message: "You are already a member of this room" });
+      if (existingMembership.status === RoomMemberStatus.approved) {
+        res.status(400).json({ message: "You are already a member of this room" });
+        return;
+      }
+      if (existingMembership.status === RoomMemberStatus.pending) {
+        res.status(400).json({ message: "Your membership request is pending approval. Please wait for the room owner to approve your request before making payment." });
+        return;
+      }
+      if (existingMembership.status === RoomMemberStatus.rejected) {
+        res.status(400).json({ message: "Your membership request was rejected" });
+        return;
+      }
+      // awaiting_payment status is allowed to proceed with payment
+    } else if (room.isPrivate) {
+      // For private paid rooms, user must have been approved first
+      res.status(400).json({ message: "This is a private room. You need to request access and be approved before making payment." });
       return;
     }
 
@@ -933,13 +959,35 @@ export async function handleMembershipRequest(req: Request, res: Response, next:
     }
 
     if (action === "approve") {
+      // Get room to check if it's a paid room
+      const room = await RoomModel.findOne({ _id: roomId, deletedAt: null });
+      
+      if (!room) {
+        res.status(404).json({ message: "Room not found" });
+        return;
+      }
+
+      // For paid rooms, set status to awaiting_payment instead of approved
+      const isPaidRoom = room.membershipType === RoomMembershipType.paid;
+      const newStatus = isPaidRoom ? RoomMemberStatus.awaitingPayment : RoomMemberStatus.approved;
+
       await RoomMemberModel.updateOne(
         { _id: memberRequest._id },
-        { status: RoomMemberStatus.approved }
+        { status: newStatus }
       );
-      await RoomModel.updateOne({ _id: roomId }, { $inc: { memberCount: 1 } });
 
-      res.json({ message: "Membership approved" });
+      // Only increment member count if directly approved (free rooms)
+      if (!isPaidRoom) {
+        await RoomModel.updateOne({ _id: roomId }, { $inc: { memberCount: 1 } });
+      }
+
+      res.json({ 
+        message: isPaidRoom 
+          ? "Request approved. User can now complete payment to join." 
+          : "Membership approved",
+        status: newStatus,
+        isPaidRoom,
+      });
     } else if (action === "reject") {
       await RoomMemberModel.updateOne(
         { _id: memberRequest._id },
@@ -1229,21 +1277,46 @@ export async function joinRoomViaInviteLink(req: Request, res: Response, next: N
         return;
       }
       if (existingMembership.status === RoomMemberStatus.pending) {
-        res.status(400).json({ message: "Your membership request is pending approval" });
+        // Return pending status with room info for better UX
+        res.status(200).json({
+          message: "Your membership request is pending approval",
+          status: "pending",
+          membership: {
+            roomId: existingMembership.roomId,
+            role: existingMembership.role,
+            status: existingMembership.status,
+          },
+          room: {
+            id: room._id,
+            name: room.name,
+            description: room.description,
+            image: room.image,
+            category: room.category,
+            membershipType: room.membershipType,
+            price: room.price,
+            currency: room.currency,
+          },
+        });
         return;
       }
     }
 
-    // Create membership (auto-approve for invite link joins)
+    // For paid private rooms, set status to pending (owner must approve before payment)
+    // For free private rooms with invite link, auto-approve
+    const isPaidRoom = room.membershipType === RoomMembershipType.paid;
+    const membershipStatus = isPaidRoom ? RoomMemberStatus.pending : RoomMemberStatus.approved;
+
     const membership = await RoomMemberModel.create({
       roomId: inviteLink.roomId,
       userId,
       role: RoomMemberRole.member,
-      status: RoomMemberStatus.approved,
+      status: membershipStatus,
     });
 
-    // Update member count
-    await RoomModel.updateOne({ _id: inviteLink.roomId }, { $inc: { memberCount: 1 } });
+    // Update member count only if approved
+    if (membershipStatus === RoomMemberStatus.approved) {
+      await RoomModel.updateOne({ _id: inviteLink.roomId }, { $inc: { memberCount: 1 } });
+    }
 
     // Increment used count
     await RoomInviteLinkModel.updateOne(
@@ -1251,21 +1324,45 @@ export async function joinRoomViaInviteLink(req: Request, res: Response, next: N
       { $inc: { usedCount: 1 } }
     );
 
-    res.status(201).json({
-      message: "Successfully joined the room via invite link",
-      membership: {
-        roomId: membership.roomId,
-        role: membership.role,
-        status: membership.status,
-      },
-      room: {
-        id: room._id,
-        name: room.name,
-        description: room.description,
-        image: room.image,
-        category: room.category,
-      },
-    });
+    if (isPaidRoom) {
+      res.status(201).json({
+        message: "Your request to join has been submitted. The room owner will review your request before you can proceed with payment.",
+        status: "pending",
+        membership: {
+          roomId: membership.roomId,
+          role: membership.role,
+          status: membership.status,
+        },
+        room: {
+          id: room._id,
+          name: room.name,
+          description: room.description,
+          image: room.image,
+          category: room.category,
+          membershipType: room.membershipType,
+          price: room.price,
+          currency: room.currency,
+        },
+      });
+    } else {
+      res.status(201).json({
+        message: "Successfully joined the room via invite link",
+        status: "approved",
+        membership: {
+          roomId: membership.roomId,
+          role: membership.role,
+          status: membership.status,
+        },
+        room: {
+          id: room._id,
+          name: room.name,
+          description: room.description,
+          image: room.image,
+          category: room.category,
+          membershipType: room.membershipType,
+        },
+      });
+    }
   } catch (error) {
     next(error);
   }

@@ -211,7 +211,18 @@ export const roomsApi = {
 
   // Get pending membership requests (owner/admin only)
   getPendingRequests: (roomId: string) => {
-    return apiClient.get<{ requests: MembershipRequest[] }>(`/rooms/${roomId}/requests`);
+    return apiClient.get<{
+      requests: Array<{
+        id: string;
+        user: {
+          _id: string;
+          username: string;
+          displayName?: string;
+          avatar?: string;
+        };
+        requestedAt: string;
+      }>;
+    }>(`/rooms/${roomId}/requests`);
   },
 
   // Handle membership request (approve/reject)
@@ -251,9 +262,21 @@ export const roomsApi = {
 
   // Join room via invite link
   joinViaInviteLink: (token: string) => {
-    return apiClient.post<{ message: string; membership: { roomId: string; role: string; status: string }; room: Room }>(
-      `/rooms/invite/${token}/join`
-    );
+    return apiClient.post<{
+      message: string;
+      status: "approved" | "pending";
+      membership: { roomId: string; role: string; status: string };
+      room: {
+        id: string;
+        name: string;
+        description: string;
+        image?: string;
+        category: string;
+        membershipType?: string;
+        price?: number;
+        currency?: string;
+      };
+    }>(`/rooms/invite/${token}/join`);
   },
 };
 
