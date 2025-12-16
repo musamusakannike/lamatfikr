@@ -479,6 +479,7 @@ export async function verifyPaymentAndJoin(req: Request, res: Response, next: Ne
     });
 
     const chargeData = response.data;
+    console.log("Charge Data: ", JSON.stringify(chargeData, null, 2));
 
     // Check if payment was successful
     if (chargeData.status !== "CAPTURED") {
@@ -508,7 +509,15 @@ export async function verifyPaymentAndJoin(req: Request, res: Response, next: Ne
     }
 
     if (payment.status === PaymentStatus.captured) {
-      res.status(400).json({ message: "Payment already processed" });
+      // Payment already processed - user is already a member
+      res.json({
+        message: "Payment verified. You have successfully joined the room!",
+        membership: {
+          roomId,
+          status: RoomMemberStatus.approved,
+          paidAt: payment.paidAt,
+        },
+      });
       return;
     }
 
