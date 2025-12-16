@@ -153,6 +153,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +161,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const url = URL.createObjectURL(file);
       setImagePreview(url);
     }
@@ -171,10 +173,16 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     setError(null);
 
     try {
+      let imageUrl: string | undefined;
+      if (imageFile) {
+        const uploadResult = await uploadApi.uploadImage(imageFile, "rooms");
+        imageUrl = uploadResult.url;
+      }
+
       await roomsApi.createRoom({
         name,
         description,
-        image: imagePreview || undefined,
+        image: imageUrl,
         category,
         membershipType,
         price: membershipType === "paid" ? parseFloat(price) : undefined,
@@ -200,6 +208,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     setPrice("");
     setCurrency("USD");
     setIsPrivate(false);
+    setImageFile(null);
     setImagePreview(null);
     setError(null);
   };
@@ -459,6 +468,203 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   );
 }
 
+interface EditRoomModalProps {
+  isOpen: boolean;
+  room: Room | null;
+  onClose: () => void;
+  onRoomUpdated: () => void;
+}
+
+function EditRoomModal({ isOpen, room, onClose, onRoomUpdated }: EditRoomModalProps) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (room && isOpen) {
+      setName(room.name);
+      setDescription(room.description);
+      setCategory(room.category);
+      setImagePreview(room.image || null);
+      setImageFile(null);
+      setError(null);
+    }
+  }, [room, isOpen]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!room) return;
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      let imageUrl: string | undefined;
+      if (imageFile) {
+        const uploadResult = await uploadApi.uploadImage(imageFile, "rooms");
+        imageUrl = uploadResult.url;
+      }
+
+      await roomsApi.updateRoom(room.id, {
+        name,
+        description,
+        image: imageUrl,
+        category,
+      });
+
+      onClose();
+      onRoomUpdated();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setError(null);
+    onClose();
+  };
+
+  if (!room) return null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Edit Room" size="lg">
+      <form onSubmit={handleSubmit} className="p-4 space-y-6">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Room Image */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            Room Image
+          </label>
+          <div className="flex items-center gap-4">
+            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
+              {imagePreview ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imagePreview} alt="Room preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImagePreview(null);
+                      setImageFile(null);
+                    }}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
+                  >
+                    <X size={14} className="text-white" />
+                  </button>
+                </>
+              ) : (
+                <ImageIcon size={32} className="text-(--text-muted)" />
+              )}
+            </div>
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+                id="edit-room-image"
+              />
+              <label htmlFor="edit-room-image">
+                <Button type="button" variant="outline" size="sm" className="cursor-pointer">
+                  <span>Change Image</span>
+                </Button>
+              </label>
+              <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Room Name */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            Room Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter room name"
+            required
+            className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe what your room is about"
+            required
+            rows={3}
+            className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+          />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            Category <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            required
+            className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Submit Buttons */}
+        <div className="flex gap-3 pt-4 border-t border-(--border)">
+          <Button type="button" variant="outline" className="flex-1" onClick={handleClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" className="flex-1 gap-2" disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Check size={18} />
+            )}
+            Save Changes
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
 interface RoomDetailsModalProps {
   room: Room | null;
   isOpen: boolean;
@@ -467,9 +673,10 @@ interface RoomDetailsModalProps {
   onLeave: (roomId: string) => void;
   onDelete: (roomId: string) => void;
   onOpenChat: (room: Room) => void;
+  onEdit: (room: Room) => void;
 }
 
-function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, onOpenChat }: RoomDetailsModalProps) {
+function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, onOpenChat, onEdit }: RoomDetailsModalProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -546,9 +753,15 @@ function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, on
               {showMenu && (
                 <div className="absolute top-10 right-0 w-48 bg-(--bg-card) border border-(--border) rounded-xl shadow-lg overflow-hidden z-10">
                   {(room.role === "owner" || room.role === "admin") && (
-                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--text) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+                    <button
+                      onClick={() => {
+                        onEdit(room);
+                        setShowMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--text) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                    >
                       <Settings size={16} />
-                      Room Settings
+                      Edit Room
                     </button>
                   )}
                   {room.role !== "owner" && (
@@ -1017,6 +1230,8 @@ export default function RoomsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeChat, setActiveChat] = useState<Room | null>(null);
@@ -1092,6 +1307,16 @@ export default function RoomsPage() {
   const handleOpenChat = (room: Room) => {
     setIsDetailsModalOpen(false);
     setActiveChat(room);
+  };
+
+  const handleEditRoom = (room: Room) => {
+    setEditingRoom(room);
+    setIsEditModalOpen(true);
+  };
+
+  const handleRoomUpdated = () => {
+    loadRooms();
+    setIsDetailsModalOpen(false);
   };
 
   const ownedCount = rooms.filter((r) => r.role === "owner").length;
@@ -1255,6 +1480,13 @@ export default function RoomsPage() {
         onLeave={handleLeaveRoom}
         onDelete={handleDeleteRoom}
         onOpenChat={handleOpenChat}
+        onEdit={handleEditRoom}
+      />
+      <EditRoomModal
+        isOpen={isEditModalOpen}
+        room={editingRoom}
+        onClose={() => setIsEditModalOpen(false)}
+        onRoomUpdated={handleRoomUpdated}
       />
     </div>
   );
