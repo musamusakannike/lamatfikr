@@ -12,11 +12,14 @@ import {
     Smile,
     Phone,
     Video,
+    X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { messagesApi, type Message, type Conversation } from "@/lib/api/messages";
+import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
 
@@ -41,10 +44,14 @@ export function ChatView({
     const [messageText, setMessageText] = useState("");
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const otherParticipant = conversation?.participants.find(
         (p) => p._id !== currentUserId
@@ -114,7 +121,7 @@ export function ChatView({
     };
 
     const handleSendMessage = async () => {
-        if (!messageText.trim() || isSending) return;
+        if ((!messageText.trim() && selectedImages.length === 0) || isSending) return;
 
         const tempId = `temp-${Date.now()}`;
         const tempMessage: Message = {
@@ -126,19 +133,35 @@ export function ChatView({
                 lastName: "",
                 username: "",
             },
-            content: messageText.trim(),
+            content: messageText.trim() || undefined,
+            media: selectedImages.map((img) => img.preview),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
 
         // Optimistic update
         setMessages((prev) => [...prev, tempMessage]);
+        const savedMessageText = messageText;
+        const savedImages = [...selectedImages];
         setMessageText("");
+        setSelectedImages([]);
         setIsSending(true);
 
         try {
+            // Upload images first
+            let uploadedMediaUrls: string[] = [];
+            if (savedImages.length > 0) {
+                setIsUploading(true);
+                for (const img of savedImages) {
+                    const result = await uploadApi.uploadImage(img.file, "messages");
+                    uploadedMediaUrls.push(result.url);
+                }
+                setIsUploading(false);
+            }
+
             const { data: newMessage } = await messagesApi.sendMessage(conversationId, {
-                content: messageText.trim(),
+                content: savedMessageText.trim() || undefined,
+                media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
             });
 
             // Replace temp message with real one
@@ -159,15 +182,62 @@ export function ChatView({
                     },
                 });
             }
+
+            // Cleanup previews
+            savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
         } catch (error) {
             // Remove temp message on error
             setMessages((prev) => prev.filter((m) => m._id !== tempId));
             console.error("Failed to send message:", error);
             toast.error("Failed to send message");
-            setMessageText(messageText); // Restore message text
+            setMessageText(savedMessageText); // Restore message text
+            setSelectedImages(savedImages); // Restore images
         } finally {
             setIsSending(false);
+            setIsUploading(false);
         }
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+        
+        const newImages = imageFiles.slice(0, 4 - selectedImages.length).map((file) => ({
+            file,
+            preview: URL.createObjectURL(file),
+        }));
+
+        setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4));
+        e.target.value = "";
+    };
+
+    const removeImage = (index: number) => {
+        setSelectedImages((prev) => {
+            const newImages = [...prev];
+            URL.revokeObjectURL(newImages[index].preview);
+            newImages.splice(index, 1);
+            return newImages;
+        });
+    };
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        const input = inputRef.current;
+        if (input) {
+            const start = input.selectionStart ?? messageText.length;
+            const end = input.selectionEnd ?? messageText.length;
+            const newText = messageText.slice(0, start) + emojiData.emoji + messageText.slice(end);
+            setMessageText(newText);
+            
+            // Set cursor position after emoji
+            requestAnimationFrame(() => {
+                input.focus();
+                const newPos = start + emojiData.emoji.length;
+                input.setSelectionRange(newPos, newPos);
+            });
+        } else {
+            setMessageText((prev) => prev + emojiData.emoji);
+        }
+        setShowEmojiPicker(false);
     };
 
     const formatMessageTime = (dateString: string) => {
@@ -349,13 +419,88 @@ export function ChatView({
 
             {/* Message Input */}
             <div className="p-4 border-t border-(--border)">
+                {/* Image Previews */}
+                {selectedImages.length > 0 && (
+                    <div className="flex gap-2 mb-3 flex-wrap">
+                        {selectedImages.map((img, index) => (
+                            <div key={index} className="relative group">
+                                <Image
+                                    src={img.preview}
+                                    alt={`Selected ${index + 1}`}
+                                    width={80}
+                                    height={80}
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                />
+                                <button
+                                    onClick={() => removeImage(index)}
+                                    className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-(--text-muted) shrink-0">
+                    {/* Image Upload Button */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageSelect}
+                        className="hidden"
+                    />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "shrink-0",
+                            selectedImages.length > 0
+                                ? "text-primary-600 dark:text-primary-400"
+                                : "text-(--text-muted)"
+                        )}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={selectedImages.length >= 4}
+                    >
                         <ImageIcon size={20} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-(--text-muted) shrink-0">
-                        <Smile size={20} />
-                    </Button>
+
+                    {/* Emoji Picker Button */}
+                    <div className="relative">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "shrink-0",
+                                showEmojiPicker
+                                    ? "text-primary-600 dark:text-primary-400"
+                                    : "text-(--text-muted)"
+                            )}
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        >
+                            <Smile size={20} />
+                        </Button>
+
+                        {showEmojiPicker && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setShowEmojiPicker(false)}
+                                />
+                                <div className="absolute left-0 bottom-full mb-2 z-20">
+                                    <EmojiPicker
+                                        onEmojiClick={handleEmojiClick}
+                                        height={350}
+                                        width={320}
+                                        searchPlaceHolder="Search emoji..."
+                                        lazyLoadEmojis={true}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
 
                     <input
                         ref={inputRef}
@@ -381,11 +526,11 @@ export function ChatView({
 
                     <Button
                         onClick={handleSendMessage}
-                        disabled={!messageText.trim() || isSending}
+                        disabled={(!messageText.trim() && selectedImages.length === 0) || isSending || isUploading}
                         size="icon"
                         className="shrink-0"
                     >
-                        {isSending ? (
+                        {isSending || isUploading ? (
                             <Loader2 size={18} className="animate-spin" />
                         ) : (
                             <Send size={18} />
