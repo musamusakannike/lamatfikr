@@ -1412,6 +1412,49 @@ export async function joinRoomViaInviteLink(req: Request, res: Response, next: N
   }
 }
 
+// Get total unread room messages count for sidebar
+export async function getTotalUnreadCount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+
+    // Get user's room memberships with lastReadAt
+    const userMemberships = await RoomMemberModel.find({
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    }).select("roomId lastReadAt");
+
+    if (userMemberships.length === 0) {
+      res.json({ totalUnreadCount: 0 });
+      return;
+    }
+
+    // Calculate unread count for each room based on lastReadAt
+    const unreadCountPromises = userMemberships.map(async (membership) => {
+      const matchQuery: Record<string, unknown> = {
+        roomId: membership.roomId,
+        deletedAt: null,
+        senderId: { $ne: userId },
+      };
+      
+      // If user has a lastReadAt, count messages after that time
+      // Otherwise, count all messages (user has never read the room)
+      if (membership.lastReadAt) {
+        matchQuery.createdAt = { $gt: membership.lastReadAt };
+      }
+      
+      return RoomMessageModel.countDocuments(matchQuery);
+    });
+    
+    const unreadCounts = await Promise.all(unreadCountPromises);
+    const totalUnreadCount = unreadCounts.reduce((sum, count) => sum + count, 0);
+
+    res.json({ totalUnreadCount });
+  } catch (error) {
+    next(error);
+  }
+}
+
 // Helper function to generate unique token
 function generateToken(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

@@ -134,6 +134,11 @@ export interface InviteLinksResponse {
 
 // Room CRUD
 export const roomsApi = {
+  // Get total unread count for sidebar
+  getTotalUnreadCount: () => {
+    return apiClient.get<{ totalUnreadCount: number }>("/rooms/unread-count");
+  },
+
   // Get all rooms with filters
   getRooms: (params?: {
     search?: string;

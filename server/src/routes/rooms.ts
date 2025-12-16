@@ -21,6 +21,7 @@ import {
   getRoomInviteLinks,
   revokeInviteLink,
   joinRoomViaInviteLink,
+  getTotalUnreadCount,
 } from "../controllers/room.controller";
 
 export const roomsRouter = Router();
@@ -31,6 +32,7 @@ roomsRouter.use(requireAuth);
 // Room CRUD
 roomsRouter.post("/", createRoom);
 roomsRouter.get("/", getRooms);
+roomsRouter.get("/unread-count", getTotalUnreadCount);
 roomsRouter.get("/:roomId", getRoom);
 roomsRouter.patch("/:roomId", updateRoom);
 roomsRouter.delete("/:roomId", deleteRoom);

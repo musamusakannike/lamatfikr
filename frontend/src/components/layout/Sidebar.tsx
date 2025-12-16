@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar, NotificationBadge } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { roomsApi } from "@/lib/api/rooms";
 import {
   Home,
   MessageSquare,
@@ -66,10 +68,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { t, isRTL } = useLanguage();
   const { user, isAuthenticated } = useAuth();
+  const [roomsUnreadCount, setRoomsUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await roomsApi.getTotalUnreadCount();
+        setRoomsUnreadCount(response.totalUnreadCount);
+      } catch (err) {
+        // Silently ignore errors
+      }
+    };
+
+    fetchUnreadCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   const navItems: NavItem[] = [
     { icon: Home, label: t("nav", "home"), href: "/" },
-    { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: 12 },
+    { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: roomsUnreadCount > 0 ? roomsUnreadCount : undefined },
     { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: 3 },
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: FileText, label: isRTL ? "المقالات" : "Articles", href: "/articles" },
