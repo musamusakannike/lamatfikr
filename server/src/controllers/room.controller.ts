@@ -12,6 +12,7 @@ import {
   RoomPaymentModel,
   PaymentStatus,
   RoomMembershipType,
+  RoomInviteLinkModel,
 } from "../models";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
@@ -996,4 +997,286 @@ export async function getPendingRequests(req: Request, res: Response, next: Next
   } catch (error) {
     next(error);
   }
+}
+
+// Generate invite link for private room (owner/admin only)
+export async function generateInviteLink(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId } = req.params;
+    const { expiresIn, maxUses } = req.body;
+
+    if (!Types.ObjectId.isValid(roomId)) {
+      res.status(400).json({ message: "Invalid room ID" });
+      return;
+    }
+
+    const room = await RoomModel.findOne({ _id: roomId, deletedAt: null });
+
+    if (!room) {
+      res.status(404).json({ message: "Room not found" });
+      return;
+    }
+
+    if (!room.isPrivate) {
+      res.status(400).json({ message: "Invite links are only available for private rooms" });
+      return;
+    }
+
+    // Check if user is owner or admin
+    const userMembership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!userMembership || (userMembership.role !== RoomMemberRole.owner && userMembership.role !== RoomMemberRole.admin)) {
+      res.status(403).json({ message: "Only room owner or admin can generate invite links" });
+      return;
+    }
+
+    // Generate unique token
+    const token = generateToken();
+
+    // Calculate expiration date
+    let expiresAt = null;
+    if (expiresIn && typeof expiresIn === "number") {
+      expiresAt = new Date(Date.now() + expiresIn * 1000);
+    }
+
+    const inviteLink = await RoomInviteLinkModel.create({
+      roomId,
+      createdBy: userId,
+      token,
+      expiresAt,
+      maxUses: maxUses || null,
+      usedCount: 0,
+      isActive: true,
+    });
+
+    const shareUrl = `${env.FRONTEND_URL}/rooms/invite/${token}`;
+
+    res.status(201).json({
+      message: "Invite link generated successfully",
+      inviteLink: {
+        id: inviteLink._id,
+        token: inviteLink.token,
+        shareUrl,
+        expiresAt: inviteLink.expiresAt,
+        maxUses: inviteLink.maxUses,
+        createdAt: (inviteLink as unknown as { createdAt: Date }).createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Get all invite links for a room (owner/admin only)
+export async function getRoomInviteLinks(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId)) {
+      res.status(400).json({ message: "Invalid room ID" });
+      return;
+    }
+
+    // Check if user is owner or admin
+    const userMembership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!userMembership || (userMembership.role !== RoomMemberRole.owner && userMembership.role !== RoomMemberRole.admin)) {
+      res.status(403).json({ message: "Only room owner or admin can view invite links" });
+      return;
+    }
+
+    const inviteLinks = await RoomInviteLinkModel.find({
+      roomId,
+      deletedAt: null,
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      inviteLinks: inviteLinks.map((link) => ({
+        id: link._id,
+        token: link.token,
+        shareUrl: `${env.FRONTEND_URL}/rooms/invite/${link.token}`,
+        expiresAt: link.expiresAt,
+        maxUses: link.maxUses,
+        usedCount: link.usedCount,
+        isActive: link.isActive,
+        createdAt: (link as unknown as { createdAt: Date }).createdAt,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Revoke invite link (owner/admin only)
+export async function revokeInviteLink(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId, linkId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(linkId)) {
+      res.status(400).json({ message: "Invalid room or link ID" });
+      return;
+    }
+
+    // Check if user is owner or admin
+    const userMembership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!userMembership || (userMembership.role !== RoomMemberRole.owner && userMembership.role !== RoomMemberRole.admin)) {
+      res.status(403).json({ message: "Only room owner or admin can revoke invite links" });
+      return;
+    }
+
+    const inviteLink = await RoomInviteLinkModel.findOne({
+      _id: linkId,
+      roomId,
+      deletedAt: null,
+    });
+
+    if (!inviteLink) {
+      res.status(404).json({ message: "Invite link not found" });
+      return;
+    }
+
+    await RoomInviteLinkModel.updateOne(
+      { _id: linkId },
+      { isActive: false }
+    );
+
+    res.json({ message: "Invite link revoked successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Join room via invite link
+export async function joinRoomViaInviteLink(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { token } = req.params;
+
+    if (!token || typeof token !== "string") {
+      res.status(400).json({ message: "Invalid invite token" });
+      return;
+    }
+
+    const inviteLink = await RoomInviteLinkModel.findOne({
+      token,
+      isActive: true,
+      deletedAt: null,
+    });
+
+    if (!inviteLink) {
+      res.status(404).json({ message: "Invite link not found or has been revoked" });
+      return;
+    }
+
+    // Check if link has expired
+    if (inviteLink.expiresAt && new Date() > inviteLink.expiresAt) {
+      await RoomInviteLinkModel.updateOne(
+        { _id: inviteLink._id },
+        { isActive: false }
+      );
+      res.status(400).json({ message: "Invite link has expired" });
+      return;
+    }
+
+    // Check if link has reached max uses
+    if (inviteLink.maxUses && inviteLink.usedCount >= inviteLink.maxUses) {
+      await RoomInviteLinkModel.updateOne(
+        { _id: inviteLink._id },
+        { isActive: false }
+      );
+      res.status(400).json({ message: "Invite link has reached maximum uses" });
+      return;
+    }
+
+    const room = await RoomModel.findOne({ _id: inviteLink.roomId, deletedAt: null });
+
+    if (!room) {
+      res.status(404).json({ message: "Room not found" });
+      return;
+    }
+
+    // Check if already a member
+    const existingMembership = await RoomMemberModel.findOne({
+      roomId: inviteLink.roomId,
+      userId,
+      deletedAt: null,
+    });
+
+    if (existingMembership) {
+      if (existingMembership.status === RoomMemberStatus.approved) {
+        res.status(400).json({ message: "You are already a member of this room" });
+        return;
+      }
+      if (existingMembership.status === RoomMemberStatus.pending) {
+        res.status(400).json({ message: "Your membership request is pending approval" });
+        return;
+      }
+    }
+
+    // Create membership (auto-approve for invite link joins)
+    const membership = await RoomMemberModel.create({
+      roomId: inviteLink.roomId,
+      userId,
+      role: RoomMemberRole.member,
+      status: RoomMemberStatus.approved,
+    });
+
+    // Update member count
+    await RoomModel.updateOne({ _id: inviteLink.roomId }, { $inc: { memberCount: 1 } });
+
+    // Increment used count
+    await RoomInviteLinkModel.updateOne(
+      { _id: inviteLink._id },
+      { $inc: { usedCount: 1 } }
+    );
+
+    res.status(201).json({
+      message: "Successfully joined the room via invite link",
+      membership: {
+        roomId: membership.roomId,
+        role: membership.role,
+        status: membership.status,
+      },
+      room: {
+        id: room._id,
+        name: room.name,
+        description: room.description,
+        image: room.image,
+        category: room.category,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Helper function to generate unique token
+function generateToken(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
 }

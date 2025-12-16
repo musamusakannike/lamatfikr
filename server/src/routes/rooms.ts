@@ -16,6 +16,10 @@ import {
   getMessages,
   handleMembershipRequest,
   getPendingRequests,
+  generateInviteLink,
+  getRoomInviteLinks,
+  revokeInviteLink,
+  joinRoomViaInviteLink,
 } from "../controllers/room.controller";
 
 export const roomsRouter = Router();
@@ -44,3 +48,9 @@ roomsRouter.post("/:roomId/requests/:memberId", handleMembershipRequest);
 // Messages
 roomsRouter.post("/:roomId/messages", sendMessage);
 roomsRouter.get("/:roomId/messages", getMessages);
+
+// Invite links (private rooms)
+roomsRouter.post("/:roomId/invite-links", generateInviteLink);
+roomsRouter.get("/:roomId/invite-links", getRoomInviteLinks);
+roomsRouter.delete("/:roomId/invite-links/:linkId", revokeInviteLink);
+roomsRouter.post("/invite/:token/join", joinRoomViaInviteLink);
