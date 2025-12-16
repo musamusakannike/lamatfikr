@@ -258,11 +258,15 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                 className="hidden"
                 id="room-image"
               />
-              <label htmlFor="room-image">
-                <Button type="button" variant="outline" size="sm" className="cursor-pointer">
-                  <span>Upload Image</span>
-                </Button>
-              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="cursor-pointer"
+                onClick={() => document.getElementById("room-image")?.click()}
+              >
+                <span>Upload Image</span>
+              </Button>
               <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
             </div>
           </div>
@@ -586,11 +590,15 @@ function EditRoomModal({ isOpen, room, onClose, onRoomUpdated }: EditRoomModalPr
                 className="hidden"
                 id="edit-room-image"
               />
-              <label htmlFor="edit-room-image">
-                <Button type="button" variant="outline" size="sm" className="cursor-pointer">
-                  <span>Change Image</span>
-                </Button>
-              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="cursor-pointer"
+                onClick={() => document.getElementById("edit-room-image")?.click()}
+              >
+                <span>Change Image</span>
+              </Button>
               <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
             </div>
           </div>
