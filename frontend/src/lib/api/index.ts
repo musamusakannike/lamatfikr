@@ -14,3 +14,6 @@ export type { Post, CreatePostData, CreatePostResponse } from "./posts";
 
 export { storiesApi } from "./stories";
 export type { Story, StoryUser, StoryMediaItem, StoryViewer, CreateStoryData, StoriesResponse, StoryViewersResponse, MediaFilterType } from "./stories";
+
+export { messagesApi } from "./messages";
+export type { Message, MessageUser, Conversation, ConversationsResponse, MessagesResponse, SendMessageData } from "./messages";

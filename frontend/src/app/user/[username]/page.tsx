@@ -27,6 +27,7 @@ import Image from "next/image";
 import { profileApi, type PublicProfile } from "@/lib/api/profile";
 import { socialApi } from "@/lib/api/social";
 import { postsApi, type Post } from "@/lib/api/posts";
+import { messagesApi } from "@/lib/api/messages";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
 
@@ -56,6 +57,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const [followingCount, setFollowingCount] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [isStartingConversation, setIsStartingConversation] = useState(false);
 
     const isOwnProfile = currentUser?.username === username;
 
@@ -185,6 +187,21 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
         if (!dateString) return null;
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+
+    const handleStartConversation = async () => {
+        if (!profile || !isAuthenticated || isStartingConversation) return;
+
+        try {
+            setIsStartingConversation(true);
+            const { conversation } = await messagesApi.getOrCreateConversation(profile.id);
+            router.push(`/messages?conversation=${conversation._id}`);
+        } catch (err) {
+            console.error("Failed to start conversation:", err);
+            toast.error(getErrorMessage(err));
+        } finally {
+            setIsStartingConversation(false);
+        }
     };
 
     if (isOwnProfile) {
@@ -324,8 +341,18 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                             </>
                                                         )}
                                                     </Button>
-                                                    <Button variant="outline" size="sm" className="gap-2">
-                                                        <MessageCircle size={16} />
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-2"
+                                                        onClick={handleStartConversation}
+                                                        disabled={isStartingConversation}
+                                                    >
+                                                        {isStartingConversation ? (
+                                                            <Loader2 size={16} className="animate-spin" />
+                                                        ) : (
+                                                            <MessageCircle size={16} />
+                                                        )}
                                                         Message
                                                     </Button>
                                                 </>
