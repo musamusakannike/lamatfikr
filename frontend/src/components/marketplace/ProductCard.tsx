@@ -15,9 +15,12 @@ export interface Product {
   description: string;
   price: number;
   originalPrice?: number;
+  currency?: string;
   images: string[];
   image?: string;
   category: string;
+  condition?: string;
+  status?: string;
   rating: number;
   reviewCount: number;
   reviews?: number;
@@ -34,7 +37,13 @@ export interface Product {
   inStock?: boolean;
   isFeatured?: boolean;
   isFavorited?: boolean;
+  isNegotiable?: boolean;
+  tags?: string[];
+  viewCount?: number;
+  favoriteCount?: number;
+  deletedAt?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ProductCardProps {
@@ -71,7 +80,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
       setIsLiked(response.isFavorited);
       onFavoriteChange?.(product._id, response.isFavorited);
       toast.success(response.isFavorited ? "Added to favorites" : "Removed from favorites");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update favorites");
     } finally {
       setIsTogglingFavorite(false);
@@ -87,8 +96,9 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
       await marketplaceApi.addToCart(product._id, 1);
       onAddToCart?.(product._id);
       toast.success("Added to cart");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to add to cart");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to add to cart");
     } finally {
       setIsAddingToCart(false);
     }

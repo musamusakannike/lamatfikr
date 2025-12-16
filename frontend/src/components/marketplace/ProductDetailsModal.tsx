@@ -39,7 +39,7 @@ export function ProductDetailsModal({
   const discount = useMemo(() => 
     product?.originalPrice
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-      : 0, [product?.originalPrice, product?.price]
+      : 0, [product]
   );
 
   // Check if product is new (created within last 7 days)
@@ -50,7 +50,7 @@ export function ProductDetailsModal({
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     return createdDate > sevenDaysAgo;
-  }, [product?.createdAt]);
+  }, [product]);
 
   if (!product) return null;
 
