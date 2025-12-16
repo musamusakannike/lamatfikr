@@ -947,8 +947,8 @@ export async function handleMembershipRequest(req: Request, res: Response, next:
     }
 
     const memberRequest = await RoomMemberModel.findOne({
+      _id: memberId,
       roomId,
-      userId: memberId,
       status: RoomMemberStatus.pending,
       deletedAt: null,
     });
