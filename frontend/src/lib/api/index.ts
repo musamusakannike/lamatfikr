@@ -17,3 +17,25 @@ export type { Story, StoryUser, StoryMediaItem, StoryViewer, CreateStoryData, St
 
 export { messagesApi } from "./messages";
 export type { Message, MessageUser, Conversation, ConversationsResponse, MessagesResponse, SendMessageData } from "./messages";
+
+export { marketplaceApi } from "./marketplace";
+export type {
+  Product,
+  ProductFormData,
+  Seller,
+  Review,
+  CartItem,
+  Cart,
+  ShippingAddress,
+  Order,
+  OrderItem,
+  ProductsResponse,
+  ProductResponse,
+  ReviewsResponse,
+  CartResponse,
+  OrdersResponse,
+  OrderResponse,
+  PaymentInitResponse as MarketplacePaymentInitResponse,
+  MarketplaceStats,
+  SellerStats,
+} from "./marketplace";

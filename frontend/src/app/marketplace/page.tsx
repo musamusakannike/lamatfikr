@@ -1,177 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Card } from "@/components/ui";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   ProductCard,
   ProductDetailsModal,
   AddProductModal,
   Product,
-  ProductFormData,
 } from "@/components/marketplace";
+import { marketplaceApi, MarketplaceStats } from "@/lib/api/marketplace";
+import toast from "react-hot-toast";
 import {
   Plus,
   Search,
-  Filter,
   Grid,
   List,
   SlidersHorizontal,
-  ChevronDown,
   ShoppingBag,
   TrendingUp,
   Package,
   DollarSign,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dummy products data
-const dummyProducts: Product[] = [
-  {
-    id: "1",
-    title: "Premium Wireless Headphones with Noise Cancellation",
-    description: "High-quality wireless headphones with active noise cancellation, 30-hour battery life, and premium sound quality.",
-    price: 199.99,
-    originalPrice: 299.99,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-    category: "Electronics",
-    rating: 4.8,
-    reviews: 256,
-    seller: {
-      name: "TechStore Pro",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: true,
-    isNew: true,
-    isFeatured: true,
-  },
-  {
-    id: "2",
-    title: "Organic Cotton T-Shirt - Classic Fit",
-    description: "Comfortable organic cotton t-shirt made with sustainable materials. Available in multiple colors.",
-    price: 29.99,
-    originalPrice: 45.00,
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
-    category: "Clothing",
-    rating: 4.5,
-    reviews: 189,
-    seller: {
-      name: "EcoWear",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: true,
-    isNew: false,
-  },
-  {
-    id: "3",
-    title: "Smart Watch Series X - Fitness Tracker",
-    description: "Advanced smartwatch with heart rate monitoring, GPS, and 7-day battery life.",
-    price: 349.00,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-    category: "Electronics",
-    rating: 4.7,
-    reviews: 432,
-    seller: {
-      name: "GadgetHub",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: true,
-    isFeatured: true,
-  },
-  {
-    id: "4",
-    title: "Vintage Leather Messenger Bag",
-    description: "Handcrafted genuine leather messenger bag with multiple compartments. Perfect for work or travel.",
-    price: 89.99,
-    originalPrice: 129.99,
-    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=400&fit=crop",
-    category: "Accessories",
-    rating: 4.6,
-    reviews: 98,
-    seller: {
-      name: "LeatherCraft",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-      verified: false,
-    },
-    inStock: true,
-  },
-  {
-    id: "5",
-    title: "Professional Camera Lens 50mm f/1.8",
-    description: "High-quality prime lens for stunning portraits and low-light photography.",
-    price: 449.00,
-    image: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=400&h=400&fit=crop",
-    category: "Electronics",
-    rating: 4.9,
-    reviews: 167,
-    seller: {
-      name: "PhotoGear",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: false,
-    isNew: true,
-  },
-  {
-    id: "6",
-    title: "Minimalist Desk Lamp - LED",
-    description: "Modern LED desk lamp with adjustable brightness and color temperature. USB charging port included.",
-    price: 59.99,
-    originalPrice: 79.99,
-    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop",
-    category: "Home & Garden",
-    rating: 4.4,
-    reviews: 76,
-    seller: {
-      name: "HomeStyle",
-      avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: true,
-  },
-  {
-    id: "7",
-    title: "Running Shoes - Ultra Comfort",
-    description: "Lightweight running shoes with advanced cushioning technology for maximum comfort.",
-    price: 129.00,
-    originalPrice: 159.00,
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    category: "Sports",
-    rating: 4.7,
-    reviews: 312,
-    seller: {
-      name: "SportZone",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-      verified: true,
-    },
-    inStock: true,
-    isFeatured: true,
-  },
-  {
-    id: "8",
-    title: "Ceramic Coffee Mug Set - 4 Pack",
-    description: "Beautiful handmade ceramic mugs. Microwave and dishwasher safe.",
-    price: 34.99,
-    image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400&h=400&fit=crop",
-    category: "Home & Garden",
-    rating: 4.3,
-    reviews: 54,
-    seller: {
-      name: "CeramicArt",
-      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop",
-      verified: false,
-    },
-    inStock: true,
-  },
-];
-
-const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Garden", "Sports", "Books"];
+const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Garden", "Sports", "Books", "Beauty", "Toys", "Automotive", "Food & Beverages", "Other"];
 
 export default function MarketplacePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -179,68 +35,105 @@ export default function MarketplacePage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
-  const [products, setProducts] = useState<Product[]>(dummyProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState("featured");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<MarketplaceStats | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
+
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await marketplaceApi.getProducts({
+        page: pagination.page,
+        limit: pagination.limit,
+        category: selectedCategory !== "All" ? selectedCategory : undefined,
+        search: searchQuery || undefined,
+        sortBy: sortBy === "featured" ? "createdAt" : sortBy === "price-low" || sortBy === "price-high" ? "price" : sortBy,
+        sortOrder: sortBy === "price-low" ? "asc" : sortBy === "price-high" ? "desc" : sortOrder,
+      });
+      setProducts(response.products as unknown as Product[]);
+      setPagination(response.pagination);
+    } catch {
+      toast.error("Failed to load products");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination.page, pagination.limit, selectedCategory, searchQuery, sortBy, sortOrder]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await marketplaceApi.getStats();
+      setStats(response.stats);
+    } catch (error) {
+      console.error("Failed to load stats:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   const handleViewDetails = (product: Product) => {
     setSelectedProduct(product);
     setShowProductDetails(true);
   };
 
-  const handleAddProduct = (formData: ProductFormData) => {
-    const newProduct: Product = {
-      id: String(products.length + 1),
-      title: formData.title,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      image: formData.images[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-      category: formData.category,
-      rating: 0,
-      reviews: 0,
-      seller: {
-        name: "John Doe",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-        verified: false,
-      },
-      inStock: formData.inStock,
-      isNew: true,
-    };
-    setProducts([newProduct, ...products]);
+  const handleAddProduct = async (formData: {
+    title: string;
+    description: string;
+    price: string;
+    originalPrice: string;
+    category: string;
+    images: string[];
+    inStock: boolean;
+  }) => {
+    try {
+      await marketplaceApi.createProduct({
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        images: formData.images,
+        category: formData.category,
+        quantity: formData.inStock ? 1 : 0,
+      });
+      toast.success("Product created successfully");
+      fetchProducts();
+      fetchStats();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to create product");
+    }
   };
 
-  // Filter and sort products
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        case "rating":
-          return b.rating - a.rating;
-        case "newest":
-          return a.isNew ? -1 : 1;
-        default:
-          return a.isFeatured ? -1 : 1;
-      }
-    });
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchProducts();
+  };
 
-  // Stats
-  const stats = {
-    totalProducts: products.length,
-    inStock: products.filter((p) => p.inStock).length,
-    featured: products.filter((p) => p.isFeatured).length,
-    avgPrice: (products.reduce((acc, p) => acc + p.price, 0) / products.length).toFixed(2),
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   return (
@@ -274,7 +167,7 @@ export default function MarketplacePage() {
                   <Package size={20} className="text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-(--text)">{stats.totalProducts}</p>
+                  <p className="text-2xl font-bold text-(--text)">{stats?.totalProducts || 0}</p>
                   <p className="text-sm text-(--text-muted)">{t("marketplace", "totalProducts")}</p>
                 </div>
               </div>
@@ -285,7 +178,7 @@ export default function MarketplacePage() {
                   <ShoppingBag size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-(--text)">{stats.inStock}</p>
+                  <p className="text-2xl font-bold text-(--text)">{stats?.inStock || 0}</p>
                   <p className="text-sm text-(--text-muted)">{t("marketplace", "inStock")}</p>
                 </div>
               </div>
@@ -296,7 +189,7 @@ export default function MarketplacePage() {
                   <TrendingUp size={20} className="text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-(--text)">{stats.featured}</p>
+                  <p className="text-2xl font-bold text-(--text)">{stats?.featured || 0}</p>
                   <p className="text-sm text-(--text-muted)">{t("marketplace", "featured")}</p>
                 </div>
               </div>
@@ -307,7 +200,7 @@ export default function MarketplacePage() {
                   <DollarSign size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-(--text)">${stats.avgPrice}</p>
+                  <p className="text-2xl font-bold text-(--text)">${stats?.avgPrice || "0.00"}</p>
                   <p className="text-sm text-(--text-muted)">{t("marketplace", "avgPrice")}</p>
                 </div>
               </div>
@@ -318,7 +211,7 @@ export default function MarketplacePage() {
           <Card className="p-4">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
-              <div className="flex-1 relative">
+              <form onSubmit={handleSearch} className="flex-1 relative">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)" />
                 <input
                   type="text"
@@ -327,14 +220,14 @@ export default function MarketplacePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
-              </div>
+              </form>
 
               {/* Category Filter */}
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryChange(category)}
                     className={cn(
                       "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                       selectedCategory === category
@@ -354,11 +247,11 @@ export default function MarketplacePage() {
                 <SlidersHorizontal size={16} className="text-(--text-muted)" />
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => handleSortChange(e.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-(--border) bg-(--bg-card) text-sm text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="featured">Featured</option>
-                  <option value="newest">Newest</option>
+                  <option value="createdAt">Newest</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
                   <option value="rating">Top Rated</option>
@@ -367,7 +260,7 @@ export default function MarketplacePage() {
 
               <div className="flex items-center gap-1">
                 <span className="text-sm text-(--text-muted) mr-2">
-                  {filteredProducts.length} products
+                  {pagination.total} products
                 </span>
                 <button
                   onClick={() => setViewMode("grid")}
@@ -396,23 +289,54 @@ export default function MarketplacePage() {
           </Card>
 
           {/* Products Grid */}
-          {filteredProducts.length > 0 ? (
-            <div
-              className={cn(
-                "grid gap-4",
-                viewMode === "grid"
-                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  : "grid-cols-1"
-              )}
-            >
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={32} className="animate-spin text-primary-600" />
             </div>
+          ) : products.length > 0 ? (
+            <>
+              <div
+                className={cn(
+                  "grid gap-4",
+                  viewMode === "grid"
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    : "grid-cols-1"
+                )}
+              >
+                {products.map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === 1}
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-(--text-muted)">
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === pagination.totalPages}
+                    onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <Card className="p-12 text-center">
               <ShoppingBag size={48} className="mx-auto text-(--text-muted) mb-4" />

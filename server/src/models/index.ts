@@ -58,3 +58,9 @@ export * from "./room-invite-link.model";
 export * from "./community.model";
 export * from "./community-member.model";
 export * from "./community-message.model";
+
+export * from "./product.model";
+export * from "./product-favorite.model";
+export * from "./product-review.model";
+export * from "./order.model";
+export * from "./cart.model";
