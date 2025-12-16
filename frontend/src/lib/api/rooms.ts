@@ -112,6 +112,26 @@ export interface MembershipRequest {
   requestedAt: string;
 }
 
+export interface InviteLink {
+  id: string;
+  token: string;
+  shareUrl: string;
+  expiresAt?: string | null;
+  maxUses?: number | null;
+  usedCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface InviteLinkResponse {
+  message: string;
+  inviteLink: InviteLink;
+}
+
+export interface InviteLinksResponse {
+  inviteLinks: InviteLink[];
+}
+
 // Room CRUD
 export const roomsApi = {
   // Get all rooms with filters
@@ -212,6 +232,28 @@ export const roomsApi = {
 
     const query = searchParams.toString();
     return apiClient.get<MessagesResponse>(`/rooms/${roomId}/messages${query ? `?${query}` : ""}`);
+  },
+
+  // Generate invite link
+  generateInviteLink: (roomId: string, data?: { expiresIn?: number; maxUses?: number }) => {
+    return apiClient.post<InviteLinkResponse>(`/rooms/${roomId}/invite-links`, data || {});
+  },
+
+  // Get all invite links for a room
+  getInviteLinks: (roomId: string) => {
+    return apiClient.get<InviteLinksResponse>(`/rooms/${roomId}/invite-links`);
+  },
+
+  // Revoke an invite link
+  revokeInviteLink: (roomId: string, linkId: string) => {
+    return apiClient.delete<{ message: string }>(`/rooms/${roomId}/invite-links/${linkId}`);
+  },
+
+  // Join room via invite link
+  joinViaInviteLink: (token: string) => {
+    return apiClient.post<{ message: string; membership: { roomId: string; role: string; status: string }; room: Room }>(
+      `/rooms/invite/${token}/join`
+    );
   },
 };
 

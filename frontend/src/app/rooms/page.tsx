@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
+import { InviteLinkModal } from "@/components/rooms/InviteLinkModal";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
@@ -29,6 +30,7 @@ import {
   Loader2,
   ArrowLeft,
   Smile,
+  Share2,
 } from "lucide-react";
 import Image from "next/image";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
@@ -891,6 +893,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1026,6 +1029,15 @@ function ChatView({ room, onBack }: ChatViewProps) {
           <h2 className="font-semibold text-(--text) truncate">{room.name}</h2>
           <p className="text-xs text-(--text-muted)">{room.memberCount} members</p>
         </div>
+        {room.isPrivate && (room.role === "owner" || room.role === "admin") && (
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="p-2 hover:bg-(--bg) rounded-lg transition-colors text-(--text-muted) hover:text-primary-600"
+            title="Share invite link"
+          >
+            <Share2 size={20} />
+          </button>
+        )}
         <button
           onClick={() => setShowMembers(!showMembers)}
           className={cn(
@@ -1226,6 +1238,14 @@ function ChatView({ room, onBack }: ChatViewProps) {
           </div>
         )}
       </div>
+
+      {/* Invite Link Modal */}
+      <InviteLinkModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        roomId={room.id}
+        isPrivate={room.isPrivate}
+      />
     </div>
   );
 }
