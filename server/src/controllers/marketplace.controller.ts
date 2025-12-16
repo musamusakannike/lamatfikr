@@ -150,7 +150,7 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum)
-        .populate("sellerId", "username displayName avatar isVerified")
+        .populate("sellerId", "username firstName lastName avatar verified")
         .lean(),
       ProductModel.countDocuments(filter),
     ]);
@@ -172,12 +172,21 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
 
     const productsWithRatings = products.map((product) => {
       const ratingData = ratingsMap.get(product._id.toString());
+      const sellerData = product.sellerId as any;
       return {
         ...product,
         rating: ratingData?.avgRating || 0,
         reviewCount: ratingData?.reviewCount || 0,
-        seller: product.sellerId,
-        sellerId: (product.sellerId as any)?._id,
+        seller: sellerData ? {
+          _id: sellerData._id,
+          username: sellerData.username,
+          displayName: sellerData.firstName && sellerData.lastName 
+            ? `${sellerData.firstName} ${sellerData.lastName}` 
+            : sellerData.username,
+          avatar: sellerData.avatar,
+          isVerified: sellerData.verified || false,
+        } : null,
+        sellerId: sellerData?._id,
       };
     });
 
@@ -208,7 +217,7 @@ export async function getProduct(req: Request, res: Response, next: NextFunction
     const product = await ProductModel.findOne({
       _id: productId,
       deletedAt: null,
-    }).populate("sellerId", "username displayName avatar isVerified bio");
+    }).populate("sellerId", "username firstName lastName avatar verified bio");
 
     if (!product) {
       res.status(404).json({ message: "Product not found" });
@@ -236,13 +245,23 @@ export async function getProduct(req: Request, res: Response, next: NextFunction
       userId,
     });
 
+    const sellerData = product.sellerId as any;
     res.json({
       product: {
         ...product.toObject(),
         rating: ratingData[0]?.avgRating || 0,
         reviewCount: ratingData[0]?.reviewCount || 0,
-        seller: product.sellerId,
-        sellerId: (product.sellerId as any)?._id,
+        seller: sellerData ? {
+          _id: sellerData._id,
+          username: sellerData.username,
+          displayName: sellerData.firstName && sellerData.lastName 
+            ? `${sellerData.firstName} ${sellerData.lastName}` 
+            : sellerData.username,
+          avatar: sellerData.avatar,
+          isVerified: sellerData.verified || false,
+          bio: sellerData.bio,
+        } : null,
+        sellerId: sellerData?._id,
         isFavorited: !!isFavorited,
       },
     });
@@ -300,7 +319,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       productId,
       filteredUpdates,
       { new: true }
-    ).populate("sellerId", "username displayName avatar isVerified");
+    ).populate("sellerId", "username firstName lastName avatar verified");
 
     res.json({
       message: "Product updated successfully",
@@ -428,7 +447,7 @@ export async function getFavorites(req: Request, res: Response, next: NextFuncti
         .populate({
           path: "productId",
           match: { deletedAt: null, status: ProductStatus.active },
-          populate: { path: "sellerId", select: "username displayName avatar isVerified" },
+          populate: { path: "sellerId", select: "username firstName lastName avatar verified" },
         })
         .lean(),
       ProductFavoriteModel.countDocuments({ userId }),
@@ -436,11 +455,23 @@ export async function getFavorites(req: Request, res: Response, next: NextFuncti
 
     const products = favorites
       .filter((f) => f.productId)
-      .map((f) => ({
-        ...(f.productId as any),
-        seller: (f.productId as any)?.sellerId,
-        sellerId: (f.productId as any)?.sellerId?._id,
-      }));
+      .map((f) => {
+        const product = f.productId as any;
+        const sellerData = product?.sellerId;
+        return {
+          ...product,
+          seller: sellerData ? {
+            _id: sellerData._id,
+            username: sellerData.username,
+            displayName: sellerData.firstName && sellerData.lastName
+              ? `${sellerData.firstName} ${sellerData.lastName}`
+              : sellerData.username,
+            avatar: sellerData.avatar,
+            isVerified: sellerData.verified || false,
+          } : null,
+          sellerId: sellerData?._id,
+        };
+      });
 
     res.json({
       products,
@@ -591,7 +622,7 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
     let cart = await CartModel.findOne({ userId }).populate({
       path: "items.productId",
       match: { deletedAt: null, status: ProductStatus.active },
-      populate: { path: "sellerId", select: "username displayName avatar isVerified" },
+      populate: { path: "sellerId", select: "username firstName lastName avatar verified" },
     });
 
     if (!cart) {
@@ -616,13 +647,22 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
       const itemTotal = product.price * item.quantity;
       subtotal += itemTotal;
 
+      const sellerInfo = product.sellerId;
       itemsBySeller.get(sellerId)!.push({
         productId: product._id,
         title: product.title,
         price: product.price,
         image: product.images[0],
         quantity: item.quantity,
-        seller: product.sellerId,
+        seller: sellerInfo ? {
+          _id: sellerInfo._id,
+          username: sellerInfo.username,
+          displayName: sellerInfo.firstName && sellerInfo.lastName
+            ? `${sellerInfo.firstName} ${sellerInfo.lastName}`
+            : sellerInfo.username,
+          avatar: sellerInfo.avatar,
+          isVerified: sellerInfo.verified || false,
+        } : null,
         itemTotal,
         inStock: product.quantity >= item.quantity,
       });
@@ -630,15 +670,27 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
 
     res.json({
       cart: {
-        items: validItems.map((item) => ({
-          productId: (item.productId as any)._id,
-          title: (item.productId as any).title,
-          price: (item.productId as any).price,
-          image: (item.productId as any).images[0],
-          quantity: item.quantity,
-          seller: (item.productId as any).sellerId,
-          inStock: (item.productId as any).quantity >= item.quantity,
-        })),
+        items: validItems.map((item) => {
+          const prod = item.productId as any;
+          const sellerInfo = prod.sellerId;
+          return {
+            productId: prod._id,
+            title: prod.title,
+            price: prod.price,
+            image: prod.images[0],
+            quantity: item.quantity,
+            seller: sellerInfo ? {
+              _id: sellerInfo._id,
+              username: sellerInfo.username,
+              displayName: sellerInfo.firstName && sellerInfo.lastName
+                ? `${sellerInfo.firstName} ${sellerInfo.lastName}`
+                : sellerInfo.username,
+              avatar: sellerInfo.avatar,
+              isVerified: sellerInfo.verified || false,
+            } : null,
+            inStock: prod.quantity >= item.quantity,
+          };
+        }),
         itemsBySeller: Object.fromEntries(itemsBySeller),
         subtotal,
         itemCount: validItems.length,
@@ -813,7 +865,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       _id: productId,
       deletedAt: null,
       status: ProductStatus.active,
-    }).populate("sellerId", "email username displayName");
+    }).populate("sellerId", "email username firstName lastName");
 
     if (!product) {
       res.status(404).json({ message: "Product not found or not available" });
@@ -876,7 +928,7 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
     const cart = await CartModel.findOne({ userId }).populate({
       path: "items.productId",
       match: { deletedAt: null, status: ProductStatus.active },
-      populate: { path: "sellerId", select: "email username displayName" },
+      populate: { path: "sellerId", select: "email username firstName lastName" },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -1189,8 +1241,8 @@ export async function getMyOrders(req: Request, res: Response, next: NextFunctio
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
-        .populate("buyerId", "username displayName avatar")
-        .populate("sellerId", "username displayName avatar")
+        .populate("buyerId", "username firstName lastName avatar")
+        .populate("sellerId", "username firstName lastName avatar")
         .lean(),
       OrderModel.countDocuments(filter),
     ]);
@@ -1223,8 +1275,8 @@ export async function getOrder(req: Request, res: Response, next: NextFunction) 
       _id: orderId,
       $or: [{ buyerId: userId }, { sellerId: userId }],
     })
-      .populate("buyerId", "username displayName avatar email")
-      .populate("sellerId", "username displayName avatar email");
+      .populate("buyerId", "username firstName lastName avatar email")
+      .populate("sellerId", "username firstName lastName avatar email");
 
     if (!order) {
       res.status(404).json({ message: "Order not found" });
@@ -1296,8 +1348,8 @@ export async function updateOrderStatus(req: Request, res: Response, next: NextF
     }
 
     const updatedOrder = await OrderModel.findByIdAndUpdate(orderId, updates, { new: true })
-      .populate("buyerId", "username displayName avatar")
-      .populate("sellerId", "username displayName avatar");
+      .populate("buyerId", "username firstName lastName avatar")
+      .populate("sellerId", "username firstName lastName avatar");
 
     res.json({
       message: "Order updated successfully",

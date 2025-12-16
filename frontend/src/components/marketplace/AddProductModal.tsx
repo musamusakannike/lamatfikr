@@ -60,17 +60,33 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
   };
 
   const handleImageAdd = () => {
-    // Simulate adding a dummy image
-    const dummyImages = [
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&h=400&fit=crop",
-    ];
-    const randomImage = dummyImages[Math.floor(Math.random() * dummyImages.length)];
-    if (formData.images.length < 4) {
-      setFormData((prev) => ({ ...prev, images: [...prev.images, randomImage] }));
-    }
+    // Create file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = false;
+    
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Check if we can add more images
+        if (formData.images.length >= 4) {
+          alert('Maximum 4 images allowed');
+          return;
+        }
+        
+        // Create file reader to convert image to data URL
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target?.result as string;
+          setFormData((prev) => ({ ...prev, images: [...prev.images, dataUrl] }));
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    // Trigger file picker
+    input.click();
   };
 
   const handleImageRemove = (index: number) => {

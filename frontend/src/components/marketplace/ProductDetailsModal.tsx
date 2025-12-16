@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -35,11 +35,24 @@ export function ProductDetailsModal({
   const [isLiked, setIsLiked] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
 
-  if (!product) return null;
+  // Memoize calculations to avoid impure function calls during render
+  const discount = useMemo(() => 
+    product?.originalPrice
+      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+      : 0, [product?.originalPrice, product?.price]
+  );
 
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  // Check if product is new (created within last 7 days)
+  // Use a fixed reference date to avoid calling Date.now() during render
+  const isNew = useMemo(() => {
+    if (!product?.createdAt) return false;
+    const createdDate = new Date(product.createdAt);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return createdDate > sevenDaysAgo;
+  }, [product?.createdAt]);
+
+  if (!product) return null;
 
   const dummyReviews = [
     {
@@ -73,15 +86,29 @@ export function ProductDetailsModal({
           <div className="space-y-4">
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
               <img
-                src={product.image}
+                src={product.images?.[0] || product.image || "https://via.placeholder.com/400"}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2">
-                {product.isNew && <Badge variant="primary">New</Badge>}
+                {isNew && <Badge variant="primary">New</Badge>}
                 {discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
+                {product.isFeatured && <Badge variant="warning">Featured</Badge>}
               </div>
+              
+              {/* Image Gallery */}
+              {product.images && product.images.length > 1 && (
+                <div className="absolute bottom-3 left-3 right-3 flex gap-2">
+                  {product.images.map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {}}
+                      className="flex-1 h-2 rounded-full bg-white/50 hover:bg-white transition-colors"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -113,7 +140,7 @@ export function ProductDetailsModal({
                 ))}
               </div>
               <span className="text-sm text-(--text-muted)">
-                {product.rating} ({product.reviews} reviews)
+                {product.rating} ({product.reviewCount || product.reviews || 0} reviews)
               </span>
             </div>
 
@@ -134,10 +161,12 @@ export function ProductDetailsModal({
 
             {/* Stock Status */}
             <div className="flex items-center gap-2">
-              {product.inStock ? (
+              {(product.inStock !== undefined ? product.inStock : product.quantity > 0) ? (
                 <>
                   <CheckCircle size={18} className="text-green-500" />
-                  <span className="text-green-600 dark:text-green-400 font-medium">In Stock</span>
+                  <span className="text-green-600 dark:text-green-400 font-medium">
+                    In Stock ({product.quantity} available)
+                  </span>
                 </>
               ) : (
                 <>
@@ -211,14 +240,16 @@ export function ProductDetailsModal({
             {/* Seller Info */}
             <div className="flex items-center gap-3 p-3 rounded-lg border border-(--border)">
               <img
-                src={product.seller.avatar}
-                alt={product.seller.name}
+                src={product.seller?.avatar || "https://via.placeholder.com/100"}
+                alt={product.seller?.displayName || product.seller?.username || "Seller"}
                 className="w-12 h-12 rounded-full object-cover"
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-(--text)">{product.seller.name}</span>
-                  {product.seller.verified && (
+                  <span className="font-semibold text-(--text)">
+                    {product.seller?.displayName || product.seller?.username || "Unknown Seller"}
+                  </span>
+                  {(product.seller?.isVerified || product.seller?.verified) && (
                     <Badge variant="success" size="sm">Verified</Badge>
                   )}
                 </div>
@@ -258,7 +289,7 @@ export function ProductDetailsModal({
                   : "text-(--text-muted) hover:text-(--text)"
               )}
             >
-              Reviews ({product.reviews})
+              Reviews ({product.reviewCount || product.reviews || 0})
               {activeTab === "reviews" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600" />
               )}
@@ -268,12 +299,29 @@ export function ProductDetailsModal({
           <div className="py-4">
             {activeTab === "description" ? (
               <div className="prose dark:prose-invert max-w-none">
-                <p className="text-(--text-muted)">{product.description}</p>
-                <p className="text-(--text-muted) mt-4">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                </p>
+                <p className="text-(--text-muted whitespace-pre-wrap">{product.description}</p>
+                
+                {/* Additional Product Details */}
+                <div className="mt-6 grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <span className="text-sm font-medium text-(--text-muted)">Condition</span>
+                    <p className="text-(--text) capitalize">{product.condition || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-(--text-muted)">Category</span>
+                    <p className="text-(--text) capitalize">{product.category}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-(--text-muted)">Status</span>
+                    <p className="text-(--text) capitalize">{product.status || "Active"}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-(--text-muted)">Listed</span>
+                    <p className="text-(--text)">
+                      {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "Unknown"}
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
