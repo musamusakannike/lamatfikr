@@ -245,6 +245,11 @@ export const roomsApi = {
     return apiClient.get<MessagesResponse>(`/rooms/${roomId}/messages${query ? `?${query}` : ""}`);
   },
 
+  // Mark room as read
+  markAsRead: (roomId: string) => {
+    return apiClient.post<{ message: string }>(`/rooms/${roomId}/read`);
+  },
+
   // Generate invite link
   generateInviteLink: (roomId: string, data?: { expiresIn?: number; maxUses?: number }) => {
     return apiClient.post<InviteLinkResponse>(`/rooms/${roomId}/invite-links`, data || {});

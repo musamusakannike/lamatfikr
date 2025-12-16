@@ -24,6 +24,7 @@ export interface RoomMember {
   status: RoomMemberStatus;
   paidAt?: Date;
   paymentId?: string;
+  lastReadAt?: Date;
   deletedAt?: Date | null;
 }
 
@@ -45,6 +46,7 @@ const RoomMemberSchema = new Schema<RoomMember>(
     },
     paidAt: { type: Date },
     paymentId: { type: String },
+    lastReadAt: { type: Date },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

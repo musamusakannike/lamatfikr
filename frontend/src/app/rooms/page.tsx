@@ -905,6 +905,10 @@ function ChatView({ room, onBack }: ChatViewProps) {
     try {
       const response = await roomsApi.getMessages(room.id, { limit: 50 });
       setMessages(response.messages);
+      // Mark room as read when messages are loaded
+      await roomsApi.markAsRead(room.id).catch(() => {
+        // Silently ignore errors for mark as read
+      });
     } catch (err) {
       console.error("Failed to load messages:", err);
     } finally {

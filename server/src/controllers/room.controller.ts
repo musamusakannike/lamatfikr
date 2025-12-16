@@ -110,15 +110,16 @@ export async function getRooms(req: Request, res: Response, next: NextFunction) 
       query.membershipType = membershipType;
     }
 
-    // Get user's room memberships
+    // Get user's room memberships with lastReadAt
     const userMemberships = await RoomMemberModel.find({
       userId,
       deletedAt: null,
       status: RoomMemberStatus.approved,
-    }).select("roomId role");
+    }).select("roomId role lastReadAt");
 
     const userRoomIds = userMemberships.map((m) => m.roomId.toString());
     const userRoleMap = new Map(userMemberships.map((m) => [m.roomId.toString(), m.role]));
+    const userLastReadMap = new Map(userMemberships.map((m) => [m.roomId.toString(), m.lastReadAt]));
 
     // Filter by ownership if requested
     if (filter === "owned") {
@@ -155,22 +156,29 @@ export async function getRooms(req: Request, res: Response, next: NextFunction) 
 
     const lastMessageMap = new Map(lastMessages.map((m) => [m._id.toString(), m.lastMessage]));
 
-    // Get unread counts (messages after user's last read)
-    // For simplicity, we'll count messages from the last 24 hours
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const unreadCounts = await RoomMessageModel.aggregate([
-      {
-        $match: {
-          roomId: { $in: roomIds },
-          deletedAt: null,
-          createdAt: { $gte: oneDayAgo },
-          senderId: { $ne: userId },
-        },
-      },
-      { $group: { _id: "$roomId", count: { $sum: 1 } } },
-    ]);
-
-    const unreadMap = new Map(unreadCounts.map((u) => [u._id.toString(), u.count]));
+    // Get unread counts for each room based on lastReadAt
+    // We need to calculate this per-room since each has a different lastReadAt
+    const memberRoomIds = userMemberships.map((m) => m.roomId);
+    const unreadCountPromises = memberRoomIds.map(async (roomId) => {
+      const lastReadAt = userLastReadMap.get(roomId.toString());
+      const matchQuery: Record<string, unknown> = {
+        roomId,
+        deletedAt: null,
+        senderId: { $ne: userId },
+      };
+      
+      // If user has a lastReadAt, count messages after that time
+      // Otherwise, count all messages (user has never read the room)
+      if (lastReadAt) {
+        matchQuery.createdAt = { $gt: lastReadAt };
+      }
+      
+      const count = await RoomMessageModel.countDocuments(matchQuery);
+      return { roomId: roomId.toString(), count };
+    });
+    
+    const unreadResults = await Promise.all(unreadCountPromises);
+    const unreadMap = new Map(unreadResults.map((u) => [u.roomId, u.count]));
 
     const roomsWithDetails = rooms.map((room) => {
       const roomIdStr = room._id.toString();
@@ -916,6 +924,42 @@ export async function getMessages(req: Request, res: Response, next: NextFunctio
       })),
       hasMore: messages.length === Number(limit),
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Mark room messages as read
+export async function markRoomAsRead(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId)) {
+      res.status(400).json({ message: "Invalid room ID" });
+      return;
+    }
+
+    // Check if user is a member
+    const membership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!membership) {
+      res.status(403).json({ message: "You must be a member to mark messages as read" });
+      return;
+    }
+
+    // Update lastReadAt to current time
+    await RoomMemberModel.updateOne(
+      { _id: membership._id },
+      { lastReadAt: new Date() }
+    );
+
+    res.json({ message: "Room marked as read" });
   } catch (error) {
     next(error);
   }
