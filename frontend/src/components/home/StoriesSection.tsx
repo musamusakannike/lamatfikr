@@ -8,6 +8,7 @@ import Link from "next/link";
 import { storiesApi, Story as ApiStory } from "@/lib/api/stories";
 import { uploadApi } from "@/lib/api/upload";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDistanceToNow } from "date-fns";
 
 export interface Story {
@@ -69,13 +70,13 @@ function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => vo
   );
 }
 
-function AddStoryButton({ onClick, userAvatar }: { onClick: () => void; userAvatar?: string }) {
+function AddStoryButton({ onClick, userAvatar, label }: { onClick: () => void; userAvatar?: string; label: string }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group">
       <div className="relative">
         <Avatar
           src={userAvatar || "/images/default-avatar.png"}
-          alt="Your story"
+          alt={label}
           size="lg"
           className="opacity-80"
         />
@@ -83,7 +84,7 @@ function AddStoryButton({ onClick, userAvatar }: { onClick: () => void; userAvat
           <Plus size={14} className="text-white" />
         </div>
       </div>
-      <span className="text-xs text-(--text-muted)">Your story</span>
+      <span className="text-xs text-(--text-muted)">{label}</span>
     </button>
   );
 }
@@ -181,7 +182,7 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
                 className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-(--border) hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors group"
               >
                 <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Image size={28} className="text-primary-600"  />
+                  <Image size={28} className="text-primary-600" alt="Story"  />
                 </div>
                 <span className="font-medium text-(--text)">Photo</span>
                 <span className="text-xs text-(--text-muted)">Share an image</span>
@@ -314,6 +315,7 @@ export function StoriesSection() {
   const [stories, setStories] = useState<Story[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   const fetchStories = useCallback(async () => {
     if (!isAuthenticated) {
@@ -366,10 +368,10 @@ export function StoriesSection() {
     <>
       <div className="bg-(--bg-card) rounded-xl border border-(--border) p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-lg">Stories</h2>
+          <h2 className="font-semibold text-lg">{t("home", "stories")}</h2>
           <Link href="/stories">
             <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 gap-1">
-              View all
+              {t("home", "viewAll")}
               <ChevronRight size={16} />
             </Button>
           </Link>
@@ -381,7 +383,7 @@ export function StoriesSection() {
             className="flex gap-4 overflow-x-auto hide-scrollbar pb-2"
           >
             {isAuthenticated && (
-              <AddStoryButton onClick={() => setIsAddModalOpen(true)} userAvatar={user?.avatar} />
+              <AddStoryButton onClick={() => setIsAddModalOpen(true)} userAvatar={user?.avatar} label={t("home", "yourStory")} />
             )}
             {isLoading ? (
               <div className="flex items-center justify-center w-full py-4">
