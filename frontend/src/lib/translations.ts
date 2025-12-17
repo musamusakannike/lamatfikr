@@ -3447,6 +3447,97 @@ export const translations = {
       en: "Start earning by creating paid rooms or selling products",
     },
   },
+
+  suggestions: {
+    peopleYouMayKnow: {
+      ar: "أشخاص قد تعرفهم",
+      en: "People You May Know",
+    },
+    seeAll: {
+      ar: "عرض الكل",
+      en: "See All",
+    },
+    follow: {
+      ar: "متابعة",
+      en: "Follow",
+    },
+    following: {
+      ar: "متابَع",
+      en: "Following",
+    },
+    unfollow: {
+      ar: "إلغاء المتابعة",
+      en: "Unfollow",
+    },
+    followers: {
+      ar: "متابع",
+      en: "followers",
+    },
+    discoverPeople: {
+      ar: "اكتشف أشخاص جدد",
+      en: "Discover New People",
+    },
+    connectWithPeople: {
+      ar: "تواصل مع أشخاص قد تعرفهم أو يشاركونك الاهتمامات",
+      en: "Connect with people you may know or share interests with",
+    },
+    basedOnYourActivity: {
+      ar: "بناءً على نشاطك",
+      en: "Based on your activity",
+    },
+    mutualConnections: {
+      ar: "اتصالات مشتركة",
+      en: "mutual connections",
+    },
+    inYourCommunities: {
+      ar: "في مجتمعاتك",
+      en: "In your communities",
+    },
+    inYourRooms: {
+      ar: "في غرفك",
+      en: "In your rooms",
+    },
+    noSuggestionsYet: {
+      ar: "لا توجد اقتراحات بعد",
+      en: "No suggestions yet",
+    },
+    noSuggestionsDescription: {
+      ar: "ابدأ بمتابعة الأشخاص والانضمام للمجتمعات لرؤية اقتراحات مخصصة.",
+      en: "Start following people and joining communities to see personalized suggestions.",
+    },
+    loadingSuggestions: {
+      ar: "جاري تحميل الاقتراحات...",
+      en: "Loading suggestions...",
+    },
+    failedToLoadSuggestions: {
+      ar: "فشل تحميل الاقتراحات",
+      en: "Failed to load suggestions",
+    },
+    retry: {
+      ar: "إعادة المحاولة",
+      en: "Retry",
+    },
+    viewProfile: {
+      ar: "عرض الملف الشخصي",
+      en: "View Profile",
+    },
+    suggestedForYou: {
+      ar: "مقترح لك",
+      en: "Suggested for you",
+    },
+    popularUsers: {
+      ar: "مستخدمون مشهورون",
+      en: "Popular Users",
+    },
+    newMembers: {
+      ar: "أعضاء جدد",
+      en: "New Members",
+    },
+    loadMore: {
+      ar: "تحميل المزيد",
+      en: "Load More",
+    },
+  },
 };
 
 export type TranslationKey = keyof typeof translations;
