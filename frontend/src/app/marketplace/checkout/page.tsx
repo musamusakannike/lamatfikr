@@ -29,7 +29,7 @@ type PaymentMethod = "tap" | "cash";
 
 export default function CheckoutPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { cart, isLoading: isCartLoading, fetchCart, clearCart } = useCart();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
@@ -69,23 +69,23 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     if (!shippingAddress.fullName.trim()) {
-      toast.error("Please enter your full name");
+      toast.error(t("marketplace", "pleaseEnterFullName"));
       return false;
     }
     if (!shippingAddress.phone.trim()) {
-      toast.error("Please enter your phone number");
+      toast.error(t("marketplace", "pleaseEnterPhone"));
       return false;
     }
     if (!shippingAddress.addressLine1.trim()) {
-      toast.error("Please enter your address");
+      toast.error(t("marketplace", "pleaseEnterAddress"));
       return false;
     }
     if (!shippingAddress.city.trim()) {
-      toast.error("Please enter your city");
+      toast.error(t("marketplace", "pleaseEnterCity"));
       return false;
     }
     if (!shippingAddress.country.trim()) {
-      toast.error("Please enter your country");
+      toast.error(t("marketplace", "pleaseEnterCountry"));
       return false;
     }
     return true;
@@ -94,7 +94,7 @@ export default function CheckoutPage() {
   const handleSubmitOrder = async () => {
     if (!validateForm()) return;
     if (!cart || cart.items.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error(t("marketplace", "yourCartIsEmpty"));
       return;
     }
 
@@ -111,13 +111,13 @@ export default function CheckoutPage() {
         const paymentResponse = await marketplaceApi.initiatePayment(response.orders[0]._id);
         window.location.href = paymentResponse.redirectUrl;
       } else {
-        toast.success("Order placed successfully!");
+        toast.success(t("marketplace", "orderPlacedSuccessfully"));
         await clearCart();
         router.push("/marketplace/orders");
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to place order");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToPlaceOrder"));
     } finally {
       setIsSubmitting(false);
     }
@@ -147,15 +147,15 @@ export default function CheckoutPage() {
                 <ShoppingBag size={40} className="text-primary-400" />
               </div>
               <h2 className="text-xl font-semibold text-(--text) mb-2">
-                Your cart is empty
+                {t("marketplace", "cartEmpty")}
               </h2>
               <p className="text-(--text-muted) mb-6">
-                Add some products to your cart before checking out.
+                {t("marketplace", "cartEmptyDescription")}
               </p>
               <Link href="/marketplace">
                 <Button variant="primary">
                   <ShoppingBag size={18} className="mr-2" />
-                  Browse Products
+                  {t("marketplace", "browseProducts")}
                 </Button>
               </Link>
             </Card>
@@ -183,9 +183,10 @@ export default function CheckoutPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">Checkout</h1>
+              <h1 className="text-2xl font-bold text-(--text)">{t("marketplace", "checkout")}</h1>
               <p className="text-(--text-muted)">
-                Complete your order ({cart.itemCount} items)
+                {t("marketplace", "completeYourOrder")
+                  .replace("{count}", String(cart.itemCount))}
               </p>
             </div>
           </div>
@@ -200,111 +201,111 @@ export default function CheckoutPage() {
                     <MapPin size={20} className="text-primary-600" />
                   </div>
                   <h2 className="text-lg font-semibold text-(--text)">
-                    Shipping Address
+                    {t("marketplace", "shippingAddress")}
                   </h2>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Full Name *
+                      {t("marketplace", "fullName")} *
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.fullName}
                       onChange={(e) => handleInputChange("fullName", e.target.value)}
-                      placeholder="Enter your full name"
+                      placeholder={t("marketplace", "fullNamePlaceholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Phone Number *
+                      {t("marketplace", "phoneNumber")} *
                     </label>
                     <input
                       type="tel"
                       value={shippingAddress.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder="+1 234 567 8900"
+                      placeholder={t("marketplace", "phonePlaceholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Country *
+                      {t("marketplace", "country")} *
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.country}
                       onChange={(e) => handleInputChange("country", e.target.value)}
-                      placeholder="Country"
+                      placeholder={t("marketplace", "countryPlaceholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Address Line 1 *
+                      {t("marketplace", "addressLine1")} *
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.addressLine1}
                       onChange={(e) => handleInputChange("addressLine1", e.target.value)}
-                      placeholder="Street address, P.O. box"
+                      placeholder={t("marketplace", "addressLine1Placeholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Address Line 2
+                      {t("marketplace", "addressLine2")}
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.addressLine2}
                       onChange={(e) => handleInputChange("addressLine2", e.target.value)}
-                      placeholder="Apartment, suite, unit, building, floor, etc."
+                      placeholder={t("marketplace", "addressLine2Placeholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      City *
+                      {t("marketplace", "city")} *
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="City"
+                      placeholder={t("marketplace", "city")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      State / Province
+                      {t("marketplace", "stateOrProvince")}
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.state}
                       onChange={(e) => handleInputChange("state", e.target.value)}
-                      placeholder="State / Province"
+                      placeholder={t("marketplace", "stateOrProvince")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      Postal Code
+                      {t("marketplace", "postalCode")}
                     </label>
                     <input
                       type="text"
                       value={shippingAddress.postalCode}
                       onChange={(e) => handleInputChange("postalCode", e.target.value)}
-                      placeholder="Postal Code"
+                      placeholder={t("marketplace", "postalCode")}
                       className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
@@ -318,7 +319,7 @@ export default function CheckoutPage() {
                     <CreditCard size={20} className="text-primary-600" />
                   </div>
                   <h2 className="text-lg font-semibold text-(--text)">
-                    Payment Method
+                    {t("marketplace", "paymentMethod")}
                   </h2>
                 </div>
 
@@ -352,10 +353,10 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <p className="font-semibold text-(--text)">
-                          Online Payment
+                          {t("marketplace", "onlinePayment")}
                         </p>
                         <p className="text-sm text-(--text-muted)">
-                          Pay with card via Tap
+                          {t("marketplace", "payWithCardViaTap")}
                         </p>
                       </div>
                       {paymentMethod === "tap" && (
@@ -396,10 +397,10 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <p className="font-semibold text-(--text)">
-                          Cash on Delivery
+                          {t("marketplace", "cashOnDelivery")}
                         </p>
                         <p className="text-sm text-(--text-muted)">
-                          Pay when you receive
+                          {t("marketplace", "payWhenYouReceive")}
                         </p>
                       </div>
                       {paymentMethod === "cash" && (
@@ -420,14 +421,14 @@ export default function CheckoutPage() {
                     <Package size={20} className="text-primary-600" />
                   </div>
                   <h2 className="text-lg font-semibold text-(--text)">
-                    Order Notes (Optional)
+                    {t("marketplace", "orderNotesOptional")}
                   </h2>
                 </div>
 
                 <textarea
                   value={buyerNotes}
                   onChange={(e) => setBuyerNotes(e.target.value)}
-                  placeholder="Add any special instructions or notes for the seller..."
+                  placeholder={t("marketplace", "orderNotesPlaceholder")}
                   rows={3}
                   className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
@@ -438,7 +439,7 @@ export default function CheckoutPage() {
             <div className="space-y-6">
               <Card className="p-6 sticky top-20">
                 <h2 className="text-lg font-semibold text-(--text) mb-4">
-                  Order Summary
+                  {t("marketplace", "orderSummary")}
                 </h2>
 
                 {/* Cart Items */}
@@ -466,7 +467,7 @@ export default function CheckoutPage() {
                           {item.title}
                         </p>
                         <p className="text-xs text-(--text-muted)">
-                          Qty: {item.quantity}
+                          {t("marketplace", "qtyShort")}: {item.quantity}
                         </p>
                         <p className="text-sm font-semibold text-primary-600">
                           ${(item.price * item.quantity).toFixed(2)}
@@ -479,21 +480,21 @@ export default function CheckoutPage() {
                 {/* Price Breakdown */}
                 <div className="space-y-2 py-4 border-t border-(--border)">
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Subtotal</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "subtotal")}</span>
                     <span className="text-(--text)">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Shipping</span>
-                    <span className="text-green-600 font-medium">Free</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "shipping")}</span>
+                    <span className="text-green-600 font-medium">{t("marketplace", "free")}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Service Fee (5%)</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "serviceFee")} (5%)</span>
                     <span className="text-(--text)">${serviceFee.toFixed(2)}</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between py-4 border-t border-(--border)">
-                  <span className="font-semibold text-(--text)">Total</span>
+                  <span className="font-semibold text-(--text)">{t("marketplace", "total")}</span>
                   <span className="font-bold text-xl text-primary-600">
                     ${total.toFixed(2)}
                   </span>
@@ -510,17 +511,17 @@ export default function CheckoutPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 size={20} className="mr-2 animate-spin" />
-                      Processing...
+                      {t("marketplace", "processing")}
                     </>
                   ) : paymentMethod === "tap" ? (
                     <>
                       <CreditCard size={20} className="mr-2" />
-                      Pay ${total.toFixed(2)}
+                      {t("marketplace", "pay")} ${total.toFixed(2)}
                     </>
                   ) : (
                     <>
                       <CheckCircle size={20} className="mr-2" />
-                      Place Order
+                      {t("marketplace", "placeOrder")}
                     </>
                   )}
                 </Button>
@@ -529,11 +530,11 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-(--border)">
                   <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                     <Shield size={16} className="text-green-500" />
-                    <span>Secure Checkout</span>
+                    <span>{t("marketplace", "secureCheckout")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                     <Truck size={16} className="text-blue-500" />
-                    <span>Free Shipping</span>
+                    <span>{t("marketplace", "freeShipping")}</span>
                   </div>
                 </div>
               </Card>

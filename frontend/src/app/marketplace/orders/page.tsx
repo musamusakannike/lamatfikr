@@ -29,39 +29,38 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-type OrderStatus = Order["status"];
 type OrderType = "bought" | "sold";
-
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Clock },
-  awaiting_payment: { label: "Awaiting Payment", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400", icon: CreditCard },
-  paid: { label: "Paid", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle },
-  processing: { label: "Processing", color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400", icon: Package },
-  shipped: { label: "Shipped", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Truck },
-  delivered: { label: "Delivered", color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
-  refunded: { label: "Refunded", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", icon: RefreshCw },
-  disputed: { label: "Disputed", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle },
-};
-
-const STATUS_FILTERS: { value: string; label: string }[] = [
-  { value: "", label: "All Orders" },
-  { value: "pending", label: "Pending" },
-  { value: "awaiting_payment", label: "Awaiting Payment" },
-  { value: "paid", label: "Paid" },
-  { value: "processing", label: "Processing" },
-  { value: "shipped", label: "Shipped" },
-  { value: "delivered", label: "Delivered" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-];
 
 export default function OrdersPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
+
+  const STATUS_CONFIG: Record<Order["status"], { label: string; color: string; icon: React.ElementType }> = {
+    pending: { label: t("marketplace", "statusPending"), color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Clock },
+    awaiting_payment: { label: t("marketplace", "statusAwaitingPayment"), color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400", icon: CreditCard },
+    paid: { label: t("marketplace", "statusPaid"), color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle },
+    processing: { label: t("marketplace", "statusProcessing"), color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400", icon: Package },
+    shipped: { label: t("marketplace", "statusShipped"), color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Truck },
+    delivered: { label: t("marketplace", "statusDelivered"), color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400", icon: CheckCircle },
+    completed: { label: t("marketplace", "statusCompleted"), color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle },
+    cancelled: { label: t("marketplace", "statusCancelled"), color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
+    refunded: { label: t("marketplace", "statusRefunded"), color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", icon: RefreshCw },
+    disputed: { label: t("marketplace", "statusDisputed"), color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle },
+  };
+
+  const STATUS_FILTERS: { value: string; label: string }[] = [
+    { value: "", label: t("marketplace", "statusAllOrders") },
+    { value: "pending", label: t("marketplace", "statusPending") },
+    { value: "awaiting_payment", label: t("marketplace", "statusAwaitingPayment") },
+    { value: "paid", label: t("marketplace", "statusPaid") },
+    { value: "processing", label: t("marketplace", "statusProcessing") },
+    { value: "shipped", label: t("marketplace", "statusShipped") },
+    { value: "delivered", label: t("marketplace", "statusDelivered") },
+    { value: "completed", label: t("marketplace", "statusCompleted") },
+    { value: "cancelled", label: t("marketplace", "statusCancelled") },
+  ];
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +86,7 @@ export default function OrdersPage() {
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
-      toast.error("Failed to load orders");
+      toast.error(t("marketplace", "failedToLoadOrders"));
     } finally {
       setIsLoading(false);
     }
@@ -153,15 +152,15 @@ export default function OrdersPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">My Orders</h1>
+              <h1 className="text-2xl font-bold text-(--text)">{t("marketplace", "myOrders")}</h1>
               <p className="text-(--text-muted)">
-                View and manage your orders
+                {t("marketplace", "viewAndManageOrders")}
               </p>
             </div>
             <Link href="/marketplace">
               <Button variant="outline">
                 <ShoppingBag size={18} className="mr-2" />
-                Continue Shopping
+                {t("marketplace", "continueShopping")}
               </Button>
             </Link>
           </div>
@@ -178,7 +177,7 @@ export default function OrdersPage() {
               )}
             >
               <ShoppingBag size={16} className="inline mr-2" />
-              Purchases
+              {t("marketplace", "purchases")}
             </button>
             <button
               onClick={() => setOrderType("sold")}
@@ -190,7 +189,7 @@ export default function OrdersPage() {
               )}
             >
               <Package size={16} className="inline mr-2" />
-              Sales
+              {t("marketplace", "sales")}
             </button>
           </div>
 
@@ -204,7 +203,7 @@ export default function OrdersPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by order number or product..."
+                  placeholder={t("marketplace", "searchOrdersPlaceholder")}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -216,13 +215,13 @@ export default function OrdersPage() {
                 className={cn(showFilters && "bg-primary-50 dark:bg-primary-900/20")}
               >
                 <Filter size={18} className="mr-2" />
-                Filters
+                {t("marketplace", "filters")}
               </Button>
 
               {/* Refresh */}
               <Button variant="outline" onClick={fetchOrders} disabled={isLoading}>
                 <RefreshCw size={18} className={cn("mr-2", isLoading && "animate-spin")} />
-                Refresh
+                {t("marketplace", "refresh")}
               </Button>
             </div>
 
@@ -260,18 +259,18 @@ export default function OrdersPage() {
                 <Package size={40} className="text-primary-400" />
               </div>
               <h2 className="text-xl font-semibold text-(--text) mb-2">
-                No orders found
+                {t("marketplace", "noOrdersFound")}
               </h2>
               <p className="text-(--text-muted) mb-6">
                 {orderType === "bought"
-                  ? "You haven't made any purchases yet."
-                  : "You haven't received any orders yet."}
+                  ? t("marketplace", "noPurchasesYet")
+                  : t("marketplace", "noOrdersReceivedYet")}
               </p>
               {orderType === "bought" && (
                 <Link href="/marketplace">
                   <Button variant="primary">
                     <ShoppingBag size={18} className="mr-2" />
-                    Start Shopping
+                    {t("marketplace", "startShopping")}
                   </Button>
                 </Link>
               )}
@@ -296,10 +295,10 @@ export default function OrdersPage() {
                           </div>
                           <div>
                             <p className="font-semibold text-(--text)">
-                              Order #{order.orderNumber}
+                              {t("marketplace", "orderNumber")} {order.orderNumber}
                             </p>
                             <p className="text-sm text-(--text-muted)">
-                              {formatDate(order.createdAt)} at {formatTime(order.createdAt)}
+                              {formatDate(order.createdAt)} {t("marketplace", "at")} {formatTime(order.createdAt)}
                             </p>
                           </div>
                         </div>
@@ -312,12 +311,12 @@ export default function OrdersPage() {
                             {order.paymentMethod === "tap" ? (
                               <>
                                 <CreditCard size={14} />
-                                <span>Card</span>
+                                <span>{t("marketplace", "card")}</span>
                               </>
                             ) : (
                               <>
                                 <Banknote size={14} />
-                                <span>Cash</span>
+                                <span>{t("marketplace", "cash")}</span>
                               </>
                             )}
                           </div>
@@ -348,7 +347,7 @@ export default function OrdersPage() {
                                 {item.title}
                               </p>
                               <p className="text-sm text-(--text-muted)">
-                                Qty: {item.quantity} × ${item.price.toFixed(2)}
+                                {t("marketplace", "qtyShort")}: {item.quantity} × ${item.price.toFixed(2)}
                               </p>
                             </div>
                             <p className="font-semibold text-(--text)">
@@ -358,7 +357,10 @@ export default function OrdersPage() {
                         ))}
                         {order.items.length > 2 && (
                           <p className="text-sm text-(--text-muted)">
-                            +{order.items.length - 2} more item(s)
+                            {t("marketplace", "moreItems").replace(
+                              "{count}",
+                              String(order.items.length - 2)
+                            )}
                           </p>
                         )}
                       </div>
@@ -367,7 +369,7 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-between mt-4 pt-4 border-t border-(--border)">
                         <div>
                           <p className="text-sm text-(--text-muted)">
-                            {orderType === "bought" ? "Seller" : "Buyer"}:{" "}
+                            {orderType === "bought" ? t("marketplace", "seller") : t("marketplace", "buyer")}: {" "}
                             <span className="font-medium text-(--text)">
                               {orderType === "bought"
                                 ? order.sellerId.displayName || order.sellerId.username
@@ -377,14 +379,14 @@ export default function OrdersPage() {
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-sm text-(--text-muted)">Total</p>
+                            <p className="text-sm text-(--text-muted)">{t("marketplace", "total")}</p>
                             <p className="font-bold text-lg text-primary-600">
                               ${order.total.toFixed(2)}
                             </p>
                           </div>
                           <Link href={`/marketplace/orders/${order._id}`}>
                             <Button variant="outline" size="sm">
-                              View Details
+                              {t("marketplace", "viewDetails")}
                               <ChevronRight size={16} className="ml-1" />
                             </Button>
                           </Link>
@@ -404,10 +406,12 @@ export default function OrdersPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                   >
-                    Previous
+                    {t("marketplace", "previous")}
                   </Button>
                   <span className="px-4 py-2 text-sm text-(--text-muted)">
-                    Page {page} of {totalPages}
+                    {t("marketplace", "pageOf")
+                      .replace("{page}", String(page))
+                      .replace("{total}", String(totalPages))}
                   </span>
                   <Button
                     variant="outline"
@@ -415,7 +419,7 @@ export default function OrdersPage() {
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                   >
-                    Next
+                    {t("marketplace", "next")}
                   </Button>
                 </div>
               )}

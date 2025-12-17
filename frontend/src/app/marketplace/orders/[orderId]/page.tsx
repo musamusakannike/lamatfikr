@@ -58,11 +58,24 @@ const ORDER_TIMELINE: OrderStatus[] = [
 
 export default function OrderDetailsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const orderId = params.orderId as string;
+
+  const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
+    pending: { label: t("marketplace", "statusPending"), color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Clock },
+    awaiting_payment: { label: t("marketplace", "statusAwaitingPayment"), color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400", icon: CreditCard },
+    paid: { label: t("marketplace", "statusPaid"), color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle },
+    processing: { label: t("marketplace", "statusProcessing"), color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400", icon: Package },
+    shipped: { label: t("marketplace", "statusShipped"), color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Truck },
+    delivered: { label: t("marketplace", "statusDelivered"), color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400", icon: CheckCircle },
+    completed: { label: t("marketplace", "statusCompleted"), color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle },
+    cancelled: { label: t("marketplace", "statusCancelled"), color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: XCircle },
+    refunded: { label: t("marketplace", "statusRefunded"), color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", icon: RefreshCw },
+    disputed: { label: t("marketplace", "statusDisputed"), color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle },
+  };
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +98,7 @@ export default function OrderDetailsPage() {
       setOrder(response.order);
     } catch (error) {
       console.error("Failed to fetch order:", error);
-      toast.error("Failed to load order details");
+      toast.error(t("marketplace", "failedToLoadOrderDetails"));
       router.push("/marketplace/orders");
     } finally {
       setIsLoading(false);
@@ -108,12 +121,12 @@ export default function OrderDetailsPage() {
     setIsCancelling(true);
     try {
       await marketplaceApi.cancelOrder(order._id, cancelReason);
-      toast.success("Order cancelled successfully");
+      toast.success(t("marketplace", "orderCancelledSuccessfully"));
       setShowCancelModal(false);
       fetchOrder();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to cancel order");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToCancelOrder"));
     } finally {
       setIsCancelling(false);
     }
@@ -127,7 +140,7 @@ export default function OrderDetailsPage() {
       window.location.href = response.redirectUrl;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to initiate payment");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToInitiatePayment"));
     }
   };
 
@@ -141,14 +154,14 @@ export default function OrderDetailsPage() {
         trackingNumber: trackingNumber || undefined,
         sellerNotes: sellerNotes || undefined,
       });
-      toast.success(`Order marked as ${STATUS_CONFIG[newStatus].label}`);
+      toast.success(`${t("marketplace", "orderDetails")}: ${STATUS_CONFIG[newStatus].label}`);
       setShowUpdateModal(false);
       setTrackingNumber("");
       setSellerNotes("");
       fetchOrder();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to update order status");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToUpdateOrderStatus"));
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -159,13 +172,13 @@ export default function OrderDetailsPage() {
     
     switch (order.status) {
       case "paid":
-        return { status: "processing", label: "Start Processing", icon: Package };
+        return { status: "processing", label: t("marketplace", "statusProcessing"), icon: Package };
       case "processing":
-        return { status: "shipped", label: "Mark as Shipped", icon: Truck };
+        return { status: "shipped", label: t("marketplace", "statusShipped"), icon: Truck };
       case "shipped":
-        return { status: "delivered", label: "Mark as Delivered", icon: CheckCircle };
+        return { status: "delivered", label: t("marketplace", "statusDelivered"), icon: CheckCircle };
       case "delivered":
-        return { status: "completed", label: "Complete Order", icon: CheckCircle };
+        return { status: "completed", label: t("marketplace", "statusCompleted"), icon: CheckCircle };
       default:
         return null;
     }
@@ -173,7 +186,7 @@ export default function OrderDetailsPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
+    toast.success(t("marketplace", "copiedToClipboard"));
   };
 
   const formatDate = (dateString: string) => {
@@ -218,10 +231,10 @@ export default function OrderDetailsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
           <Package size={48} className="mx-auto mb-4 text-gray-400" />
-          <h2 className="text-xl font-semibold text-(--text) mb-2">Order not found</h2>
-          <p className="text-(--text-muted) mb-4">This order doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <h2 className="text-xl font-semibold text-(--text) mb-2">{t("marketplace", "orderNotFound")}</h2>
+          <p className="text-(--text-muted) mb-4">{t("marketplace", "orderNotFoundDescription")}</p>
           <Link href="/marketplace/orders">
-            <Button variant="primary">Back to Orders</Button>
+            <Button variant="primary">{t("marketplace", "backToOrders")}</Button>
           </Link>
         </Card>
       </div>
@@ -251,7 +264,7 @@ export default function OrderDetailsPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold text-(--text)">
-                  Order #{order.orderNumber}
+                  {t("marketplace", "orderNumber")} {order.orderNumber}
                 </h1>
                 <button
                   onClick={() => copyToClipboard(order.orderNumber)}
@@ -261,7 +274,7 @@ export default function OrderDetailsPage() {
                 </button>
               </div>
               <p className="text-(--text-muted)">
-                Placed on {formatDate(order.createdAt)}
+                {t("marketplace", "placedOn")} {formatDate(order.createdAt)}
               </p>
             </div>
             <Badge className={cn("text-sm py-1.5 px-3", statusConfig.color)}>
@@ -276,7 +289,7 @@ export default function OrderDetailsPage() {
               {/* Order Timeline */}
               {!["cancelled", "refunded", "disputed"].includes(order.status) && (
                 <Card className="p-6">
-                  <h2 className="text-lg font-semibold text-(--text) mb-6">Order Progress</h2>
+                  <h2 className="text-lg font-semibold text-(--text) mb-6">{t("marketplace", "orderProgress")}</h2>
                   <div className="flex items-center justify-between">
                     {ORDER_TIMELINE.slice(0, 5).map((status, index) => {
                       const config = STATUS_CONFIG[status];
@@ -326,7 +339,7 @@ export default function OrderDetailsPage() {
 
               {/* Order Items */}
               <Card className="p-6">
-                <h2 className="text-lg font-semibold text-(--text) mb-4">Order Items</h2>
+                <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "orderItems")}</h2>
                 <div className="space-y-4">
                   {order.items.map((item, index) => (
                     <div
@@ -351,10 +364,10 @@ export default function OrderDetailsPage() {
                           {item.title}
                         </h3>
                         <p className="text-sm text-(--text-muted) mt-1">
-                          Quantity: {item.quantity}
+                          {t("marketplace", "quantity")}: {item.quantity}
                         </p>
                         <p className="text-sm text-(--text-muted)">
-                          Unit Price: ${item.price.toFixed(2)}
+                          {t("marketplace", "unitPrice")}: ${item.price.toFixed(2)}
                         </p>
                       </div>
                       <div className="text-right">
@@ -369,25 +382,25 @@ export default function OrderDetailsPage() {
                 {/* Order Summary */}
                 <div className="mt-6 pt-4 border-t border-(--border) space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Subtotal</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "subtotal")}</span>
                     <span className="text-(--text)">${order.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Shipping</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "shipping")}</span>
                     <span className="text-(--text)">
                       {order.shippingFee === 0 ? (
-                        <span className="text-green-600">Free</span>
+                        <span className="text-green-600">{t("marketplace", "free")}</span>
                       ) : (
                         `$${order.shippingFee.toFixed(2)}`
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">Service Fee</span>
+                    <span className="text-(--text-muted)">{t("marketplace", "serviceFee")}</span>
                     <span className="text-(--text)">${order.serviceFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-(--border)">
-                    <span className="font-semibold text-(--text)">Total</span>
+                    <span className="font-semibold text-(--text)">{t("marketplace", "total")}</span>
                     <span className="font-bold text-xl text-primary-600">
                       ${order.total.toFixed(2)}
                     </span>
@@ -398,12 +411,12 @@ export default function OrderDetailsPage() {
               {/* Notes */}
               {(order.buyerNotes || order.sellerNotes || order.notes) && (
                 <Card className="p-6">
-                  <h2 className="text-lg font-semibold text-(--text) mb-4">Notes</h2>
+                  <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "notes")}</h2>
                   <div className="space-y-3">
                     {order.buyerNotes && (
                       <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                         <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
-                          Buyer Notes
+                          {t("marketplace", "buyerNotes")}
                         </p>
                         <p className="text-sm text-blue-700 dark:text-blue-300">
                           {order.buyerNotes}
@@ -413,7 +426,7 @@ export default function OrderDetailsPage() {
                     {order.sellerNotes && (
                       <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20">
                         <p className="text-sm font-medium text-purple-800 dark:text-purple-400 mb-1">
-                          Seller Notes
+                          {t("marketplace", "sellerNotes")}
                         </p>
                         <p className="text-sm text-purple-700 dark:text-purple-300">
                           {order.sellerNotes}
@@ -429,7 +442,7 @@ export default function OrderDetailsPage() {
             <div className="space-y-6">
               {/* Actions */}
               <Card className="p-6">
-                <h2 className="text-lg font-semibold text-(--text) mb-4">Actions</h2>
+                <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "actions")}</h2>
                 <div className="space-y-3">
                   {order.status === "awaiting_payment" && isBuyer && (
                     <Button
@@ -438,7 +451,7 @@ export default function OrderDetailsPage() {
                       onClick={handlePayNow}
                     >
                       <CreditCard size={18} className="mr-2" />
-                      Pay Now
+                      {t("marketplace", "payNow")}
                     </Button>
                   )}
 
@@ -465,7 +478,7 @@ export default function OrderDetailsPage() {
 
                   <Button variant="outline" className="w-full">
                     <MessageCircle size={18} className="mr-2" />
-                    Contact {isBuyer ? "Seller" : "Buyer"}
+                    {t("marketplace", "contact")} {isBuyer ? t("marketplace", "seller") : t("marketplace", "buyer")}
                   </Button>
 
                   {canCancel && (
@@ -475,7 +488,7 @@ export default function OrderDetailsPage() {
                       onClick={() => setShowCancelModal(true)}
                     >
                       <XCircle size={18} className="mr-2" />
-                      Cancel Order
+                      {t("marketplace", "cancelOrder")}
                     </Button>
                   )}
                 </div>
@@ -483,7 +496,7 @@ export default function OrderDetailsPage() {
 
               {/* Payment Info */}
               <Card className="p-6">
-                <h2 className="text-lg font-semibold text-(--text) mb-4">Payment</h2>
+                <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "payment")}</h2>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     {order.paymentMethod === "tap" ? (
@@ -493,11 +506,11 @@ export default function OrderDetailsPage() {
                     )}
                     <div>
                       <p className="font-medium text-(--text)">
-                        {order.paymentMethod === "tap" ? "Online Payment" : "Cash on Delivery"}
+                        {order.paymentMethod === "tap" ? t("marketplace", "onlinePayment") : t("marketplace", "cashOnDelivery")}
                       </p>
                       {order.paidAt && (
                         <p className="text-sm text-(--text-muted)">
-                          Paid on {formatDate(order.paidAt)}
+                          {t("marketplace", "paidOn")} {formatDate(order.paidAt)}
                         </p>
                       )}
                     </div>
@@ -509,7 +522,7 @@ export default function OrderDetailsPage() {
               {order.shippingAddress && (
                 <Card className="p-6">
                   <h2 className="text-lg font-semibold text-(--text) mb-4">
-                    Shipping Address
+                    {t("marketplace", "shippingAddress")}
                   </h2>
                   <div className="space-y-2">
                     <div className="flex items-start gap-2">
@@ -542,7 +555,7 @@ export default function OrderDetailsPage() {
               {/* Tracking */}
               {order.trackingNumber && (
                 <Card className="p-6">
-                  <h2 className="text-lg font-semibold text-(--text) mb-4">Tracking</h2>
+                  <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "tracking")}</h2>
                   <div className="flex items-center gap-2">
                     <Truck size={20} className="text-primary-600" />
                     <p className="font-medium text-(--text)">{order.trackingNumber}</p>
@@ -559,7 +572,7 @@ export default function OrderDetailsPage() {
               {/* Seller/Buyer Info */}
               <Card className="p-6">
                 <h2 className="text-lg font-semibold text-(--text) mb-4">
-                  {isBuyer ? "Seller" : "Buyer"} Information
+                  {isBuyer ? t("marketplace", "seller") : t("marketplace", "buyer")} {t("marketplace", "information")}
                 </h2>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
@@ -607,15 +620,15 @@ export default function OrderDetailsPage() {
           />
           <Card className="relative z-10 w-full max-w-md p-6">
             <h2 className="text-xl font-semibold text-(--text) mb-4">
-              Cancel Order
+              {t("marketplace", "cancelOrderTitle")}
             </h2>
             <p className="text-(--text-muted) mb-4">
-              Are you sure you want to cancel this order? This action cannot be undone.
+              {t("marketplace", "cancelOrderConfirm")}
             </p>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Reason for cancellation (optional)"
+              placeholder={t("marketplace", "cancelReasonPlaceholder")}
               rows={3}
               className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none mb-4"
             />
@@ -625,7 +638,7 @@ export default function OrderDetailsPage() {
                 className="flex-1"
                 onClick={() => setShowCancelModal(false)}
               >
-                Keep Order
+                {t("marketplace", "keepOrder")}
               </Button>
               <Button
                 variant="danger"
@@ -636,10 +649,10 @@ export default function OrderDetailsPage() {
                 {isCancelling ? (
                   <>
                     <Loader2 size={18} className="mr-2 animate-spin" />
-                    Cancelling...
+                    {t("marketplace", "cancelling")}
                   </>
                 ) : (
-                  "Cancel Order"
+                  t("marketplace", "cancelOrder")
                 )}
               </Button>
             </div>
@@ -659,20 +672,20 @@ export default function OrderDetailsPage() {
               {getNextSellerAction()?.label}
             </h2>
             <p className="text-(--text-muted) mb-4">
-              Update the order status to {STATUS_CONFIG[getNextSellerAction()!.status].label.toLowerCase()}.
+              {t("marketplace", "status")}: {STATUS_CONFIG[getNextSellerAction()!.status].label}
             </p>
 
             {/* Tracking Number (for shipping) */}
             {getNextSellerAction()?.status === "shipped" && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-(--text) mb-1.5">
-                  Tracking Number
+                  {t("marketplace", "trackingNumber")}
                 </label>
                 <input
                   type="text"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="Enter tracking number"
+                  placeholder={t("marketplace", "trackingNumberPlaceholder")}
                   className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -681,12 +694,12 @@ export default function OrderDetailsPage() {
             {/* Seller Notes */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-(--text) mb-1.5">
-                Notes for Buyer (Optional)
+                {t("marketplace", "notesForBuyerOptional")}
               </label>
               <textarea
                 value={sellerNotes}
                 onChange={(e) => setSellerNotes(e.target.value)}
-                placeholder="Add any notes for the buyer..."
+                placeholder={t("marketplace", "notesForBuyerPlaceholder")}
                 rows={3}
                 className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
               />
@@ -702,7 +715,7 @@ export default function OrderDetailsPage() {
                   setSellerNotes("");
                 }}
               >
-                Cancel
+                {t("common", "cancel")}
               </Button>
               <Button
                 variant="primary"
@@ -713,10 +726,10 @@ export default function OrderDetailsPage() {
                 {isUpdatingStatus ? (
                   <>
                     <Loader2 size={18} className="mr-2 animate-spin" />
-                    Updating...
+                    {t("marketplace", "updating")}
                   </>
                 ) : (
-                  "Confirm"
+                  t("marketplace", "confirm")
                 )}
               </Button>
             </div>

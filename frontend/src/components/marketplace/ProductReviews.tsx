@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { marketplaceApi, Review } from "@/lib/api/marketplace";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import toast from "react-hot-toast";
 import {
   Star,
@@ -33,6 +34,7 @@ interface ReviewStats {
 
 export function ProductReviews({ productId, productTitle }: ProductReviewsProps) {
   const { isAuthenticated, user } = useAuth();
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,12 +71,12 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
 
   const handleSubmitReview = async () => {
     if (!isAuthenticated) {
-      toast.error("Please login to submit a review");
+      toast.error(t("marketplace", "pleaseLoginToReview"));
       return;
     }
 
     if (rating === 0) {
-      toast.error("Please select a rating");
+      toast.error(t("marketplace", "pleaseSelectRating"));
       return;
     }
 
@@ -84,7 +86,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
         rating,
         comment: comment.trim() || undefined,
       });
-      toast.success("Review submitted successfully!");
+      toast.success(t("marketplace", "reviewSubmitted"));
       setShowReviewForm(false);
       setRating(0);
       setComment("");
@@ -92,7 +94,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
       fetchReviews();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to submit review");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToSubmitReview"));
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +146,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
               ))}
             </div>
             <p className="text-sm text-(--text-muted) mt-1">
-              {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+              {totalReviews} {totalReviews === 1 ? t("marketplace", "reviewSingular") : t("marketplace", "reviewsPlural")}
             </p>
           </div>
 
@@ -178,7 +180,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
           className="w-full"
         >
           <Star size={18} className="mr-2" />
-          Write a Review
+          {t("marketplace", "writeAReview")}
         </Button>
       )}
 
@@ -186,7 +188,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
       {showReviewForm && (
         <div className="p-4 rounded-xl border border-(--border) bg-(--bg-card)">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-(--text)">Write Your Review</h3>
+            <h3 className="font-semibold text-(--text)">{t("marketplace", "writeYourReview")}</h3>
             <button
               onClick={() => {
                 setShowReviewForm(false);
@@ -201,7 +203,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
 
           {/* Star Rating */}
           <div className="mb-4">
-            <p className="text-sm text-(--text-muted) mb-2">Your Rating</p>
+            <p className="text-sm text-(--text-muted) mb-2">{t("marketplace", "yourRating")}</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -225,22 +227,22 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
             </div>
             {rating > 0 && (
               <p className="text-sm text-primary-600 mt-1">
-                {rating === 1 && "Poor"}
-                {rating === 2 && "Fair"}
-                {rating === 3 && "Good"}
-                {rating === 4 && "Very Good"}
-                {rating === 5 && "Excellent"}
+                {rating === 1 && t("marketplace", "poor")}
+                {rating === 2 && t("marketplace", "fair")}
+                {rating === 3 && t("marketplace", "good")}
+                {rating === 4 && t("marketplace", "veryGood")}
+                {rating === 5 && t("marketplace", "excellent")}
               </p>
             )}
           </div>
 
           {/* Comment */}
           <div className="mb-4">
-            <p className="text-sm text-(--text-muted) mb-2">Your Review (Optional)</p>
+            <p className="text-sm text-(--text-muted) mb-2">{t("marketplace", "yourReviewOptional")}</p>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with this product..."
+              placeholder={t("marketplace", "reviewPlaceholder")}
               rows={4}
               className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             />
@@ -257,7 +259,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                 setComment("");
               }}
             >
-              Cancel
+              {t("common", "cancel")}
             </Button>
             <Button
               variant="primary"
@@ -268,12 +270,12 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
               {isSubmitting ? (
                 <>
                   <Loader2 size={18} className="mr-2 animate-spin" />
-                  Submitting...
+                  {t("marketplace", "submitting")}
                 </>
               ) : (
                 <>
                   <Send size={18} className="mr-2" />
-                  Submit Review
+                  {t("marketplace", "submitReview")}
                 </>
               )}
             </Button>
@@ -289,8 +291,8 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
       ) : reviews.length === 0 ? (
         <div className="text-center py-8">
           <Star size={40} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-(--text-muted)">No reviews yet</p>
-          <p className="text-sm text-(--text-muted)">Be the first to review this product!</p>
+          <p className="text-(--text-muted)">{t("marketplace", "noReviewsYet")}</p>
+          <p className="text-sm text-(--text-muted)">{t("marketplace", "beFirstToReview")}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -326,7 +328,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                         {review.isVerifiedPurchase && (
                           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
                             <CheckCircle size={10} className="mr-1" />
-                            Verified Purchase
+                            {t("marketplace", "verifiedPurchase")}
                           </Badge>
                         )}
                       </div>
@@ -378,7 +380,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                   {review.helpfulCount > 0 && (
                     <div className="flex items-center gap-1 mt-3 text-xs text-(--text-muted)">
                       <ThumbsUp size={12} />
-                      <span>{review.helpfulCount} found this helpful</span>
+                      <span>{review.helpfulCount} {t("marketplace", "foundHelpful")}</span>
                     </div>
                   )}
                 </div>
@@ -395,10 +397,12 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
-                Previous
+                {t("marketplace", "previous")}
               </Button>
               <span className="px-4 py-2 text-sm text-(--text-muted)">
-                Page {page} of {totalPages}
+                {t("marketplace", "pageOf")
+                  .replace("{page}", String(page))
+                  .replace("{total}", String(totalPages))}
               </span>
               <Button
                 variant="outline"
@@ -406,7 +410,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
               >
-                Next
+                {t("marketplace", "next")}
               </Button>
             </div>
           )}

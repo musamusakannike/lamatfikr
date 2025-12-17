@@ -33,7 +33,7 @@ import { AddProductModal, ProductFormData as AddProductFormData } from "@/compon
 
 export default function SellerDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
@@ -52,7 +52,7 @@ export default function SellerDashboardPage() {
       setStats(response.stats);
     } catch (error) {
       console.error("Failed to fetch stats:", error);
-      toast.error("Failed to load dashboard stats");
+      toast.error(t("marketplace", "failedToLoadDashboardStats"));
     } finally {
       setIsLoading(false);
     }
@@ -97,11 +97,11 @@ export default function SellerDashboardPage() {
         category: formData.category,
         quantity: formData.inStock ? 1 : 0,
       });
-      toast.success("Product created successfully");
+      toast.success(t("marketplace", "productCreatedSuccessfully"));
       fetchStats();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to create product");
+      toast.error(err.response?.data?.message || t("marketplace", "failedToCreateProduct"));
     }
   };
 
@@ -160,20 +160,20 @@ export default function SellerDashboardPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">Seller Dashboard</h1>
+              <h1 className="text-2xl font-bold text-(--text)">{t("marketplace", "sellerDashboard")}</h1>
               <p className="text-(--text-muted)">
-                Overview of your sales and performance
+                {t("marketplace", "salesOverview")}
               </p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => { fetchStats(); fetchRecentOrders(); }}>
                 <RefreshCw size={18} className="mr-2" />
-                Refresh
+                {t("marketplace", "refresh")}
               </Button>
               <Link href="/marketplace/my-listings">
                 <Button variant="primary">
                   <Package size={18} className="mr-2" />
-                  My Listings
+                  {t("marketplace", "myListings")}
                 </Button>
               </Link>
             </div>
@@ -184,7 +184,7 @@ export default function SellerDashboardPage() {
             <Card className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-(--text-muted) mb-1">Total Revenue</p>
+                  <p className="text-sm text-(--text-muted) mb-1">{t("marketplace", "totalRevenue")}</p>
                   <p className="text-2xl font-bold text-(--text)">
                     ${stats?.revenue.total.toFixed(2) || "0.00"}
                   </p>
@@ -202,7 +202,7 @@ export default function SellerDashboardPage() {
             <Card className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-(--text-muted) mb-1">Completed Orders</p>
+                  <p className="text-sm text-(--text-muted) mb-1">{t("marketplace", "completedOrders")}</p>
                   <p className="text-2xl font-bold text-(--text)">
                     {stats?.revenue.completedOrders || 0}
                   </p>
@@ -220,12 +220,12 @@ export default function SellerDashboardPage() {
             <Card className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-(--text-muted) mb-1">Active Products</p>
+                  <p className="text-sm text-(--text-muted) mb-1">{t("marketplace", "activeProducts")}</p>
                   <p className="text-2xl font-bold text-(--text)">
                     {stats?.products.active || 0}
                   </p>
                   <p className="text-sm text-(--text-muted) mt-2">
-                    of {stats?.products.total || 0} total
+                    {t("marketplace", "ofTotal").replace("{total}", String(stats?.products.total || 0))}
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30">
@@ -237,7 +237,7 @@ export default function SellerDashboardPage() {
             <Card className="p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-(--text-muted) mb-1">Products Sold</p>
+                  <p className="text-sm text-(--text-muted) mb-1">{t("marketplace", "productsSold")}</p>
                   <p className="text-2xl font-bold text-(--text)">
                     {stats?.products.sold || 0}
                   </p>
@@ -255,42 +255,42 @@ export default function SellerDashboardPage() {
 
           {/* Order Status Overview */}
           <Card className="p-6">
-            <h2 className="text-lg font-semibold text-(--text) mb-4">Order Status Overview</h2>
+            <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "orderStatusOverview")}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock size={18} className="text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Pending</span>
+                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-400">{t("marketplace", "statusPending")}</span>
                 </div>
                 <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{pendingCount}</p>
-                <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">Awaiting action</p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">{t("marketplace", "awaitingAction")}</p>
               </div>
 
               <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Package size={18} className="text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800 dark:text-blue-400">Processing</span>
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-400">{t("marketplace", "statusProcessing")}</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{processingCount}</p>
-                <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">Being prepared</p>
+                <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">{t("marketplace", "beingPrepared")}</p>
               </div>
 
               <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Truck size={18} className="text-purple-600" />
-                  <span className="text-sm font-medium text-purple-800 dark:text-purple-400">Shipped</span>
+                  <span className="text-sm font-medium text-purple-800 dark:text-purple-400">{t("marketplace", "statusShipped")}</span>
                 </div>
                 <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{shippedCount}</p>
-                <p className="text-xs text-purple-600 dark:text-purple-500 mt-1">In transit</p>
+                <p className="text-xs text-purple-600 dark:text-purple-500 mt-1">{t("marketplace", "inTransit")}</p>
               </div>
 
               <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle size={18} className="text-green-600" />
-                  <span className="text-sm font-medium text-green-800 dark:text-green-400">Completed</span>
+                  <span className="text-sm font-medium text-green-800 dark:text-green-400">{t("marketplace", "statusCompleted")}</span>
                 </div>
                 <p className="text-2xl font-bold text-green-700 dark:text-green-300">{completedCount}</p>
-                <p className="text-xs text-green-600 dark:text-green-500 mt-1">Successfully delivered</p>
+                <p className="text-xs text-green-600 dark:text-green-500 mt-1">{t("marketplace", "successfullyDelivered")}</p>
               </div>
             </div>
           </Card>
@@ -299,10 +299,10 @@ export default function SellerDashboardPage() {
             {/* Recent Orders */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-(--text)">Recent Orders</h2>
+                <h2 className="text-lg font-semibold text-(--text)">{t("marketplace", "recentOrders")}</h2>
                 <Link href="/marketplace/orders?type=sold">
                   <Button variant="ghost" size="sm">
-                    View All
+                    {t("marketplace", "viewAll")}
                   </Button>
                 </Link>
               </div>
@@ -314,7 +314,7 @@ export default function SellerDashboardPage() {
               ) : recentOrders.length === 0 ? (
                 <div className="text-center py-8">
                   <ShoppingBag size={40} className="mx-auto mb-3 text-gray-300" />
-                  <p className="text-(--text-muted)">No orders yet</p>
+                  <p className="text-(--text-muted)">{t("marketplace", "noOrdersYet")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -339,7 +339,7 @@ export default function SellerDashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-(--text) line-clamp-1">
-                          {order.items[0]?.title || "Order"}
+                          {order.items[0]?.title || t("marketplace", "orderDetails")}
                           {order.items.length > 1 && ` +${order.items.length - 1}`}
                         </p>
                         <p className="text-xs text-(--text-muted)">
@@ -363,7 +363,7 @@ export default function SellerDashboardPage() {
 
             {/* Quick Actions & Tips */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-(--text) mb-4">Quick Actions</h2>
+              <h2 className="text-lg font-semibold text-(--text) mb-4">{t("marketplace", "quickActions")}</h2>
               <div className="space-y-3">
                 <button
                   type="button"
@@ -374,8 +374,8 @@ export default function SellerDashboardPage() {
                     <Package size={20} className="text-primary-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-(--text)">Add New Product</p>
-                    <p className="text-sm text-(--text-muted)">List a new item for sale</p>
+                    <p className="font-medium text-(--text)">{t("marketplace", "addNewProduct")}</p>
+                    <p className="text-sm text-(--text-muted)">{t("marketplace", "listNewItemForSale")}</p>
                   </div>
                 </button>
 
@@ -387,9 +387,9 @@ export default function SellerDashboardPage() {
                     <Clock size={20} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-(--text)">Process Orders</p>
+                    <p className="font-medium text-(--text)">{t("marketplace", "processOrders")}</p>
                     <p className="text-sm text-(--text-muted)">
-                      {processingCount} orders need attention
+                      {processingCount} {t("marketplace", "ordersNeedAttention")}
                     </p>
                   </div>
                 </Link>
@@ -402,9 +402,9 @@ export default function SellerDashboardPage() {
                     <BarChart3 size={20} className="text-purple-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-(--text)">Manage Listings</p>
+                    <p className="font-medium text-(--text)">{t("marketplace", "manageListings")}</p>
                     <p className="text-sm text-(--text-muted)">
-                      {stats?.products.active || 0} active products
+                      {stats?.products.active || 0} {t("marketplace", "activeProductsCount")}
                     </p>
                   </div>
                 </Link>
@@ -412,24 +412,24 @@ export default function SellerDashboardPage() {
 
               {/* Performance Tips */}
               <div className="mt-6 pt-6 border-t border-(--border)">
-                <h3 className="text-sm font-semibold text-(--text) mb-3">Performance Tips</h3>
+                <h3 className="text-sm font-semibold text-(--text) mb-3">{t("marketplace", "performanceTips")}</h3>
                 <div className="space-y-2">
                   <div className="flex items-start gap-2 text-sm">
                     <Star size={14} className="text-yellow-500 mt-0.5 shrink-0" />
                     <p className="text-(--text-muted)">
-                      Respond to orders within 24 hours to maintain a high seller rating
+                      {t("marketplace", "tipRespond24h")}
                     </p>
                   </div>
                   <div className="flex items-start gap-2 text-sm">
                     <Eye size={14} className="text-blue-500 mt-0.5 shrink-0" />
                     <p className="text-(--text-muted)">
-                      Add multiple high-quality images to increase product visibility
+                      {t("marketplace", "tipAddImages")}
                     </p>
                   </div>
                   <div className="flex items-start gap-2 text-sm">
                     <Users size={14} className="text-green-500 mt-0.5 shrink-0" />
                     <p className="text-(--text-muted)">
-                      Engage with buyers to build trust and encourage repeat purchases
+                      {t("marketplace", "tipEngageBuyers")}
                     </p>
                   </div>
                 </div>

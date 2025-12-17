@@ -705,10 +705,7 @@ export const translations = {
       ar: "كتب",
       en: "Books",
     },
-    outOfStock: {
-      ar: "غير متوفر",
-      en: "Out of Stock",
-    },
+
     new: {
       ar: "جديد",
       en: "New",
@@ -717,10 +714,7 @@ export const translations = {
       ar: "تقييمات",
       en: "reviews",
     },
-    verified: {
-      ar: "موثق",
-      en: "Verified",
-    },
+
     viewDetails: {
       ar: "عرض التفاصيل",
       en: "View Details",
@@ -797,6 +791,787 @@ export const translations = {
     atLeastOneImageRequired: {
       ar: "يرجى إضافة صورة واحدة على الأقل",
       en: "At least one image is required",
+    },
+
+    checkout: {
+      ar: "إتمام الشراء",
+      en: "Checkout",
+    },
+    completeYourOrder: {
+      ar: "أكمل طلبك ({count} عناصر)",
+      en: "Complete your order ({count} items)",
+    },
+    cartEmpty: {
+      ar: "سلة التسوق فارغة",
+      en: "Your cart is empty",
+    },
+    cartEmptyDescription: {
+      ar: "أضف بعض المنتجات إلى سلتك قبل إتمام الشراء.",
+      en: "Add some products to your cart before checking out.",
+    },
+    browseProducts: {
+      ar: "تصفح المنتجات",
+      en: "Browse Products",
+    },
+    shippingAddress: {
+      ar: "عنوان الشحن",
+      en: "Shipping Address",
+    },
+    fullName: {
+      ar: "الاسم الكامل",
+      en: "Full Name",
+    },
+    fullNamePlaceholder: {
+      ar: "أدخل اسمك الكامل",
+      en: "Enter your full name",
+    },
+    phoneNumber: {
+      ar: "رقم الهاتف",
+      en: "Phone Number",
+    },
+    phonePlaceholder: {
+      ar: "+966 5xxxxxxxx",
+      en: "+1 234 567 8900",
+    },
+    country: {
+      ar: "الدولة",
+      en: "Country",
+    },
+    countryPlaceholder: {
+      ar: "الدولة",
+      en: "Country",
+    },
+    addressLine1: {
+      ar: "العنوان 1",
+      en: "Address Line 1",
+    },
+    addressLine1Placeholder: {
+      ar: "اسم الشارع، صندوق بريد...",
+      en: "Street address, P.O. box",
+    },
+    addressLine2: {
+      ar: "العنوان 2",
+      en: "Address Line 2",
+    },
+    addressLine2Placeholder: {
+      ar: "شقة، جناح، وحدة، مبنى، طابق...",
+      en: "Apartment, suite, unit, building, floor, etc.",
+    },
+    city: {
+      ar: "المدينة",
+      en: "City",
+    },
+    stateOrProvince: {
+      ar: "المنطقة / المحافظة",
+      en: "State / Province",
+    },
+    postalCode: {
+      ar: "الرمز البريدي",
+      en: "Postal Code",
+    },
+    paymentMethod: {
+      ar: "طريقة الدفع",
+      en: "Payment Method",
+    },
+    onlinePayment: {
+      ar: "الدفع الإلكتروني",
+      en: "Online Payment",
+    },
+    payWithCardViaTap: {
+      ar: "ادفع بالبطاقة عبر Tap",
+      en: "Pay with card via Tap",
+    },
+    cashOnDelivery: {
+      ar: "الدفع عند الاستلام",
+      en: "Cash on Delivery",
+    },
+    payWhenYouReceive: {
+      ar: "ادفع عند الاستلام",
+      en: "Pay when you receive",
+    },
+    orderNotesOptional: {
+      ar: "ملاحظات الطلب (اختياري)",
+      en: "Order Notes (Optional)",
+    },
+    orderNotesPlaceholder: {
+      ar: "أضف أي تعليمات خاصة أو ملاحظات للبائع...",
+      en: "Add any special instructions or notes for the seller...",
+    },
+    orderSummary: {
+      ar: "ملخص الطلب",
+      en: "Order Summary",
+    },
+    qtyShort: {
+      ar: "الكمية",
+      en: "Qty",
+    },
+    subtotal: {
+      ar: "المجموع الفرعي",
+      en: "Subtotal",
+    },
+    shipping: {
+      ar: "الشحن",
+      en: "Shipping",
+    },
+    free: {
+      ar: "مجاني",
+      en: "Free",
+    },
+    serviceFee: {
+      ar: "رسوم الخدمة",
+      en: "Service Fee",
+    },
+    total: {
+      ar: "الإجمالي",
+      en: "Total",
+    },
+    processing: {
+      ar: "جاري المعالجة...",
+      en: "Processing...",
+    },
+    pay: {
+      ar: "ادفع",
+      en: "Pay",
+    },
+    placeOrder: {
+      ar: "تأكيد الطلب",
+      en: "Place Order",
+    },
+    secureCheckout: {
+      ar: "دفع آمن",
+      en: "Secure Checkout",
+    },
+    freeShipping: {
+      ar: "شحن مجاني",
+      en: "Free Shipping",
+    },
+
+    pleaseEnterFullName: {
+      ar: "يرجى إدخال الاسم الكامل",
+      en: "Please enter your full name",
+    },
+    pleaseEnterPhone: {
+      ar: "يرجى إدخال رقم الهاتف",
+      en: "Please enter your phone number",
+    },
+    pleaseEnterAddress: {
+      ar: "يرجى إدخال العنوان",
+      en: "Please enter your address",
+    },
+    pleaseEnterCity: {
+      ar: "يرجى إدخال المدينة",
+      en: "Please enter your city",
+    },
+    pleaseEnterCountry: {
+      ar: "يرجى إدخال الدولة",
+      en: "Please enter your country",
+    },
+    yourCartIsEmpty: {
+      ar: "سلة التسوق فارغة",
+      en: "Your cart is empty",
+    },
+    orderPlacedSuccessfully: {
+      ar: "تم إنشاء الطلب بنجاح!",
+      en: "Order placed successfully!",
+    },
+    failedToPlaceOrder: {
+      ar: "فشل إنشاء الطلب",
+      en: "Failed to place order",
+    },
+
+    myOrders: {
+      ar: "طلباتي",
+      en: "My Orders",
+    },
+    moreItems: {
+      ar: "+{count} عناصر أخرى",
+      en: "+{count} more item(s)",
+    },
+    viewAndManageOrders: {
+      ar: "عرض وإدارة طلباتك",
+      en: "View and manage your orders",
+    },
+    continueShopping: {
+      ar: "متابعة التسوق",
+      en: "Continue Shopping",
+    },
+    purchases: {
+      ar: "المشتريات",
+      en: "Purchases",
+    },
+    sales: {
+      ar: "المبيعات",
+      en: "Sales",
+    },
+    searchOrdersPlaceholder: {
+      ar: "ابحث برقم الطلب أو المنتج...",
+      en: "Search by order number or product...",
+    },
+    filters: {
+      ar: "فلاتر",
+      en: "Filters",
+    },
+    refresh: {
+      ar: "تحديث",
+      en: "Refresh",
+    },
+    noOrdersFound: {
+      ar: "لم يتم العثور على طلبات",
+      en: "No orders found",
+    },
+    noPurchasesYet: {
+      ar: "لم تقم بأي مشتريات بعد.",
+      en: "You haven't made any purchases yet.",
+    },
+    noOrdersReceivedYet: {
+      ar: "لم تستلم أي طلبات بعد.",
+      en: "You haven't received any orders yet.",
+    },
+    startShopping: {
+      ar: "ابدأ التسوق",
+      en: "Start Shopping",
+    },
+    orderNumber: {
+      ar: "رقم الطلب",
+      en: "Order #",
+    },
+    at: {
+      ar: "في",
+      en: "at",
+    },
+    card: {
+      ar: "بطاقة",
+      en: "Card",
+    },
+    cash: {
+      ar: "نقداً",
+      en: "Cash",
+    },
+    seller: {
+      ar: "البائع",
+      en: "Seller",
+    },
+    buyer: {
+      ar: "المشتري",
+      en: "Buyer",
+    },
+    previous: {
+      ar: "السابق",
+      en: "Previous",
+    },
+    next: {
+      ar: "التالي",
+      en: "Next",
+    },
+    pageOf: {
+      ar: "صفحة {page} من {total}",
+      en: "Page {page} of {total}",
+    },
+    failedToLoadOrders: {
+      ar: "فشل تحميل الطلبات",
+      en: "Failed to load orders",
+    },
+
+    statusAllOrders: {
+      ar: "كل الطلبات",
+      en: "All Orders",
+    },
+    statusPending: {
+      ar: "قيد الانتظار",
+      en: "Pending",
+    },
+    statusAwaitingPayment: {
+      ar: "بانتظار الدفع",
+      en: "Awaiting Payment",
+    },
+    statusPaid: {
+      ar: "مدفوع",
+      en: "Paid",
+    },
+    statusProcessing: {
+      ar: "قيد المعالجة",
+      en: "Processing",
+    },
+    statusShipped: {
+      ar: "تم الشحن",
+      en: "Shipped",
+    },
+    statusDelivered: {
+      ar: "تم التسليم",
+      en: "Delivered",
+    },
+    statusCompleted: {
+      ar: "مكتمل",
+      en: "Completed",
+    },
+    statusCancelled: {
+      ar: "ملغي",
+      en: "Cancelled",
+    },
+    statusRefunded: {
+      ar: "مسترجع",
+      en: "Refunded",
+    },
+    statusDisputed: {
+      ar: "متنازع عليه",
+      en: "Disputed",
+    },
+
+    orderDetails: {
+      ar: "تفاصيل الطلب",
+      en: "Order Details",
+    },
+    failedToLoadOrderDetails: {
+      ar: "فشل تحميل تفاصيل الطلب",
+      en: "Failed to load order details",
+    },
+    orderCancelledSuccessfully: {
+      ar: "تم إلغاء الطلب بنجاح",
+      en: "Order cancelled successfully",
+    },
+    failedToCancelOrder: {
+      ar: "فشل إلغاء الطلب",
+      en: "Failed to cancel order",
+    },
+    failedToInitiatePayment: {
+      ar: "فشل بدء عملية الدفع",
+      en: "Failed to initiate payment",
+    },
+    failedToUpdateOrderStatus: {
+      ar: "فشل تحديث حالة الطلب",
+      en: "Failed to update order status",
+    },
+    copiedToClipboard: {
+      ar: "تم النسخ إلى الحافظة",
+      en: "Copied to clipboard",
+    },
+    orderNotFound: {
+      ar: "الطلب غير موجود",
+      en: "Order not found",
+    },
+    orderNotFoundDescription: {
+      ar: "هذا الطلب غير موجود أو ليس لديك صلاحية للوصول إليه.",
+      en: "This order doesn't exist or you don't have access to it.",
+    },
+    backToOrders: {
+      ar: "العودة للطلبات",
+      en: "Back to Orders",
+    },
+    placedOn: {
+      ar: "تم الطلب في",
+      en: "Placed on",
+    },
+    orderProgress: {
+      ar: "تقدم الطلب",
+      en: "Order Progress",
+    },
+    orderItems: {
+      ar: "عناصر الطلب",
+      en: "Order Items",
+    },
+    quantity: {
+      ar: "الكمية",
+      en: "Quantity",
+    },
+    unitPrice: {
+      ar: "سعر الوحدة",
+      en: "Unit Price",
+    },
+    notes: {
+      ar: "ملاحظات",
+      en: "Notes",
+    },
+    buyerNotes: {
+      ar: "ملاحظات المشتري",
+      en: "Buyer Notes",
+    },
+    sellerNotes: {
+      ar: "ملاحظات البائع",
+      en: "Seller Notes",
+    },
+    actions: {
+      ar: "إجراءات",
+      en: "Actions",
+    },
+    payNow: {
+      ar: "ادفع الآن",
+      en: "Pay Now",
+    },
+    contact: {
+      ar: "تواصل",
+      en: "Contact",
+    },
+    cancelOrder: {
+      ar: "إلغاء الطلب",
+      en: "Cancel Order",
+    },
+    payment: {
+      ar: "الدفع",
+      en: "Payment",
+    },
+    paidOn: {
+      ar: "تم الدفع في",
+      en: "Paid on",
+    },
+    tracking: {
+      ar: "التتبع",
+      en: "Tracking",
+    },
+    information: {
+      ar: "معلومات",
+      en: "Information",
+    },
+    cancelOrderTitle: {
+      ar: "إلغاء الطلب",
+      en: "Cancel Order",
+    },
+    cancelOrderConfirm: {
+      ar: "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.",
+      en: "Are you sure you want to cancel this order? This action cannot be undone.",
+    },
+    cancelReasonPlaceholder: {
+      ar: "سبب الإلغاء (اختياري)",
+      en: "Reason for cancellation (optional)",
+    },
+    keepOrder: {
+      ar: "إبقاء الطلب",
+      en: "Keep Order",
+    },
+    cancelling: {
+      ar: "جاري الإلغاء...",
+      en: "Cancelling...",
+    },
+    updating: {
+      ar: "جاري التحديث...",
+      en: "Updating...",
+    },
+    confirm: {
+      ar: "تأكيد",
+      en: "Confirm",
+    },
+    trackingNumber: {
+      ar: "رقم التتبع",
+      en: "Tracking Number",
+    },
+    trackingNumberPlaceholder: {
+      ar: "أدخل رقم التتبع",
+      en: "Enter tracking number",
+    },
+    notesForBuyerOptional: {
+      ar: "ملاحظات للمشتري (اختياري)",
+      en: "Notes for Buyer (Optional)",
+    },
+    notesForBuyerPlaceholder: {
+      ar: "أضف أي ملاحظات للمشتري...",
+      en: "Add any notes for the buyer...",
+    },
+
+    sellerDashboard: {
+      ar: "لوحة تحكم البائع",
+      en: "Seller Dashboard",
+    },
+    salesOverview: {
+      ar: "نظرة عامة على المبيعات والأداء",
+      en: "Overview of your sales and performance",
+    },
+    myListings: {
+      ar: "إعلاناتي",
+      en: "My Listings",
+    },
+    totalRevenue: {
+      ar: "إجمالي الإيرادات",
+      en: "Total Revenue",
+    },
+    completedOrders: {
+      ar: "الطلبات المكتملة",
+      en: "Completed Orders",
+    },
+    activeProducts: {
+      ar: "المنتجات النشطة",
+      en: "Active Products",
+    },
+    ofTotal: {
+      ar: "من أصل {total} إجمالي",
+      en: "of {total} total",
+    },
+    productsSold: {
+      ar: "المنتجات المباعة",
+      en: "Products Sold",
+    },
+    orderStatusOverview: {
+      ar: "نظرة عامة على حالات الطلبات",
+      en: "Order Status Overview",
+    },
+    awaitingAction: {
+      ar: "بانتظار إجراء",
+      en: "Awaiting action",
+    },
+    beingPrepared: {
+      ar: "قيد التجهيز",
+      en: "Being prepared",
+    },
+    inTransit: {
+      ar: "قيد الشحن",
+      en: "In transit",
+    },
+    successfullyDelivered: {
+      ar: "تم التسليم بنجاح",
+      en: "Successfully delivered",
+    },
+    recentOrders: {
+      ar: "الطلبات الأخيرة",
+      en: "Recent Orders",
+    },
+    viewAll: {
+      ar: "عرض الكل",
+      en: "View All",
+    },
+    noOrdersYet: {
+      ar: "لا توجد طلبات بعد",
+      en: "No orders yet",
+    },
+    quickActions: {
+      ar: "إجراءات سريعة",
+      en: "Quick Actions",
+    },
+    listNewItemForSale: {
+      ar: "أضف منتجاً جديداً للبيع",
+      en: "List a new item for sale",
+    },
+    processOrders: {
+      ar: "معالجة الطلبات",
+      en: "Process Orders",
+    },
+    ordersNeedAttention: {
+      ar: "طلبات تحتاج متابعة",
+      en: "orders need attention",
+    },
+    manageListings: {
+      ar: "إدارة الإعلانات",
+      en: "Manage Listings",
+    },
+    activeProductsCount: {
+      ar: "منتجات نشطة",
+      en: "active products",
+    },
+    performanceTips: {
+      ar: "نصائح الأداء",
+      en: "Performance Tips",
+    },
+    tipRespond24h: {
+      ar: "استجب للطلبات خلال 24 ساعة للحفاظ على تقييم بائع مرتفع",
+      en: "Respond to orders within 24 hours to maintain a high seller rating",
+    },
+    tipAddImages: {
+      ar: "أضف عدة صور عالية الجودة لزيادة ظهور المنتج",
+      en: "Add multiple high-quality images to increase product visibility",
+    },
+    tipEngageBuyers: {
+      ar: "تفاعل مع المشترين لبناء الثقة وتشجيع عمليات الشراء المتكررة",
+      en: "Engage with buyers to build trust and encourage repeat purchases",
+    },
+    failedToLoadDashboardStats: {
+      ar: "فشل تحميل إحصائيات لوحة التحكم",
+      en: "Failed to load dashboard stats",
+    },
+    productCreatedSuccessfully: {
+      ar: "تم إنشاء المنتج بنجاح",
+      en: "Product created successfully",
+    },
+    failedToCreateProduct: {
+      ar: "فشل إنشاء المنتج",
+      en: "Failed to create product",
+    },
+
+    addedToFavorites: {
+      ar: "تمت الإضافة للمفضلة",
+      en: "Added to favorites",
+    },
+    removedFromFavorites: {
+      ar: "تمت الإزالة من المفضلة",
+      en: "Removed from favorites",
+    },
+    failedToUpdateFavorites: {
+      ar: "فشل تحديث المفضلة",
+      en: "Failed to update favorites",
+    },
+    
+    reviewsLabel: {
+      ar: "تقييمات",
+      en: "reviews",
+    },
+    saveAmount: {
+      ar: "وفر {amount}",
+      en: "Save {amount}",
+    },
+    inStockWithCount: {
+      ar: "متوفر ({count} متاح)",
+      en: "In Stock ({count} available)",
+    },
+    outOfStock: {
+      ar: "غير متوفر",
+      en: "Out of Stock",
+    },
+    quantityLabel: {
+      ar: "الكمية:",
+      en: "Quantity:",
+    },
+    addingToCart: {
+      ar: "جاري الإضافة...",
+      en: "Adding...",
+    },
+    freeShippingShort: {
+      ar: "شحن مجاني",
+      en: "Free Shipping",
+    },
+    securePayment: {
+      ar: "دفع آمن",
+      en: "Secure Payment",
+    },
+    easyReturns: {
+      ar: "إرجاع سهل",
+      en: "Easy Returns",
+    },
+    unknownSeller: {
+      ar: "بائع غير معروف",
+      en: "Unknown Seller",
+    },
+    verified: {
+      ar: "موثق",
+      en: "Verified",
+    },
+    contactSeller: {
+      ar: "تواصل",
+      en: "Contact",
+    },
+    productImageAlt: {
+      ar: "صورة المنتج",
+      en: "Product image",
+    },
+    descriptionTab: {
+      ar: "الوصف",
+      en: "Description",
+    },
+    reviewsTab: {
+      ar: "التقييمات",
+      en: "Reviews",
+    },
+    condition: {
+      ar: "الحالة",
+      en: "Condition",
+    },
+    category: {
+      ar: "الفئة",
+      en: "Category",
+    },
+    status: {
+      ar: "الحالة",
+      en: "Status",
+    },
+    listed: {
+      ar: "تاريخ الإدراج",
+      en: "Listed",
+    },
+    notSpecified: {
+      ar: "غير محدد",
+      en: "Not specified",
+    },
+    active: {
+      ar: "نشط",
+      en: "Active",
+    },
+    unknown: {
+      ar: "غير معروف",
+      en: "Unknown",
+    },
+
+    writeAReview: {
+      ar: "اكتب تقييماً",
+      en: "Write a Review",
+    },
+    writeYourReview: {
+      ar: "اكتب تقييمك",
+      en: "Write Your Review",
+    },
+    yourRating: {
+      ar: "تقييمك",
+      en: "Your Rating",
+    },
+    yourReviewOptional: {
+      ar: "مراجعتك (اختياري)",
+      en: "Your Review (Optional)",
+    },
+    reviewPlaceholder: {
+      ar: "شارك تجربتك مع هذا المنتج...",
+      en: "Share your experience with this product...",
+    },
+    submitReview: {
+      ar: "إرسال التقييم",
+      en: "Submit Review",
+    },
+    submitting: {
+      ar: "جاري الإرسال...",
+      en: "Submitting...",
+    },
+    pleaseLoginToReview: {
+      ar: "يرجى تسجيل الدخول لإرسال تقييم",
+      en: "Please login to submit a review",
+    },
+    pleaseSelectRating: {
+      ar: "يرجى اختيار تقييم",
+      en: "Please select a rating",
+    },
+    reviewSubmitted: {
+      ar: "تم إرسال التقييم بنجاح!",
+      en: "Review submitted successfully!",
+    },
+    failedToSubmitReview: {
+      ar: "فشل إرسال التقييم",
+      en: "Failed to submit review",
+    },
+    reviewSingular: {
+      ar: "تقييم",
+      en: "review",
+    },
+    reviewsPlural: {
+      ar: "تقييمات",
+      en: "reviews",
+    },
+    noReviewsYet: {
+      ar: "لا توجد تقييمات بعد",
+      en: "No reviews yet",
+    },
+    beFirstToReview: {
+      ar: "كن أول من يقيّم هذا المنتج!",
+      en: "Be the first to review this product!",
+    },
+    verifiedPurchase: {
+      ar: "شراء موثق",
+      en: "Verified Purchase",
+    },
+    foundHelpful: {
+      ar: "وجدوا هذا مفيداً",
+      en: "found this helpful",
+    },
+    poor: {
+      ar: "سيئ",
+      en: "Poor",
+    },
+    fair: {
+      ar: "مقبول",
+      en: "Fair",
+    },
+    good: {
+      ar: "جيد",
+      en: "Good",
+    },
+    veryGood: {
+      ar: "جيد جداً",
+      en: "Very Good",
+    },
+    excellent: {
+      ar: "ممتاز",
+      en: "Excellent",
     },
   },
 
