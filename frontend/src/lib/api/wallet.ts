@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { apiClient } from "../api";
 
 export interface Wallet {
   balance: number;
@@ -19,11 +19,18 @@ export interface Transaction {
   description: string;
   referenceId?: string;
   referenceType?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   completedAt?: string;
   failedReason?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProcessedBy {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
 }
 
 export interface Withdrawal {
@@ -42,7 +49,7 @@ export interface Withdrawal {
   };
   paypalEmail?: string;
   tapAccountId?: string;
-  processedBy?: any;
+  processedBy?: ProcessedBy;
   processedAt?: string;
   rejectionReason?: string;
   transactionId?: string;
@@ -62,7 +69,7 @@ export interface WalletStats {
 
 export const walletApi = {
   async getWallet(): Promise<{ success: boolean; wallet: Wallet }> {
-    const response = await api.get("/wallet");
+    const response = await apiClient.get("/wallet");
     return response.data;
   },
 
@@ -83,7 +90,7 @@ export const walletApi = {
     });
     if (type) params.append("type", type);
 
-    const response = await api.get(`/wallet/transactions?${params}`);
+    const response = await apiClient.get(`/wallet/transactions?${params}`);
     return response.data;
   },
 
@@ -92,7 +99,7 @@ export const walletApi = {
     stats: WalletStats;
     recentTransactions: Transaction[];
   }> {
-    const response = await api.get("/wallet/stats");
+    const response = await apiClient.get("/wallet/stats");
     return response.data;
   },
 
@@ -114,7 +121,7 @@ export const walletApi = {
     message: string;
     withdrawal: Withdrawal;
   }> {
-    const response = await api.post("/wallet/withdrawals", data);
+    const response = await apiClient.post("/wallet/withdrawals", data);
     return response.data;
   },
 
@@ -135,7 +142,7 @@ export const walletApi = {
     });
     if (status) params.append("status", status);
 
-    const response = await api.get(`/wallet/withdrawals?${params}`);
+    const response = await apiClient.get(`/wallet/withdrawals?${params}`);
     return response.data;
   },
 
@@ -146,7 +153,7 @@ export const walletApi = {
     message: string;
     withdrawal: Withdrawal;
   }> {
-    const response = await api.patch(`/wallet/withdrawals/${withdrawalId}/cancel`);
+    const response = await apiClient.patch(`/wallet/withdrawals/${withdrawalId}/cancel`);
     return response.data;
   },
 };

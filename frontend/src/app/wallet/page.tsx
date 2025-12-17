@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Navbar, Sidebar } from "@/components/layout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { walletApi, type Wallet, type Transaction, type Withdrawal } from "@/lib/api/wallet";
+import { cn } from "@/lib/utils";
 import { 
   Wallet as WalletIcon, 
   TrendingUp, 
@@ -18,7 +20,8 @@ import {
 } from "lucide-react";
 
 export default function WalletPage() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -100,17 +103,34 @@ export default function WalletPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-(--text-muted)">{t("common", "loading")}</p>
-        </div>
+      <div className="min-h-screen">
+        <Navbar
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          isSidebarOpen={sidebarOpen}
+        />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
+          <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+              <p className="mt-4 text-(--text-muted)">{t("common", "loading")}</p>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen">
+      <Navbar
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        isSidebarOpen={sidebarOpen}
+      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
+        <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-(--text) flex items-center gap-3">
           <WalletIcon size={32} className="text-primary-600" />
@@ -349,6 +369,8 @@ export default function WalletPage() {
           )}
         </div>
       </div>
+      </div>
+      </main>
     </div>
   );
 }
