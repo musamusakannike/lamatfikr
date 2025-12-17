@@ -407,6 +407,7 @@ export const translations = {
 
   // Home Page
   home: {
+    // Create Post
     createPost: {
       ar: "إنشاء منشور",
       en: "Create Post",
@@ -415,9 +416,123 @@ export const translations = {
       ar: "ما الذي يدور في ذهنك؟",
       en: "What's on your mind?",
     },
+    post: {
+      ar: "نشر",
+      en: "Post",
+    },
+    posting: {
+      ar: "جاري النشر...",
+      en: "Posting...",
+    },
+    dropMediaHere: {
+      ar: "أسقط الوسائط هنا",
+      en: "Drop your media here",
+    },
+
+    // Visibility
+    selectVisibility: {
+      ar: "اختر من يرى المنشور",
+      en: "Select visibility",
+    },
+    whoCanSeePost: {
+      ar: "من يمكنه رؤية هذا المنشور؟",
+      en: "Who can see this post?",
+    },
+    onlyMe: {
+      ar: "أنا فقط",
+      en: "Only me",
+    },
+    onlyMeDescription: {
+      ar: "أنت فقط يمكنك رؤية هذا المنشور",
+      en: "Only you can see this post",
+    },
+    followers: {
+      ar: "المتابعون",
+      en: "Followers",
+    },
+    followersDescription: {
+      ar: "الأشخاص الذين يتابعونك",
+      en: "People who follow you",
+    },
+    peopleIFollow: {
+      ar: "من أتابعهم",
+      en: "People I follow",
+    },
+    peopleIFollowDescription: {
+      ar: "الأشخاص الذين تتابعهم",
+      en: "People you follow",
+    },
+    groupsSelected: {
+      ar: "مجموعات محددة",
+      en: "groups selected",
+    },
+
+    // Poll
+    createPoll: {
+      ar: "إنشاء استطلاع",
+      en: "Create Poll",
+    },
+    askQuestion: {
+      ar: "اطرح سؤالاً...",
+      en: "Ask a question...",
+    },
+    option: {
+      ar: "خيار",
+      en: "Option",
+    },
+    addOption: {
+      ar: "إضافة خيار",
+      en: "Add option",
+    },
+
+    // Audio Recording
+    recordAudio: {
+      ar: "تسجيل صوتي",
+      en: "Record Audio",
+    },
+    recording: {
+      ar: "جاري التسجيل...",
+      en: "Recording...",
+    },
+    startRecording: {
+      ar: "بدء التسجيل",
+      en: "Start Recording",
+    },
+    stopRecording: {
+      ar: "إيقاف التسجيل",
+      en: "Stop",
+    },
+    voiceRecording: {
+      ar: "تسجيل صوتي",
+      en: "Voice Recording",
+    },
+
+    // Tooltips
+    addEmoji: {
+      ar: "إضافة إيموجي",
+      en: "Add emoji",
+    },
+    addImages: {
+      ar: "إضافة صور",
+      en: "Add images",
+    },
+    addVideo: {
+      ar: "إضافة فيديو",
+      en: "Add video",
+    },
+
+    // Featured Rooms
     featuredRooms: {
       ar: "الغرف المميزة",
       en: "Featured Rooms",
+    },
+    featuredRoomChats: {
+      ar: "غرف الدردشة المميزة",
+      en: "Featured Room Chats",
+    },
+    exploreAll: {
+      ar: "استكشاف الكل",
+      en: "Explore all",
     },
     viewAllRooms: {
       ar: "عرض كل الغرف",
@@ -427,6 +542,10 @@ export const translations = {
       ar: "أعضاء",
       en: "members",
     },
+    active: {
+      ar: "نشط",
+      en: "active",
+    },
     online: {
       ar: "متصل",
       en: "online",
@@ -435,10 +554,38 @@ export const translations = {
       ar: "انضم",
       en: "Join",
     },
-    post: {
-      ar: "نشر",
-      en: "Post",
+
+    // Post Feed
+    allPosts: {
+      ar: "كل المنشورات",
+      en: "All Posts",
     },
+    media: {
+      ar: "الوسائط",
+      en: "Media",
+    },
+    announcements: {
+      ar: "الإعلانات",
+      en: "Announcements",
+    },
+    noPostsToShow: {
+      ar: "لا توجد منشورات لعرضها",
+      en: "No posts to show",
+    },
+    loadMorePosts: {
+      ar: "تحميل المزيد من المنشورات",
+      en: "Load more posts",
+    },
+    loading: {
+      ar: "جاري التحميل...",
+      en: "Loading...",
+    },
+    tryAgain: {
+      ar: "حاول مرة أخرى",
+      en: "Try again",
+    },
+
+    // Post Actions
     like: {
       ar: "إعجاب",
       en: "Like",
@@ -450,6 +597,108 @@ export const translations = {
     share: {
       ar: "مشاركة",
       en: "Share",
+    },
+
+    // Stories Section
+    stories: {
+      ar: "القصص",
+      en: "Stories",
+    },
+    viewAll: {
+      ar: "عرض الكل",
+      en: "View all",
+    },
+    yourStory: {
+      ar: "قصتك",
+      en: "Your story",
+    },
+    addToStory: {
+      ar: "أضف إلى قصتك",
+      en: "Add to Your Story",
+    },
+    shareAMoment: {
+      ar: "شارك لحظة مع متابعيك",
+      en: "Share a moment with your followers",
+    },
+    photo: {
+      ar: "صورة",
+      en: "Photo",
+    },
+    video: {
+      ar: "فيديو",
+      en: "Video",
+    },
+    shareAnImage: {
+      ar: "شارك صورة",
+      en: "Share an image",
+    },
+    shareAVideo: {
+      ar: "شارك فيديو",
+      en: "Share a video",
+    },
+    change: {
+      ar: "تغيير",
+      en: "Change",
+    },
+    shareStory: {
+      ar: "مشاركة القصة",
+      en: "Share Story",
+    },
+    uploading: {
+      ar: "جاري الرفع...",
+      en: "Uploading...",
+    },
+
+    // Sidebar & Navigation
+    communities: {
+      ar: "المجتمعات",
+      en: "Communities",
+    },
+    articles: {
+      ar: "المقالات",
+      en: "Articles",
+    },
+    posts: {
+      ar: "المنشورات",
+      en: "Posts",
+    },
+    marketplaceManagement: {
+      ar: "إدارة المتجر",
+      en: "Marketplace Management",
+    },
+    myListings: {
+      ar: "قائمتي",
+      en: "My Listings",
+    },
+    sellerDashboard: {
+      ar: "لوحة البائع",
+      en: "Seller Dashboard",
+    },
+    orders: {
+      ar: "الطلبات",
+      en: "Orders",
+    },
+
+    // Navbar
+    helpAndSupport: {
+      ar: "المساعدة والدعم",
+      en: "Help & Support",
+    },
+    recentSearches: {
+      ar: "عمليات البحث الأخيرة",
+      en: "Recent searches",
+    },
+    switchToLightMode: {
+      ar: "التبديل إلى الوضع الفاتح",
+      en: "Switch to light mode",
+    },
+    switchToDarkMode: {
+      ar: "التبديل إلى الوضع الداكن",
+      en: "Switch to dark mode",
+    },
+    guest: {
+      ar: "زائر",
+      en: "Guest",
     },
   },
 
