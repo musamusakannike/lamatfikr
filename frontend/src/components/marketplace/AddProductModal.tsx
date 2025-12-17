@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const categories = [
 ];
 
 export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<ProductFormData>({
     title: "",
     description: "",
@@ -71,7 +73,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       if (file) {
         // Check if we can add more images
         if (formData.images.length >= 4) {
-          alert('Maximum 4 images allowed');
+          alert(t("marketplace", "maxImagesAllowed"));
           return;
         }
         
@@ -100,19 +102,19 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = "Product title is required";
+      newErrors.title = t("marketplace", "productTitleRequired");
     }
     if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
+      newErrors.description = t("marketplace", "descriptionRequired");
     }
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      newErrors.price = "Valid price is required";
+      newErrors.price = t("marketplace", "validPriceRequired");
     }
     if (!formData.category) {
-      newErrors.category = "Category is required";
+      newErrors.category = t("marketplace", "categoryRequired");
     }
     if (formData.images.length === 0) {
-      newErrors.images = "At least one image is required";
+      newErrors.images = t("marketplace", "atLeastOneImageRequired");
     }
 
     setErrors(newErrors);
@@ -147,13 +149,13 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Add New Product">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" title={t("marketplace", "addNewProduct")}>
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         {/* Images Section */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
             <ImageIcon size={16} className="inline mr-2" />
-            Product Images
+            {t("marketplace", "productImages")}
           </label>
           <div className="grid grid-cols-4 gap-3">
             {formData.images.map((image, index) => (
@@ -179,7 +181,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                 )}
               >
                 <Upload size={24} />
-                <span className="text-xs">Add Image</span>
+                <span className="text-xs">{t("marketplace", "addImage")}</span>
               </button>
             )}
           </div>
@@ -192,14 +194,14 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
             <Package size={16} className="inline mr-2" />
-            Product Title
+            {t("marketplace", "productTitle")}
           </label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleInputChange}
-            placeholder="Enter product title"
+            placeholder={t("marketplace", "enterProductTitle")}
             className={cn(
               "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
               "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
@@ -215,13 +217,13 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
             <FileText size={16} className="inline mr-2" />
-            Description
+            {t("marketplace", "productDescription")}
           </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="Describe your product..."
+            placeholder={t("marketplace", "describeYourProduct")}
             rows={4}
             className={cn(
               "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) resize-none",
@@ -239,7 +241,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           <div>
             <label className="block text-sm font-medium text-(--text) mb-2">
               <DollarSign size={16} className="inline mr-2" />
-              Price
+              {t("rooms", "price")}
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">$</span>
@@ -265,7 +267,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
 
           <div>
             <label className="block text-sm font-medium text-(--text) mb-2">
-              Original Price (Optional)
+              {t("marketplace", "originalPriceOptional")}
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">$</span>
@@ -287,7 +289,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
             <Tag size={16} className="inline mr-2" />
-            Category
+            {t("rooms", "category")}
           </label>
           <select
             name="category"
@@ -299,7 +301,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
               errors.category ? "border-red-500" : "border-(--border)"
             )}
           >
-            <option value="">Select a category</option>
+            <option value="">{t("marketplace", "selectCategoryPlaceholder")}</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
@@ -321,25 +323,25 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
             className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <label htmlFor="inStock" className="text-sm font-medium text-(--text)">
-            Product is in stock
+            {t("marketplace", "productIsInStock")}
           </label>
         </div>
 
         {/* Submit Buttons */}
         <div className="flex gap-3 pt-4 border-t border-(--border)">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancel
+            {t("common", "cancel")}
           </Button>
           <Button type="submit" variant="primary" className="flex-1" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
-                Adding...
+                {t("marketplace", "adding")}
               </>
             ) : (
               <>
                 <Plus size={18} className="mr-2" />
-                Add Product
+                {t("marketplace", "addProduct")}
               </>
             )}
           </Button>

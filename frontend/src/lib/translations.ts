@@ -148,6 +148,64 @@ export const translations = {
       en: "Privacy Policy",
     },
 
+    loginSuccess: {
+      ar: "تم تسجيل الدخول بنجاح!",
+      en: "Login successful!",
+    },
+
+    // Complete Profile
+    almostThere: {
+      ar: "أوشكت على الانتهاء!",
+      en: "Almost There!",
+    },
+    completeProfileDescription: {
+      ar: "باقي القليل لإكمال ملفك الشخصي.",
+      en: "Just a few more details to complete your profile.",
+    },
+    completeYourProfile: {
+      ar: "أكمل ملفك الشخصي",
+      en: "Complete Your Profile",
+    },
+    fillRemainingDetails: {
+      ar: "يرجى تعبئة البيانات المتبقية",
+      en: "Please fill in the remaining details",
+    },
+    usernameHint: {
+      ar: "يُسمح بالأحرف والأرقام والشرطة السفلية فقط",
+      en: "Only letters, numbers, and underscores allowed",
+    },
+    completing: {
+      ar: "جاري الإكمال...",
+      en: "Completing...",
+    },
+    profileCompleted: {
+      ar: "تم إكمال الملف الشخصي بنجاح!",
+      en: "Profile completed successfully!",
+    },
+
+    firstNamePlaceholder: {
+      ar: "محمد",
+      en: "John",
+    },
+    lastNamePlaceholder: {
+      ar: "أحمد",
+      en: "Doe",
+    },
+    usernamePlaceholder: {
+      ar: "mohammed_ahmed",
+      en: "johndoe",
+    },
+
+    emailPlaceholder: {
+      ar: "mohammed@example.com",
+      en: "john@example.com",
+    },
+
+    authBackgroundAlt: {
+      ar: "خلفية صفحة المصادقة",
+      en: "Authentication background",
+    },
+
     // Register
     joinLamatfikr: {
       ar: "انضم إلى لمات فكر",
@@ -228,6 +286,10 @@ export const translations = {
     createAccountAgreement: {
       ar: "بإنشاء حساب، أنت توافق على",
       en: "By creating an account, you agree to our",
+    },
+    registrationSuccess: {
+      ar: "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.",
+      en: "Registration successful! Please check your email to verify your account.",
     },
   },
 
@@ -656,6 +718,75 @@ export const translations = {
     addToCart: {
       ar: "أضف للسلة",
       en: "Add to Cart",
+    },
+
+    addNewProduct: {
+      ar: "إضافة منتج جديد",
+      en: "Add New Product",
+    },
+    productImages: {
+      ar: "صور المنتج",
+      en: "Product Images",
+    },
+    addImage: {
+      ar: "إضافة صورة",
+      en: "Add Image",
+    },
+    productTitle: {
+      ar: "عنوان المنتج",
+      en: "Product Title",
+    },
+    enterProductTitle: {
+      ar: "أدخل عنوان المنتج",
+      en: "Enter product title",
+    },
+    productDescription: {
+      ar: "الوصف",
+      en: "Description",
+    },
+    describeYourProduct: {
+      ar: "صف منتجك...",
+      en: "Describe your product...",
+    },
+    originalPriceOptional: {
+      ar: "السعر الأصلي (اختياري)",
+      en: "Original Price (Optional)",
+    },
+    selectCategoryPlaceholder: {
+      ar: "اختر فئة",
+      en: "Select a category",
+    },
+    productIsInStock: {
+      ar: "المنتج متوفر في المخزون",
+      en: "Product is in stock",
+    },
+    adding: {
+      ar: "جاري الإضافة...",
+      en: "Adding...",
+    },
+    maxImagesAllowed: {
+      ar: "الحد الأقصى 4 صور",
+      en: "Maximum 4 images allowed",
+    },
+    productTitleRequired: {
+      ar: "عنوان المنتج مطلوب",
+      en: "Product title is required",
+    },
+    descriptionRequired: {
+      ar: "الوصف مطلوب",
+      en: "Description is required",
+    },
+    validPriceRequired: {
+      ar: "يرجى إدخال سعر صحيح",
+      en: "Valid price is required",
+    },
+    categoryRequired: {
+      ar: "الفئة مطلوبة",
+      en: "Category is required",
+    },
+    atLeastOneImageRequired: {
+      ar: "يرجى إضافة صورة واحدة على الأقل",
+      en: "At least one image is required",
     },
   },
 
