@@ -251,6 +251,7 @@ Authorization: Bearer <token>
 ## Background Services
 
 ### Featured Room Expiration Service
+
 - **Location**: `src/services/featured-room.service.ts`
 - **Interval**: Every 60 minutes
 - **Function**: Automatically expires featured rooms past their end date
@@ -259,7 +260,8 @@ Authorization: Bearer <token>
 ## Environment Variables
 
 Required Tap Payments configuration:
-```
+
+```.env
 TAP_SECRET_KEY=sk_test_xxx
 TAP_PUBLIC_KEY=pk_test_xxx
 FRONTEND_URL=http://localhost:3000
