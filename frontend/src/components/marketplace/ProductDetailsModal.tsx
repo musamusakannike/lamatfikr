@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
+import { ProductReviews } from "./ProductReviews";
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -87,30 +88,6 @@ export function ProductDetailsModal({
   };
 
   if (!product) return null;
-
-  const dummyReviews = [
-    {
-      id: "1",
-      user: { name: "Sarah Ahmed", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
-      rating: 5,
-      date: "2 days ago",
-      comment: "Excellent product! Exactly as described. Fast shipping and great quality.",
-    },
-    {
-      id: "2",
-      user: { name: "Mohammed Ali", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
-      rating: 4,
-      date: "1 week ago",
-      comment: "Good quality for the price. Would recommend to others.",
-    },
-    {
-      id: "3",
-      user: { name: "Fatima Hassan", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" },
-      rating: 5,
-      date: "2 weeks ago",
-      comment: "Love it! Will definitely buy again. The seller was very helpful.",
-    },
-  ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" title="">
@@ -368,37 +345,7 @@ export function ProductDetailsModal({
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {dummyReviews.map((review) => (
-                  <div key={review.id} className="flex gap-4 p-4 rounded-lg bg-primary-50/50 dark:bg-primary-900/10">
-                    <img
-                      src={review.user.avatar}
-                      alt={review.user.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-(--text)">{review.user.name}</span>
-                        <span className="text-xs text-(--text-muted)">{review.date}</span>
-                      </div>
-                      <div className="flex items-center mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            className={cn(
-                              i < review.rating
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-(--text-muted) mt-2">{review.comment}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ProductReviews productId={product._id} productTitle={product.title} />
             )}
           </div>
         </div>
