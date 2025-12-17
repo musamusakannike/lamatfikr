@@ -403,6 +403,10 @@ export const translations = {
       ar: "الرسائل",
       en: "Messages",
     },
+    wallet: {
+      ar: "المحفظة",
+      en: "Wallet",
+    },
   },
 
   // Home Page
