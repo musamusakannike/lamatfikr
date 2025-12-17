@@ -41,7 +41,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const { username } = use(params);
     const router = useRouter();
     const { user: currentUser, isAuthenticated } = useAuth();
-    const { isRTL } = useLanguage();
+    const { isRTL, t } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [profile, setProfile] = useState<PublicProfile | null>(null);
@@ -226,7 +226,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                         className="gap-2"
                     >
                         <ArrowLeft size={16} />
-                        Back
+                        {t("userProfile", "back")}
                     </Button>
 
                     {/* Profile Card */}
@@ -253,7 +253,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                     onClick={() => router.push("/")}
                                     className="mt-4"
                                 >
-                                    Go Home
+                                    {t("userProfile", "goHome")}
                                 </Button>
                             </CardContent>
                         </Card>
@@ -332,12 +332,12 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                         ) : isFollowing ? (
                                                             <>
                                                                 <UserCheck size={16} />
-                                                                Following
+                                                                {t("userProfile", "following")}
                                                             </>
                                                         ) : (
                                                             <>
                                                                 <UserPlus size={16} />
-                                                                Follow
+                                                                {t("userProfile", "follow")}
                                                             </>
                                                         )}
                                                     </Button>
@@ -353,7 +353,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                         ) : (
                                                             <MessageCircle size={16} />
                                                         )}
-                                                        Message
+                                                        {t("userProfile", "message")}
                                                     </Button>
                                                 </>
                                             )}
@@ -373,11 +373,11 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                 <div className="flex items-center gap-6 mt-4">
                                     <div>
                                         <span className="font-bold">{followersCount.toLocaleString()}</span>
-                                        <span className="text-(--text-muted) ml-1">Followers</span>
+                                        <span className="text-(--text-muted) ml-1">{t("userProfile", "followers")}</span>
                                     </div>
                                     <div>
                                         <span className="font-bold">{followingCount.toLocaleString()}</span>
-                                        <span className="text-(--text-muted) ml-1">Following</span>
+                                        <span className="text-(--text-muted) ml-1">{t("userProfile", "followingCount")}</span>
                                     </div>
                                 </div>
 
@@ -392,13 +392,13 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                     {profile.workingAt && (
                                         <div className="flex items-center gap-2 text-sm text-(--text-muted)">
                                             <Briefcase size={16} className="text-primary-500" />
-                                            <span>Works at {profile.workingAt}</span>
+                                            <span>{t("userProfile", "worksAt")} {profile.workingAt}</span>
                                         </div>
                                     )}
                                     {profile.school && (
                                         <div className="flex items-center gap-2 text-sm text-(--text-muted)">
                                             <GraduationCap size={16} className="text-primary-500" />
-                                            <span>Studied at {profile.school}</span>
+                                            <span>{t("userProfile", "studiedAt")} {profile.school}</span>
                                         </div>
                                     )}
                                     {profile.website && (
@@ -417,7 +417,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                     {profile.birthday && (
                                         <div className="flex items-center gap-2 text-sm text-(--text-muted)">
                                             <Calendar size={16} className="text-primary-500" />
-                                            <span>Born on {formatDate(profile.birthday)}</span>
+                                            <span>{t("userProfile", "bornOn")} {formatDate(profile.birthday)}</span>
                                         </div>
                                     )}
                                     {profile.relationshipStatus && (
@@ -431,7 +431,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                 {/* Joined date */}
                                 {profile.createdAt && (
                                     <p className="mt-4 text-sm text-(--text-muted)">
-                                        Joined {formatJoinedDate(profile.createdAt)}
+                                        {t("userProfile", "joined")} {formatJoinedDate(profile.createdAt)}
                                     </p>
                                 )}
                             </CardContent>
@@ -441,7 +441,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                     {/* Posts Section */}
                     {profile && (
                         <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Posts</h2>
+                            <h2 className="text-lg font-semibold">{t("userProfile", "posts")}</h2>
 
                             {isLoadingPosts && posts.length === 0 ? (
                                 <div className="flex justify-center py-8">
@@ -468,7 +468,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                     Loading...
                                                 </>
                                             ) : (
-                                                "Load more posts"
+                                                t("userProfile", "loadMorePosts")
                                             )}
                                         </Button>
                                     )}
@@ -476,7 +476,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                             ) : (
                                 <Card>
                                     <CardContent className="p-8 text-center">
-                                        <p className="text-(--text-muted)">No posts yet</p>
+                                        <p className="text-(--text-muted)">{t("userProfile", "noPostsYet")}</p>
                                     </CardContent>
                                 </Card>
                             )}

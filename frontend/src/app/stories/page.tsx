@@ -396,16 +396,16 @@ export default function StoriesPage() {
                   <ImageIcon size={32} className="text-(--text-muted)" />
                 )}
               </div>
-              <h3 className="text-lg font-medium text-(--text) mb-2">No stories found</h3>
+              <h3 className="text-lg font-medium text-(--text) mb-2">{t("stories", "noStoriesFound")}</h3>
               <p className="text-(--text-muted)">
-                There are no {filter === "videos" ? "video" : "photo"} stories to show right now.
+                {filter === "videos" ? t("stories", "noVideoStories") : t("stories", "noPhotoStories")}
               </p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => setFilter("all")}
               >
-                View all stories
+                {t("stories", "viewAllStories")}
               </Button>
             </div>
           )}

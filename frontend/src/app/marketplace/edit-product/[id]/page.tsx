@@ -48,7 +48,7 @@ const categories = [
 
 export default function EditProductPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -84,7 +84,7 @@ export default function EditProductPage() {
 
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated && !productId) {
-      toast.error("Invalid product ID");
+      toast.error(t("editProduct", "invalidProductId"));
       router.push("/marketplace/my-listings");
     }
   }, [isAuthLoading, isAuthenticated, productId, router]);
@@ -107,7 +107,7 @@ export default function EditProductPage() {
       });
     } catch (error) {
       console.error("Failed to load product:", error);
-      toast.error("Failed to load product");
+      toast.error(t("editProduct", "failedToLoad"));
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +140,7 @@ export default function EditProductPage() {
       if (!file) return;
 
       if (formData.images.length >= 4) {
-        alert("Maximum 4 images allowed");
+        alert(t("editProduct", "maxImages"));
         return;
       }
 
@@ -168,13 +168,13 @@ export default function EditProductPage() {
   const validateForm = () => {
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
 
-    if (!formData.title.trim()) newErrors.title = "Product title is required";
-    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.title.trim()) newErrors.title = t("editProduct", "titleRequired");
+    if (!formData.description.trim()) newErrors.description = t("editProduct", "descriptionRequired");
     if (!formData.price || Number.isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) {
-      newErrors.price = "Valid price is required";
+      newErrors.price = t("editProduct", "validPriceRequired");
     }
-    if (!formData.category) newErrors.category = "Category is required";
-    if (formData.images.length === 0) newErrors.images = "At least one image is required";
+    if (!formData.category) newErrors.category = t("editProduct", "categoryRequired");
+    if (formData.images.length === 0) newErrors.images = t("editProduct", "imageRequired");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -198,11 +198,11 @@ export default function EditProductPage() {
         quantity: formData.inStock ? 1 : 0,
       });
 
-      toast.success("Product updated successfully");
+      toast.success(t("editProduct", "productUpdated"));
       router.push("/marketplace/my-listings");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to update product");
+      toast.error(err.response?.data?.message || t("editProduct", "failedToUpdate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -217,12 +217,12 @@ export default function EditProductPage() {
         <div className="max-w-4xl mx-auto p-4 space-y-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">Edit Product</h1>
-              <p className="text-(--text-muted)">Update your listing details</p>
+              <h1 className="text-2xl font-bold text-(--text)">{t("editProduct", "title")}</h1>
+              <p className="text-(--text-muted)">{t("editProduct", "updateListing")}</p>
             </div>
             <Button variant="outline" onClick={() => router.back()}>
               <ArrowLeft size={18} className={isRTL ? "ml-2" : "mr-2"} />
-              Back
+              {t("editProduct", "back")}
             </Button>
           </div>
 
@@ -230,16 +230,16 @@ export default function EditProductPage() {
             {isLoading ? (
               <div className="p-10 flex items-center justify-center gap-3 text-(--text-muted)">
                 <Loader2 className="animate-spin" size={20} />
-                Loading product...
+                {t("editProduct", "loadingProduct")}
               </div>
             ) : !product ? (
-              <div className="p-10 text-center text-(--text-muted)">Product not found.</div>
+              <div className="p-10 text-center text-(--text-muted)">{t("editProduct", "productNotFound")}</div>
             ) : (
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-2">
                     <ImageIcon size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
-                    Product Images
+                    {t("editProduct", "productImages")}
                   </label>
                   <div className="grid grid-cols-4 gap-3">
                     {formData.images.map((image, index) => (
@@ -272,7 +272,7 @@ export default function EditProductPage() {
                         )}
                       >
                         <Upload size={24} />
-                        <span className="text-xs">Add Image</span>
+                        <span className="text-xs">{t("editProduct", "addImage")}</span>
                       </button>
                     )}
                   </div>
@@ -282,14 +282,14 @@ export default function EditProductPage() {
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-2">
                     <Package size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
-                    Product Title
+                    {t("editProduct", "productTitle")}
                   </label>
                   <input
                     type="text"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    placeholder="Enter product title"
+                    placeholder={t("editProduct", "enterProductTitle")}
                     className={cn(
                       "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
                       "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
@@ -302,13 +302,13 @@ export default function EditProductPage() {
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-2">
                     <FileText size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
-                    Description
+                    {t("editProduct", "description")}
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Describe your product..."
+                    placeholder={t("editProduct", "describeProduct")}
                     rows={4}
                     className={cn(
                       "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) resize-none",
@@ -325,7 +325,7 @@ export default function EditProductPage() {
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-2">
                       <DollarSign size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
-                      Price
+                      {t("editProduct", "price")}
                     </label>
                     <div className="relative">
                       <span
@@ -357,7 +357,7 @@ export default function EditProductPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-(--text) mb-2">
-                      Original Price (Optional)
+                      {t("editProduct", "originalPriceOptional")}
                     </label>
                     <div className="relative">
                       <span
@@ -389,7 +389,7 @@ export default function EditProductPage() {
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-2">
                     <Tag size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
-                    Category
+                    {t("editProduct", "category")}
                   </label>
                   <select
                     name="category"
@@ -401,7 +401,7 @@ export default function EditProductPage() {
                       errors.category ? "border-red-500" : "border-(--border)"
                     )}
                   >
-                    <option value="">Select a category</option>
+                    <option value="">{t("editProduct", "selectCategory")}</option>
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
@@ -420,7 +420,7 @@ export default function EditProductPage() {
                     className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <label htmlFor="inStock" className="text-sm font-medium text-(--text)">
-                    Product is in stock
+                    {t("editProduct", "productInStock")}
                   </label>
                 </div>
 
@@ -432,18 +432,18 @@ export default function EditProductPage() {
                     className="flex-1"
                     disabled={isSubmitting}
                   >
-                    Cancel
+                    {t("common", "cancel")}
                   </Button>
                   <Button type="submit" variant="primary" className="flex-1" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <>
                         <Loader2 className={cn("animate-spin", isRTL ? "ml-2" : "mr-2")} size={18} />
-                        Saving...
+                        {t("editProduct", "saving")}
                       </>
                     ) : (
                       <>
                         <Save size={18} className={isRTL ? "ml-2" : "mr-2"} />
-                        Save Changes
+                        {t("editProduct", "saveChanges")}
                       </>
                     )}
                   </Button>

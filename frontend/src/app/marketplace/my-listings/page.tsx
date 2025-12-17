@@ -35,24 +35,24 @@ import { AddProductModal, ProductFormData as AddProductFormData } from "@/compon
 
 type ProductStatus = "active" | "sold" | "reserved" | "inactive";
 
-const STATUS_CONFIG: Record<ProductStatus, { label: string; color: string }> = {
-  active: { label: "Active", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  sold: { label: "Sold", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-  reserved: { label: "Reserved", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  inactive: { label: "Inactive", color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400" },
-};
+const getStatusConfig = (t: (section: string, key: string) => string): Record<ProductStatus, { label: string; color: string }> => ({
+  active: { label: t("myListings", "active"), color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
+  sold: { label: t("myListings", "sold"), color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
+  reserved: { label: t("myListings", "reserved"), color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  inactive: { label: t("myListings", "inactive"), color: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400" },
+});
 
-const STATUS_FILTERS: { value: string; label: string }[] = [
-  { value: "", label: "All Products" },
-  { value: "active", label: "Active" },
-  { value: "sold", label: "Sold" },
-  { value: "reserved", label: "Reserved" },
-  { value: "inactive", label: "Inactive" },
+const getStatusFilters = (t: (section: string, key: string) => string): { value: string; label: string }[] => [
+  { value: "", label: t("myListings", "allProducts") },
+  { value: "active", label: t("myListings", "active") },
+  { value: "sold", label: t("myListings", "sold") },
+  { value: "reserved", label: t("myListings", "reserved") },
+  { value: "inactive", label: t("myListings", "inactive") },
 ];
 
 export default function MyListingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
@@ -83,7 +83,7 @@ export default function MyListingsPage() {
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error("Failed to fetch products:", error);
-      toast.error("Failed to load products");
+      toast.error(t("myListings", "failedToLoad"));
     } finally {
       setIsLoading(false);
     }
@@ -122,12 +122,12 @@ export default function MyListingsPage() {
     setDeletingProduct(productId);
     try {
       await marketplaceApi.deleteProduct(productId);
-      toast.success("Product deleted successfully");
+      toast.success(t("myListings", "productDeleted"));
       fetchProducts();
       fetchStats();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to delete product");
+      toast.error(err.response?.data?.message || t("myListings", "failedToDelete"));
     } finally {
       setDeletingProduct(null);
       setActiveMenu(null);
@@ -138,11 +138,11 @@ export default function MyListingsPage() {
     const newStatus = product.status === "active" ? "inactive" : "active";
     try {
       await marketplaceApi.updateProduct(product._id, { status: newStatus } as never);
-      toast.success(`Product ${newStatus === "active" ? "activated" : "deactivated"}`);
+      toast.success(newStatus === "active" ? t("myListings", "productActivated") : t("myListings", "productDeactivated"));
       fetchProducts();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to update product");
+      toast.error(err.response?.data?.message || t("myListings", "failedToUpdate"));
     }
     setActiveMenu(null);
   };
@@ -158,12 +158,12 @@ export default function MyListingsPage() {
         category: formData.category,
         quantity: formData.inStock ? 1 : 0,
       });
-      toast.success("Product created successfully");
+      toast.success(t("myListings", "productCreated"));
       fetchProducts();
       fetchStats();
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      toast.error(err.response?.data?.message || "Failed to create product");
+      toast.error(err.response?.data?.message || t("myListings", "failedToCreate"));
     }
   };
 
@@ -197,14 +197,14 @@ export default function MyListingsPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-(--text)">My Listings</h1>
+              <h1 className="text-2xl font-bold text-(--text)">{t("myListings", "title")}</h1>
               <p className="text-(--text-muted)">
-                Manage your products and track performance
+                {t("myListings", "manageProducts")}
               </p>
             </div>
             <Button variant="primary" onClick={() => setShowAddProduct(true)}>
               <Plus size={18} className="mr-2" />
-              Add New Product
+              {t("myListings", "addNewProduct")}
             </Button>
           </div>
 
@@ -216,7 +216,7 @@ export default function MyListingsPage() {
                   <Package size={20} className="text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-(--text-muted)">Total Products</p>
+                  <p className="text-sm text-(--text-muted)">{t("myListings", "totalProducts")}</p>
                   <p className="text-xl font-bold text-(--text)">
                     {isLoadingStats ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -234,7 +234,7 @@ export default function MyListingsPage() {
                   <TrendingUp size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-(--text-muted)">Active</p>
+                  <p className="text-sm text-(--text-muted)">{t("myListings", "active")}</p>
                   <p className="text-xl font-bold text-(--text)">
                     {isLoadingStats ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -252,7 +252,7 @@ export default function MyListingsPage() {
                   <ShoppingBag size={20} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-(--text-muted)">Sold</p>
+                  <p className="text-sm text-(--text-muted)">{t("myListings", "sold")}</p>
                   <p className="text-xl font-bold text-(--text)">
                     {isLoadingStats ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -270,7 +270,7 @@ export default function MyListingsPage() {
                   <DollarSign size={20} className="text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-(--text-muted)">Revenue</p>
+                  <p className="text-sm text-(--text-muted)">{t("myListings", "revenue")}</p>
                   <p className="text-xl font-bold text-(--text)">
                     {isLoadingStats ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -292,7 +292,7 @@ export default function MyListingsPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search your products..."
+                  placeholder={t("myListings", "searchProducts")}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -303,19 +303,19 @@ export default function MyListingsPage() {
                 className={cn(showFilters && "bg-primary-50 dark:bg-primary-900/20")}
               >
                 <Filter size={18} className="mr-2" />
-                Filters
+                {t("myListings", "filters")}
               </Button>
 
               <Button variant="outline" onClick={() => { fetchProducts(); fetchStats(); }} disabled={isLoading}>
                 <RefreshCw size={18} className={cn("mr-2", isLoading && "animate-spin")} />
-                Refresh
+                {t("myListings", "refresh")}
               </Button>
             </div>
 
             {showFilters && (
               <div className="mt-4 pt-4 border-t border-(--border)">
                 <div className="flex flex-wrap gap-2">
-                  {STATUS_FILTERS.map((filter) => (
+                  {getStatusFilters(t).map((filter) => (
                     <button
                       key={filter.value}
                       onClick={() => setStatusFilter(filter.value)}
@@ -345,16 +345,16 @@ export default function MyListingsPage() {
                 <Package size={40} className="text-primary-400" />
               </div>
               <h2 className="text-xl font-semibold text-(--text) mb-2">
-                No products found
+                {t("myListings", "noProductsFound")}
               </h2>
               <p className="text-(--text-muted) mb-6">
                 {statusFilter
-                  ? "No products match the selected filter."
-                  : "You haven't listed any products yet."}
+                  ? t("myListings", "noProductsMatchFilter")
+                  : t("myListings", "noProductsListed")}
               </p>
               <Button variant="primary" onClick={() => setShowAddProduct(true)}>
                 <Plus size={18} className="mr-2" />
-                Add Your First Product
+                {t("myListings", "addFirstProduct")}
               </Button>
             </Card>
           ) : (
@@ -372,10 +372,10 @@ export default function MyListingsPage() {
                       <Badge
                         className={cn(
                           "absolute top-2 left-2",
-                          STATUS_CONFIG[product.status as ProductStatus]?.color
+                          getStatusConfig(t)[product.status as ProductStatus]?.color
                         )}
                       >
-                        {STATUS_CONFIG[product.status as ProductStatus]?.label}
+                        {getStatusConfig(t)[product.status as ProductStatus]?.label}
                       </Badge>
 
                       {/* Actions Menu */}
@@ -394,7 +394,7 @@ export default function MyListingsPage() {
                               className="flex items-center gap-2 px-3 py-2 text-sm text-(--text) hover:bg-gray-100 dark:hover:bg-gray-800"
                             >
                               <Edit size={14} />
-                              Edit
+                              {t("myListings", "edit")}
                             </Link>
                             <button
                               onClick={() => handleToggleStatus(product)}
@@ -403,12 +403,12 @@ export default function MyListingsPage() {
                               {product.status === "active" ? (
                                 <>
                                   <EyeOff size={14} />
-                                  Deactivate
+                                  {t("myListings", "deactivate")}
                                 </>
                               ) : (
                                 <>
                                   <Eye size={14} />
-                                  Activate
+                                  {t("myListings", "activate")}
                                 </>
                               )}
                             </button>
@@ -422,7 +422,7 @@ export default function MyListingsPage() {
                               ) : (
                                 <Trash2 size={14} />
                               )}
-                              Delete
+                              {t("myListings", "delete")}
                             </button>
                           </div>
                         )}
@@ -457,7 +457,7 @@ export default function MyListingsPage() {
                       {/* Stock */}
                       <div className="mt-3 pt-3 border-t border-(--border)">
                         <p className="text-sm text-(--text-muted)">
-                          Stock: <span className="font-medium text-(--text)">{product.quantity}</span>
+                          {t("myListings", "stock")}: <span className="font-medium text-(--text)">{product.quantity}</span>
                         </p>
                       </div>
                     </div>
@@ -474,10 +474,10 @@ export default function MyListingsPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
                   >
-                    Previous
+                    {t("myListings", "previous")}
                   </Button>
                   <span className="px-4 py-2 text-sm text-(--text-muted)">
-                    Page {page} of {totalPages}
+                    {t("myListings", "pageOf").replace("{page}", String(page)).replace("{total}", String(totalPages))}
                   </span>
                   <Button
                     variant="outline"
@@ -485,7 +485,7 @@ export default function MyListingsPage() {
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
                   >
-                    Next
+                    {t("myListings", "next")}
                   </Button>
                 </div>
               )}
@@ -500,15 +500,15 @@ export default function MyListingsPage() {
                   <BarChart3 size={24} className="text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-(--text)">View Detailed Analytics</h3>
+                  <h3 className="font-semibold text-(--text)">{t("myListings", "viewDetailedAnalytics")}</h3>
                   <p className="text-sm text-(--text-muted)">
-                    See comprehensive stats about your sales and performance
+                    {t("myListings", "comprehensiveStats")}
                   </p>
                 </div>
               </div>
               <Link href="/marketplace/seller-dashboard">
                 <Button variant="outline">
-                  View Dashboard
+                  {t("myListings", "viewDashboard")}
                 </Button>
               </Link>
             </div>

@@ -23,7 +23,7 @@ export default function MessagesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
-    const { isRTL } = useLanguage();
+    const { isRTL, t } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -123,7 +123,7 @@ export default function MessagesPage() {
                     >
                         {/* Header */}
                         <div className="p-4 border-b border-(--border)">
-                            <h1 className="text-xl font-bold mb-4">Messages</h1>
+                            <h1 className="text-xl font-bold mb-4">{t("messages", "title")}</h1>
                             <div className="relative">
                                 <Search
                                     size={18}
@@ -131,7 +131,7 @@ export default function MessagesPage() {
                                 />
                                 <input
                                     type="text"
-                                    placeholder="Search conversations..."
+                                    placeholder={t("messages", "searchConversations")}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className={cn(
@@ -163,10 +163,10 @@ export default function MessagesPage() {
                                 <div className="p-8 text-center">
                                     <MessageCircle size={48} className="mx-auto text-(--text-muted) mb-4" />
                                     <p className="text-(--text-muted)">
-                                        {searchQuery ? "No conversations found" : "No messages yet"}
+                                        {searchQuery ? t("messages", "noConversationsFound") : t("messages", "noMessagesYet")}
                                     </p>
                                     <p className="text-sm text-(--text-muted) mt-2">
-                                        Start a conversation by visiting someone&apos;s profile
+                                        {t("messages", "startConversationHint")}
                                     </p>
                                 </div>
                             )}
@@ -191,9 +191,9 @@ export default function MessagesPage() {
                             <div className="flex-1 flex items-center justify-center">
                                 <div className="text-center">
                                     <MessageCircle size={64} className="mx-auto text-(--text-muted) mb-4" />
-                                    <h2 className="text-xl font-semibold mb-2">Your Messages</h2>
+                                    <h2 className="text-xl font-semibold mb-2">{t("messages", "yourMessages")}</h2>
                                     <p className="text-(--text-muted)">
-                                        Select a conversation to start messaging
+                                        {t("messages", "selectConversation")}
                                     </p>
                                 </div>
                             </div>

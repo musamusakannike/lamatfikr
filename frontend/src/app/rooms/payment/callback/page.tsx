@@ -6,10 +6,12 @@ import { roomsApi } from "@/lib/api/rooms";
 import { getErrorMessage } from "@/lib/api";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function PaymentCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -20,7 +22,7 @@ function PaymentCallbackContent() {
 
       if (!roomId || !tapId) {
         setStatus("error");
-        setMessage("Missing payment information. Please try again.");
+        setMessage(t("payment", "missingPaymentInfo"));
         return;
       }
 
@@ -43,8 +45,8 @@ function PaymentCallbackContent() {
         {status === "loading" && (
           <>
             <Loader2 size={64} className="animate-spin text-primary-600 mx-auto mb-6" />
-            <h1 className="text-2xl font-bold text-(--text) mb-2">Verifying Payment</h1>
-            <p className="text-(--text-muted)">Please wait while we confirm your payment...</p>
+            <h1 className="text-2xl font-bold text-(--text) mb-2">{t("payment", "verifyingPayment")}</h1>
+            <p className="text-(--text-muted)">{t("payment", "pleaseWait")}</p>
           </>
         )}
 
@@ -53,10 +55,10 @@ function PaymentCallbackContent() {
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <CheckCircle size={48} className="text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-(--text) mb-2">Payment Successful!</h1>
+            <h1 className="text-2xl font-bold text-(--text) mb-2">{t("payment", "paymentSuccessful")}</h1>
             <p className="text-(--text-muted) mb-6">{message}</p>
             <Button variant="primary" className="w-full" onClick={() => router.push("/rooms")}>
-              Go to Rooms
+              {t("payment", "goToRooms")}
             </Button>
           </>
         )}
@@ -66,14 +68,14 @@ function PaymentCallbackContent() {
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <XCircle size={48} className="text-red-600" />
             </div>
-            <h1 className="text-2xl font-bold text-(--text) mb-2">Payment Failed</h1>
+            <h1 className="text-2xl font-bold text-(--text) mb-2">{t("payment", "paymentFailed")}</h1>
             <p className="text-(--text-muted) mb-6">{message}</p>
             <div className="space-y-3">
               <Button variant="primary" className="w-full" onClick={() => router.push("/rooms")}>
-                Back to Rooms
+                {t("payment", "backToRooms")}
               </Button>
               <Button variant="outline" className="w-full" onClick={() => router.back()}>
-                Try Again
+                {t("payment", "tryAgain")}
               </Button>
             </div>
           </>

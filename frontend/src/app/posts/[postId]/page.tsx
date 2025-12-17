@@ -15,7 +15,7 @@ export default function PostDetailPage() {
   const postId = params?.postId;
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
 
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,13 +49,13 @@ export default function PostDetailPage() {
           {isLoading ? (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-(--text-muted)">Loading...</p>
+                <p className="text-sm text-(--text-muted)">{t("posts", "loading")}</p>
               </CardContent>
             </Card>
           ) : error ? (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-600">{error || t("posts", "failedToLoad")}</p>
               </CardContent>
             </Card>
           ) : post ? (
@@ -63,7 +63,7 @@ export default function PostDetailPage() {
           ) : (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-(--text-muted)">Post not found.</p>
+                <p className="text-sm text-(--text-muted)">{t("posts", "postNotFound")}</p>
               </CardContent>
             </Card>
           )}

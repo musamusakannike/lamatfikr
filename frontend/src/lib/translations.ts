@@ -1067,6 +1067,38 @@ export const translations = {
       ar: "صفحة {page} من {total}",
       en: "Page {page} of {total}",
     },
+    manage: {
+      ar: "إدارة",
+      en: "Manage",
+    },
+    sortFeatured: {
+      ar: "مميز",
+      en: "Featured",
+    },
+    sortNewest: {
+      ar: "الأحدث",
+      en: "Newest",
+    },
+    sortPriceLow: {
+      ar: "السعر: من الأقل للأعلى",
+      en: "Price: Low to High",
+    },
+    sortPriceHigh: {
+      ar: "السعر: من الأعلى للأقل",
+      en: "Price: High to Low",
+    },
+    sortTopRated: {
+      ar: "الأعلى تقييماً",
+      en: "Top Rated",
+    },
+    productsCount: {
+      ar: "منتجات",
+      en: "products",
+    },
+    tryAdjustingSearch: {
+      ar: "حاول تعديل البحث أو الفلتر للعثور على ما تبحث عنه.",
+      en: "Try adjusting your search or filter to find what you're looking for.",
+    },
     failedToLoadOrders: {
       ar: "فشل تحميل الطلبات",
       en: "Failed to load orders",
@@ -1684,6 +1716,702 @@ export const translations = {
     english: {
       ar: "الإنجليزية",
       en: "English",
+    },
+  },
+
+  // Messages Page
+  messages: {
+    title: {
+      ar: "الرسائل",
+      en: "Messages",
+    },
+    searchConversations: {
+      ar: "البحث في المحادثات...",
+      en: "Search conversations...",
+    },
+    noConversationsFound: {
+      ar: "لم يتم العثور على محادثات",
+      en: "No conversations found",
+    },
+    noMessagesYet: {
+      ar: "لا توجد رسائل بعد",
+      en: "No messages yet",
+    },
+    startConversationHint: {
+      ar: "ابدأ محادثة بزيارة صفحة شخص ما",
+      en: "Start a conversation by visiting someone's profile",
+    },
+    yourMessages: {
+      ar: "رسائلك",
+      en: "Your Messages",
+    },
+    selectConversation: {
+      ar: "اختر محادثة لبدء المراسلة",
+      en: "Select a conversation to start messaging",
+    },
+  },
+
+  // Notifications Page
+  notifications: {
+    title: {
+      ar: "الإشعارات",
+      en: "Notifications",
+    },
+    markAllAsRead: {
+      ar: "تحديد الكل كمقروء",
+      en: "Mark all as read",
+    },
+    pleaseLogin: {
+      ar: "يرجى تسجيل الدخول لعرض الإشعارات.",
+      en: "Please log in to view notifications.",
+    },
+    noNotificationsYet: {
+      ar: "لا توجد إشعارات بعد.",
+      en: "No notifications yet.",
+    },
+    likedContent: {
+      ar: "أعجب بمحتواك",
+      en: "liked your content",
+    },
+    commented: {
+      ar: "علّق",
+      en: "commented",
+    },
+    startedFollowing: {
+      ar: "بدأ بمتابعتك",
+      en: "started following you",
+    },
+    mentionedYou: {
+      ar: "أشار إليك",
+      en: "mentioned you",
+    },
+    sentFriendRequest: {
+      ar: "أرسل لك طلب صداقة",
+      en: "sent you a friend request",
+    },
+    acceptedFriendRequest: {
+      ar: "قبل طلب صداقتك",
+      en: "accepted your friend request",
+    },
+    newNotification: {
+      ar: "لديك إشعار جديد",
+      en: "You have a new notification",
+    },
+    prev: {
+      ar: "السابق",
+      en: "Prev",
+    },
+    next: {
+      ar: "التالي",
+      en: "Next",
+    },
+    page: {
+      ar: "صفحة",
+      en: "Page",
+    },
+  },
+
+  // Posts Page
+  posts: {
+    loading: {
+      ar: "جاري التحميل...",
+      en: "Loading...",
+    },
+    failedToLoad: {
+      ar: "فشل تحميل المنشور",
+      en: "Failed to load post",
+    },
+    postNotFound: {
+      ar: "المنشور غير موجود.",
+      en: "Post not found.",
+    },
+  },
+
+  // User Profile Page
+  userProfile: {
+    back: {
+      ar: "رجوع",
+      en: "Back",
+    },
+    following: {
+      ar: "متابَع",
+      en: "Following",
+    },
+    follow: {
+      ar: "متابعة",
+      en: "Follow",
+    },
+    message: {
+      ar: "رسالة",
+      en: "Message",
+    },
+    followers: {
+      ar: "متابعون",
+      en: "Followers",
+    },
+    followingCount: {
+      ar: "يتابع",
+      en: "Following",
+    },
+    posts: {
+      ar: "المنشورات",
+      en: "Posts",
+    },
+    noPostsYet: {
+      ar: "لا توجد منشورات بعد",
+      en: "No posts yet",
+    },
+    loadMorePosts: {
+      ar: "تحميل المزيد من المنشورات",
+      en: "Load more posts",
+    },
+    worksAt: {
+      ar: "يعمل في",
+      en: "Works at",
+    },
+    studiedAt: {
+      ar: "درس في",
+      en: "Studied at",
+    },
+    bornOn: {
+      ar: "ولد في",
+      en: "Born on",
+    },
+    joined: {
+      ar: "انضم",
+      en: "Joined",
+    },
+    goHome: {
+      ar: "الذهاب للرئيسية",
+      en: "Go Home",
+    },
+  },
+
+  // Communities Page
+  communities: {
+    title: {
+      ar: "المجتمعات",
+      en: "Communities",
+    },
+    createCommunity: {
+      ar: "إنشاء مجتمع",
+      en: "Create Community",
+    },
+    searchCommunities: {
+      ar: "البحث في المجتمعات...",
+      en: "Search communities...",
+    },
+    communityImage: {
+      ar: "صورة المجتمع",
+      en: "Community Image",
+    },
+    uploadImage: {
+      ar: "رفع صورة",
+      en: "Upload Image",
+    },
+    changeImage: {
+      ar: "تغيير الصورة",
+      en: "Change Image",
+    },
+    recommended: {
+      ar: "الموصى به: 300x200 بكسل",
+      en: "Recommended: 300x200px",
+    },
+    communityName: {
+      ar: "اسم المجتمع",
+      en: "Community Name",
+    },
+    enterCommunityName: {
+      ar: "أدخل اسم المجتمع",
+      en: "Enter community name",
+    },
+    description: {
+      ar: "الوصف",
+      en: "Description",
+    },
+    describeCommunity: {
+      ar: "صف موضوع مجتمعك",
+      en: "Describe what your community is about",
+    },
+    category: {
+      ar: "الفئة",
+      en: "Category",
+    },
+    selectCategory: {
+      ar: "اختر فئة",
+      en: "Select a category",
+    },
+    createNewCommunity: {
+      ar: "إنشاء مجتمع جديد",
+      en: "Create New Community",
+    },
+    editCommunity: {
+      ar: "تعديل المجتمع",
+      en: "Edit Community",
+    },
+    saveChanges: {
+      ar: "حفظ التغييرات",
+      en: "Save Changes",
+    },
+    members: {
+      ar: "الأعضاء",
+      en: "Members",
+    },
+    unread: {
+      ar: "غير مقروء",
+      en: "Unread",
+    },
+    yourRole: {
+      ar: "دورك",
+      en: "Your Role",
+    },
+    owner: {
+      ar: "مالك",
+      en: "Owner",
+    },
+    admin: {
+      ar: "مشرف",
+      en: "Admin",
+    },
+    member: {
+      ar: "عضو",
+      en: "Member",
+    },
+    openChat: {
+      ar: "فتح المحادثة",
+      en: "Open Chat",
+    },
+    joinCommunity: {
+      ar: "انضم للمجتمع",
+      en: "Join Community",
+    },
+    leaveCommunity: {
+      ar: "مغادرة المجتمع",
+      en: "Leave Community",
+    },
+    deleteCommunity: {
+      ar: "حذف المجتمع",
+      en: "Delete Community",
+    },
+    deleteConfirm: {
+      ar: "هل أنت متأكد أنك تريد حذف هذا المجتمع؟ لا يمكن التراجع عن هذا الإجراء.",
+      en: "Are you sure you want to delete this community? This action cannot be undone.",
+    },
+    noMessagesYet: {
+      ar: "لا توجد رسائل بعد. ابدأ المحادثة!",
+      en: "No messages yet. Start the conversation!",
+    },
+    typeMessage: {
+      ar: "اكتب رسالة...",
+      en: "Type a message...",
+    },
+    all: {
+      ar: "الكل",
+      en: "All",
+    },
+    owned: {
+      ar: "مملوكة",
+      en: "Owned",
+    },
+    joined: {
+      ar: "منضم إليها",
+      en: "Joined",
+    },
+  },
+
+  // Edit Product Page
+  editProduct: {
+    title: {
+      ar: "تعديل المنتج",
+      en: "Edit Product",
+    },
+    updateListing: {
+      ar: "تحديث تفاصيل إعلانك",
+      en: "Update your listing details",
+    },
+    back: {
+      ar: "رجوع",
+      en: "Back",
+    },
+    productImages: {
+      ar: "صور المنتج",
+      en: "Product Images",
+    },
+    addImage: {
+      ar: "إضافة صورة",
+      en: "Add Image",
+    },
+    productTitle: {
+      ar: "عنوان المنتج",
+      en: "Product Title",
+    },
+    enterProductTitle: {
+      ar: "أدخل عنوان المنتج",
+      en: "Enter product title",
+    },
+    description: {
+      ar: "الوصف",
+      en: "Description",
+    },
+    describeProduct: {
+      ar: "صف منتجك...",
+      en: "Describe your product...",
+    },
+    price: {
+      ar: "السعر",
+      en: "Price",
+    },
+    originalPriceOptional: {
+      ar: "السعر الأصلي (اختياري)",
+      en: "Original Price (Optional)",
+    },
+    category: {
+      ar: "الفئة",
+      en: "Category",
+    },
+    selectCategory: {
+      ar: "اختر فئة",
+      en: "Select a category",
+    },
+    productInStock: {
+      ar: "المنتج متوفر في المخزون",
+      en: "Product is in stock",
+    },
+    saving: {
+      ar: "جاري الحفظ...",
+      en: "Saving...",
+    },
+    saveChanges: {
+      ar: "حفظ التغييرات",
+      en: "Save Changes",
+    },
+    loadingProduct: {
+      ar: "جاري تحميل المنتج...",
+      en: "Loading product...",
+    },
+    productNotFound: {
+      ar: "المنتج غير موجود.",
+      en: "Product not found.",
+    },
+    invalidProductId: {
+      ar: "معرف المنتج غير صالح",
+      en: "Invalid product ID",
+    },
+    failedToLoad: {
+      ar: "فشل تحميل المنتج",
+      en: "Failed to load product",
+    },
+    productUpdated: {
+      ar: "تم تحديث المنتج بنجاح",
+      en: "Product updated successfully",
+    },
+    failedToUpdate: {
+      ar: "فشل تحديث المنتج",
+      en: "Failed to update product",
+    },
+    maxImages: {
+      ar: "الحد الأقصى 4 صور",
+      en: "Maximum 4 images allowed",
+    },
+    titleRequired: {
+      ar: "عنوان المنتج مطلوب",
+      en: "Product title is required",
+    },
+    descriptionRequired: {
+      ar: "الوصف مطلوب",
+      en: "Description is required",
+    },
+    validPriceRequired: {
+      ar: "يرجى إدخال سعر صحيح",
+      en: "Valid price is required",
+    },
+    categoryRequired: {
+      ar: "الفئة مطلوبة",
+      en: "Category is required",
+    },
+    imageRequired: {
+      ar: "يرجى إضافة صورة واحدة على الأقل",
+      en: "At least one image is required",
+    },
+  },
+
+  // My Listings Page
+  myListings: {
+    title: {
+      ar: "إعلاناتي",
+      en: "My Listings",
+    },
+    manageProducts: {
+      ar: "إدارة منتجاتك وتتبع الأداء",
+      en: "Manage your products and track performance",
+    },
+    addNewProduct: {
+      ar: "إضافة منتج جديد",
+      en: "Add New Product",
+    },
+    totalProducts: {
+      ar: "إجمالي المنتجات",
+      en: "Total Products",
+    },
+    active: {
+      ar: "نشط",
+      en: "Active",
+    },
+    sold: {
+      ar: "مباع",
+      en: "Sold",
+    },
+    revenue: {
+      ar: "الإيرادات",
+      en: "Revenue",
+    },
+    searchProducts: {
+      ar: "البحث في منتجاتك...",
+      en: "Search your products...",
+    },
+    filters: {
+      ar: "فلاتر",
+      en: "Filters",
+    },
+    refresh: {
+      ar: "تحديث",
+      en: "Refresh",
+    },
+    allProducts: {
+      ar: "كل المنتجات",
+      en: "All Products",
+    },
+    reserved: {
+      ar: "محجوز",
+      en: "Reserved",
+    },
+    inactive: {
+      ar: "غير نشط",
+      en: "Inactive",
+    },
+    noProductsFound: {
+      ar: "لم يتم العثور على منتجات",
+      en: "No products found",
+    },
+    noProductsMatchFilter: {
+      ar: "لا توجد منتجات تطابق الفلتر المحدد.",
+      en: "No products match the selected filter.",
+    },
+    noProductsListed: {
+      ar: "لم تقم بإدراج أي منتجات بعد.",
+      en: "You haven't listed any products yet.",
+    },
+    addFirstProduct: {
+      ar: "أضف منتجك الأول",
+      en: "Add Your First Product",
+    },
+    edit: {
+      ar: "تعديل",
+      en: "Edit",
+    },
+    deactivate: {
+      ar: "إلغاء التنشيط",
+      en: "Deactivate",
+    },
+    activate: {
+      ar: "تنشيط",
+      en: "Activate",
+    },
+    delete: {
+      ar: "حذف",
+      en: "Delete",
+    },
+    stock: {
+      ar: "المخزون",
+      en: "Stock",
+    },
+    previous: {
+      ar: "السابق",
+      en: "Previous",
+    },
+    next: {
+      ar: "التالي",
+      en: "Next",
+    },
+    pageOf: {
+      ar: "صفحة {page} من {total}",
+      en: "Page {page} of {total}",
+    },
+    viewDetailedAnalytics: {
+      ar: "عرض التحليلات التفصيلية",
+      en: "View Detailed Analytics",
+    },
+    comprehensiveStats: {
+      ar: "شاهد إحصائيات شاملة عن مبيعاتك وأدائك",
+      en: "See comprehensive stats about your sales and performance",
+    },
+    viewDashboard: {
+      ar: "عرض لوحة التحكم",
+      en: "View Dashboard",
+    },
+    productDeleted: {
+      ar: "تم حذف المنتج بنجاح",
+      en: "Product deleted successfully",
+    },
+    failedToDelete: {
+      ar: "فشل حذف المنتج",
+      en: "Failed to delete product",
+    },
+    productActivated: {
+      ar: "تم تنشيط المنتج",
+      en: "Product activated",
+    },
+    productDeactivated: {
+      ar: "تم إلغاء تنشيط المنتج",
+      en: "Product deactivated",
+    },
+    failedToUpdate: {
+      ar: "فشل تحديث المنتج",
+      en: "Failed to update product",
+    },
+    productCreated: {
+      ar: "تم إنشاء المنتج بنجاح",
+      en: "Product created successfully",
+    },
+    failedToCreate: {
+      ar: "فشل إنشاء المنتج",
+      en: "Failed to create product",
+    },
+    failedToLoad: {
+      ar: "فشل تحميل المنتجات",
+      en: "Failed to load products",
+    },
+  },
+
+  // Payment Callback Pages
+  payment: {
+    verifyingPayment: {
+      ar: "جاري التحقق من الدفع",
+      en: "Verifying Payment",
+    },
+    pleaseWait: {
+      ar: "يرجى الانتظار بينما نؤكد دفعتك...",
+      en: "Please wait while we confirm your payment...",
+    },
+    paymentSuccessful: {
+      ar: "تم الدفع بنجاح!",
+      en: "Payment Successful!",
+    },
+    paymentFailed: {
+      ar: "فشل الدفع",
+      en: "Payment Failed",
+    },
+    orderNumber: {
+      ar: "رقم الطلب:",
+      en: "Order Number:",
+    },
+    viewMyOrders: {
+      ar: "عرض طلباتي",
+      en: "View My Orders",
+    },
+    continueShopping: {
+      ar: "متابعة التسوق",
+      en: "Continue Shopping",
+    },
+    backToMarketplace: {
+      ar: "العودة للسوق",
+      en: "Back to Marketplace",
+    },
+    tryAgain: {
+      ar: "حاول مرة أخرى",
+      en: "Try Again",
+    },
+    missingPaymentInfo: {
+      ar: "معلومات الدفع مفقودة. يرجى المحاولة مرة أخرى.",
+      en: "Missing payment information. Please try again.",
+    },
+    goToRooms: {
+      ar: "الذهاب للغرف",
+      en: "Go to Rooms",
+    },
+    backToRooms: {
+      ar: "العودة للغرف",
+      en: "Back to Rooms",
+    },
+  },
+
+  // Room Invite Page
+  roomInvite: {
+    joiningRoom: {
+      ar: "جاري الانضمام للغرفة...",
+      en: "Joining Room...",
+    },
+    processingInvite: {
+      ar: "يرجى الانتظار بينما نعالج رابط الدعوة.",
+      en: "Please wait while we process your invite link.",
+    },
+    welcomeTo: {
+      ar: "مرحباً بك في",
+      en: "Welcome to",
+    },
+    successfullyJoined: {
+      ar: "لقد انضممت بنجاح للغرفة. جاري إعادة توجيهك الآن...",
+      en: "You've successfully joined the room. Redirecting you now...",
+    },
+    openRoom: {
+      ar: "فتح الغرفة",
+      en: "Open Room",
+    },
+    requestSubmitted: {
+      ar: "تم إرسال الطلب",
+      en: "Request Submitted",
+    },
+    awaitingApproval: {
+      ar: "في انتظار الموافقة",
+      en: "Awaiting Approval",
+    },
+    paidRoomPendingNote: {
+      ar: "سيراجع مالك الغرفة طلبك. بمجرد الموافقة، ستتمكن من إكمال الدفع والانضمام.",
+      en: "The room owner will review your request. Once approved, you'll be able to complete the payment and join.",
+    },
+    freeRoomPendingNote: {
+      ar: "سيراجع مالك الغرفة طلبك. سيتم إعلامك بمجرد الموافقة على طلبك.",
+      en: "The room owner will review your request. You'll be notified once your request is approved.",
+    },
+    unableToJoin: {
+      ar: "تعذر الانضمام",
+      en: "Unable to Join",
+    },
+    possibleReasons: {
+      ar: "الأسباب المحتملة:",
+      en: "Possible reasons:",
+    },
+    linkExpired: {
+      ar: "انتهت صلاحية رابط الدعوة",
+      en: "The invite link has expired",
+    },
+    maxUsesReached: {
+      ar: "وصل الرابط للحد الأقصى من الاستخدامات",
+      en: "The link has reached its maximum uses",
+    },
+    linkRevoked: {
+      ar: "تم إلغاء الرابط",
+      en: "The link has been revoked",
+    },
+    roomNoLongerExists: {
+      ar: "الغرفة لم تعد موجودة",
+      en: "The room no longer exists",
+    },
+    invalidInviteLink: {
+      ar: "رابط دعوة غير صالح",
+      en: "Invalid invite link",
+    },
+    privateRoom: {
+      ar: "غرفة خاصة",
+      en: "Private Room",
+    },
+    premium: {
+      ar: "مميز",
+      en: "Premium",
+    },
+    membershipFee: {
+      ar: "رسوم العضوية:",
+      en: "Membership fee:",
     },
   },
 };

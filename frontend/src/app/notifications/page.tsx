@@ -10,30 +10,30 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { notificationsApi, type Notification } from "@/lib/api/notifications";
 
-function getNotificationText(n: Notification) {
+function getNotificationText(n: Notification, t: (section: string, key: string) => string) {
   const actor = typeof n.actorId === "object" ? `${n.actorId.firstName} ${n.actorId.lastName}` : "Someone";
 
   switch (n.type) {
     case "like":
-      return `${actor} liked your content`;
+      return `${actor} ${t("notifications", "likedContent")}`;
     case "comment":
-      return `${actor} commented`;
+      return `${actor} ${t("notifications", "commented")}`;
     case "follow":
-      return `${actor} started following you`;
+      return `${actor} ${t("notifications", "startedFollowing")}`;
     case "mention":
-      return `${actor} mentioned you`;
+      return `${actor} ${t("notifications", "mentionedYou")}`;
     case "friend_request":
-      return `${actor} sent you a friend request`;
+      return `${actor} ${t("notifications", "sentFriendRequest")}`;
     case "friend_accept":
-      return `${actor} accepted your friend request`;
+      return `${actor} ${t("notifications", "acceptedFriendRequest")}`;
     default:
-      return "You have a new notification";
+      return t("notifications", "newNotification");
   }
 }
 
 export default function NotificationsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -88,16 +88,16 @@ export default function NotificationsPage() {
       <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
         <div className="max-w-2xl mx-auto p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">Notifications</h1>
+            <h1 className="text-xl font-bold">{t("notifications", "title")}</h1>
             <Button variant="outline" size="sm" onClick={markAll} disabled={!isAuthenticated || items.length === 0}>
-              Mark all as read
+              {t("notifications", "markAllAsRead")}
             </Button>
           </div>
 
           {!isAuthenticated ? (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-(--text-muted)">Please log in to view notifications.</p>
+                <p className="text-sm text-(--text-muted)">{t("notifications", "pleaseLogin")}</p>
               </CardContent>
             </Card>
           ) : isLoading ? (
@@ -109,7 +109,7 @@ export default function NotificationsPage() {
           ) : items.length === 0 ? (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-(--text-muted)">No notifications yet.</p>
+                <p className="text-sm text-(--text-muted)">{t("notifications", "noNotificationsYet")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -133,7 +133,7 @@ export default function NotificationsPage() {
                       <Avatar src={actor?.avatar} alt={actor?.firstName || "User"} size="md" />
                       <div className="flex-1 min-w-0">
                         <p className={cn("text-sm", !n.isRead ? "font-semibold" : "text-(--text)")}>
-                          {getNotificationText(n)}
+                          {getNotificationText(n, t)}
                         </p>
                         <p className="text-xs text-(--text-muted) truncate">{n.url}</p>
                       </div>
@@ -145,13 +145,13 @@ export default function NotificationsPage() {
 
               <div className="flex items-center justify-between pt-2">
                 <Button variant="ghost" size="sm" onClick={() => load(Math.max(1, page - 1))} disabled={page <= 1}>
-                  Prev
+                  {t("notifications", "prev")}
                 </Button>
                 <p className="text-xs text-(--text-muted)">
-                  Page {page} / {pages}
+                  {t("notifications", "page")} {page} / {pages}
                 </p>
                 <Button variant="ghost" size="sm" onClick={() => load(Math.min(pages, page + 1))} disabled={page >= pages}>
-                  Next
+                  {t("notifications", "next")}
                 </Button>
               </div>
             </div>

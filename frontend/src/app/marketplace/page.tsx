@@ -157,7 +157,7 @@ export default function MarketplacePage() {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => (window.location.href = "/marketplace/my-listings")}>
                 <LayoutDashboard size={18} className={isRTL ? "ml-2" : "mr-2"} />
-                {isRTL ? "إدارة" : "Manage"}
+                {t("marketplace", "manage")}
               </Button>
               <Button variant="primary" onClick={() => setShowAddProduct(true)}>
                 <Plus size={18} className={isRTL ? "ml-2" : "mr-2"} />
@@ -257,17 +257,17 @@ export default function MarketplacePage() {
                   onChange={(e) => handleSortChange(e.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-(--border) bg-(--bg-card) text-sm text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
-                  <option value="featured">Featured</option>
-                  <option value="createdAt">Newest</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Top Rated</option>
+                  <option value="featured">{t("marketplace", "sortFeatured")}</option>
+                  <option value="createdAt">{t("marketplace", "sortNewest")}</option>
+                  <option value="price-low">{t("marketplace", "sortPriceLow")}</option>
+                  <option value="price-high">{t("marketplace", "sortPriceHigh")}</option>
+                  <option value="rating">{t("marketplace", "sortTopRated")}</option>
                 </select>
               </div>
 
               <div className="flex items-center gap-1">
                 <span className="text-sm text-(--text-muted) mr-2">
-                  {pagination.total} products
+                  {pagination.total} {t("marketplace", "productsCount")}
                 </span>
                 <button
                   onClick={() => setViewMode("grid")}
@@ -328,10 +328,10 @@ export default function MarketplacePage() {
                     disabled={pagination.page === 1}
                     onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
                   >
-                    Previous
+                    {t("marketplace", "previous")}
                   </Button>
                   <span className="text-sm text-(--text-muted)">
-                    Page {pagination.page} of {pagination.totalPages}
+                    {t("marketplace", "pageOf").replace("{page}", String(pagination.page)).replace("{total}", String(pagination.totalPages))}
                   </span>
                   <Button
                     variant="outline"
@@ -339,7 +339,7 @@ export default function MarketplacePage() {
                     disabled={pagination.page === pagination.totalPages}
                     onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
                   >
-                    Next
+                    {t("marketplace", "next")}
                   </Button>
                 </div>
               )}
@@ -347,12 +347,12 @@ export default function MarketplacePage() {
           ) : (
             <Card className="p-12 text-center">
               <ShoppingBag size={48} className="mx-auto text-(--text-muted) mb-4" />
-              <h3 className="text-lg font-semibold text-(--text) mb-2">No products found</h3>
+              <h3 className="text-lg font-semibold text-(--text) mb-2">{t("marketplace", "noProductsFound")}</h3>
               <p className="text-(--text-muted) mb-4">
-                Try adjusting your search or filter to find what you&apos;re looking for.
+                {t("marketplace", "tryAdjustingSearch")}
               </p>
               <Button variant="outline" onClick={() => { setSearchQuery(""); setSelectedCategory("All"); }}>
-                Clear Filters
+                {t("marketplace", "clearFilters")}
               </Button>
             </Card>
           )}

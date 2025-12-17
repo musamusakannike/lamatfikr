@@ -7,6 +7,7 @@ import { Button, Card } from "@/components/ui";
 import { roomsApi } from "@/lib/api/rooms";
 import { getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Loader2,
   CheckCircle,
@@ -37,9 +38,10 @@ export default function JoinViaInviteLinkPage() {
   const token = params.token as string;
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t } = useLanguage();
   const isValidToken = Boolean(token);
   const [status, setStatus] = useState<JoinStatus>(isValidToken ? "loading" : "error");
-  const [error, setError] = useState(isValidToken ? "" : "Invalid invite link");
+  const [error, setError] = useState(isValidToken ? "" : t("roomInvite", "invalidInviteLink"));
   const [room, setRoom] = useState<JoinRoomData | null>(null);
   const [message, setMessage] = useState("");
 
@@ -88,10 +90,10 @@ export default function JoinViaInviteLinkPage() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-(--text) mb-2">
-                      Joining Room...
+                      {t("roomInvite", "joiningRoom")}
                     </h1>
                     <p className="text-(--text-muted)">
-                      Please wait while we process your invite link.
+                      {t("roomInvite", "processingInvite")}
                     </p>
                   </div>
                 </>
@@ -102,10 +104,10 @@ export default function JoinViaInviteLinkPage() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-(--text) mb-2">
-                      Welcome to {room.name}!
+                      {t("roomInvite", "welcomeTo")} {room.name}!
                     </h1>
                     <p className="text-(--text-muted) mb-4">
-                      You&apos;ve successfully joined the room. Redirecting you now...
+                      {t("roomInvite", "successfullyJoined")}
                     </p>
                   </div>
 
@@ -136,7 +138,7 @@ export default function JoinViaInviteLinkPage() {
                     variant="primary"
                     className="w-full"
                   >
-                    Open Room
+                    {t("roomInvite", "openRoom")}
                     <ArrowRight size={18} />
                   </Button>
                 </>
@@ -149,7 +151,7 @@ export default function JoinViaInviteLinkPage() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-(--text) mb-2">
-                      Request Submitted
+                      {t("roomInvite", "requestSubmitted")}
                     </h1>
                     <p className="text-(--text-muted) mb-2">
                       {message}
@@ -174,7 +176,7 @@ export default function JoinViaInviteLinkPage() {
                         {room.membershipType === "paid" && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs">
                             <Crown size={12} />
-                            Premium
+                            {t("roomInvite", "premium")}
                           </span>
                         )}
                       </h3>
@@ -184,7 +186,7 @@ export default function JoinViaInviteLinkPage() {
                     </div>
                     {room.membershipType === "paid" && room.price && (
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="text-(--text-muted)">Membership fee:</span>
+                        <span className="text-(--text-muted)">{t("roomInvite", "membershipFee")}</span>
                         <span className="font-semibold text-(--text)">
                           ${room.price} {room.currency || "USD"}
                         </span>
@@ -192,7 +194,7 @@ export default function JoinViaInviteLinkPage() {
                     )}
                     <div className="flex items-center gap-1 text-(--text-muted) text-sm">
                       <Lock size={14} />
-                      <span>Private Room</span>
+                      <span>{t("roomInvite", "privateRoom")}</span>
                     </div>
                   </div>
 
@@ -201,12 +203,12 @@ export default function JoinViaInviteLinkPage() {
                       <Clock size={20} className="text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                       <div className="text-left">
                         <p className="font-medium text-yellow-800 dark:text-yellow-300 text-sm">
-                          Awaiting Approval
+                          {t("roomInvite", "awaitingApproval")}
                         </p>
                         <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
                           {room.membershipType === "paid"
-                            ? "The room owner will review your request. Once approved, you'll be able to complete the payment and join."
-                            : "The room owner will review your request. You'll be notified once your request is approved."}
+                            ? t("roomInvite", "paidRoomPendingNote")
+                            : t("roomInvite", "freeRoomPendingNote")}
                         </p>
                       </div>
                     </div>
@@ -217,7 +219,7 @@ export default function JoinViaInviteLinkPage() {
                     variant="primary"
                     className="w-full"
                   >
-                    Back to Rooms
+                    {t("payment", "backToRooms")}
                   </Button>
                 </>
               ) : status === "error" ? (
@@ -227,7 +229,7 @@ export default function JoinViaInviteLinkPage() {
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-(--text) mb-2">
-                      Unable to Join
+                      {t("roomInvite", "unableToJoin")}
                     </h1>
                     <p className="text-(--text-muted) mb-4">{error}</p>
                   </div>
@@ -238,24 +240,24 @@ export default function JoinViaInviteLinkPage() {
                       variant="primary"
                       className="w-full"
                     >
-                      Back to Rooms
+                      {t("payment", "backToRooms")}
                     </Button>
                     <Button
                       onClick={() => window.location.reload()}
                       variant="secondary"
                       className="w-full"
                     >
-                      Try Again
+                      {t("payment", "tryAgain")}
                     </Button>
                   </div>
 
                   <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg text-sm text-red-700 dark:text-red-300">
-                    <p className="font-semibold mb-1">Possible reasons:</p>
+                    <p className="font-semibold mb-1">{t("roomInvite", "possibleReasons")}</p>
                     <ul className="text-left space-y-1 text-xs">
-                      <li>• The invite link has expired</li>
-                      <li>• The link has reached its maximum uses</li>
-                      <li>• The link has been revoked</li>
-                      <li>• The room no longer exists</li>
+                      <li>• {t("roomInvite", "linkExpired")}</li>
+                      <li>• {t("roomInvite", "maxUsesReached")}</li>
+                      <li>• {t("roomInvite", "linkRevoked")}</li>
+                      <li>• {t("roomInvite", "roomNoLongerExists")}</li>
                     </ul>
                   </div>
                 </>
