@@ -13,6 +13,9 @@ import {
   MessageSquare,
   Users,
   ShoppingBag,
+  List,
+  LayoutDashboard,
+  Receipt,
   FileText,
   Newspaper,
   Bell,
@@ -72,6 +75,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [roomsUnreadCount, setRoomsUnreadCount] = useState(0);
   const [communitiesUnreadCount, setCommunitiesUnreadCount] = useState(0);
 
+  const isMarketplaceRoute = pathname === "/marketplace" || pathname.startsWith("/marketplace/");
+
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -105,6 +110,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: Settings, label: t("nav", "settings"), href: "/settings" },
   ];
 
+  const marketplaceManagementItems: NavItem[] = [
+    { icon: List, label: isRTL ? "قائمتي" : "My Listings", href: "/marketplace/my-listings" },
+    { icon: LayoutDashboard, label: isRTL ? "لوحة البائع" : "Seller Dashboard", href: "/marketplace/seller-dashboard" },
+    { icon: Receipt, label: isRTL ? "الطلبات" : "Orders", href: "/marketplace/orders" },
+  ];
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -133,9 +144,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <NavLink 
               key={item.label} 
               item={item} 
-              isActive={pathname === item.href} 
+              isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))} 
             />
           ))}
+
+          {isAuthenticated && isMarketplaceRoute && (
+            <div className="mt-4 pt-4 border-t border-(--border)">
+              <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-(--text-muted)">
+                {isRTL ? "إدارة المتجر" : "Marketplace Management"}
+              </p>
+              <div className="space-y-1">
+                {marketplaceManagementItems.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    item={item}
+                    isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Profile section at bottom */}

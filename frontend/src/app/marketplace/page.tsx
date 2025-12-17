@@ -20,6 +20,7 @@ import {
   List,
   SlidersHorizontal,
   ShoppingBag,
+  LayoutDashboard,
   TrendingUp,
   Package,
   DollarSign,
@@ -153,10 +154,16 @@ export default function MarketplacePage() {
               <h1 className="text-2xl font-bold text-(--text)">{t("marketplace", "title")}</h1>
               <p className="text-(--text-muted)">{t("marketplace", "discoverProducts")}</p>
             </div>
-            <Button variant="primary" onClick={() => setShowAddProduct(true)}>
-              <Plus size={18} className={isRTL ? "ml-2" : "mr-2"} />
-              {t("marketplace", "addProduct")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => (window.location.href = "/marketplace/my-listings")}>
+                <LayoutDashboard size={18} className={isRTL ? "ml-2" : "mr-2"} />
+                {isRTL ? "إدارة" : "Manage"}
+              </Button>
+              <Button variant="primary" onClick={() => setShowAddProduct(true)}>
+                <Plus size={18} className={isRTL ? "ml-2" : "mr-2"} />
+                {t("marketplace", "addProduct")}
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
