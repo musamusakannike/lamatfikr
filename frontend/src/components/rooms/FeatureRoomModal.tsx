@@ -7,7 +7,6 @@ import { getErrorMessage } from "@/lib/api";
 import {
   Sparkles,
   Loader2,
-  Calendar,
   DollarSign,
   TrendingUp,
   AlertCircle,
@@ -28,7 +27,7 @@ export function FeatureRoomModal({
   isOpen,
   onClose,
   roomId,
-  roomName,
+  // roomName,
 }: FeatureRoomModalProps) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -203,7 +202,7 @@ export function FeatureRoomModal({
               <div className="space-y-6">
                 <div className="bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shrink-0">
                       <Sparkles size={24} className="text-white" />
                     </div>
                     <div>
@@ -263,7 +262,7 @@ export function FeatureRoomModal({
                   </div>
                 </div>
 
-                <Card className="p-4 bg-gradient-to-br from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 border-primary-200 dark:border-primary-800">
+                <Card className="p-4 bg-linear-to-br from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 border-primary-200 dark:border-primary-800">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-(--text-muted)">Price per day</span>
@@ -288,7 +287,7 @@ export function FeatureRoomModal({
                 {error && (
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                      <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
                       <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
                     </div>
                   </div>

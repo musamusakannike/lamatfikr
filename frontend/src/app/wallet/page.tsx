@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { 
   Wallet as WalletIcon, 
   TrendingUp, 
-  TrendingDown, 
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
