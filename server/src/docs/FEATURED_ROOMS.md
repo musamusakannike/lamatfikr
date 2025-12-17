@@ -1,9 +1,11 @@
 # Featured Rooms API Documentation
 
 ## Overview
+
 The Featured Rooms functionality allows room owners to pay to have their rooms displayed prominently in a featured list. Payment is processed through Tap Payments integration.
 
 ## Pricing
+
 - **Price per day**: $10 USD (configurable in controller)
 - **Minimum duration**: 1 day
 - **Maximum duration**: 365 days
@@ -11,17 +13,20 @@ The Featured Rooms functionality allows room owners to pay to have their rooms d
 ## API Endpoints
 
 ### 1. Get Featured Rooms (Public)
-```
+
+```md
 GET /api/featured-rooms?page=1&limit=10
 ```
 
 **Description**: Retrieves a paginated list of currently active featured rooms.
 
 **Query Parameters**:
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 10)
 
 **Response**:
+
 ```json
 {
   "featuredRooms": [
@@ -56,7 +61,8 @@ GET /api/featured-rooms?page=1&limit=10
 ```
 
 ### 2. Initiate Featured Room Payment
-```
+
+```md
 POST /api/featured-rooms/:roomId/initiate
 Authorization: Bearer <token>
 ```
@@ -64,9 +70,11 @@ Authorization: Bearer <token>
 **Description**: Initiates a payment to feature a room for a specified number of days.
 
 **Path Parameters**:
+
 - `roomId`: MongoDB ObjectId of the room
 
 **Request Body**:
+
 ```json
 {
   "days": 7,
@@ -75,12 +83,14 @@ Authorization: Bearer <token>
 ```
 
 **Validation**:
+
 - User must be the room owner
 - Room must exist and not be deleted
 - Room cannot already be featured
 - Days must be between 1 and 365
 
 **Response**:
+
 ```json
 {
   "message": "Featured room payment initiated",
@@ -93,7 +103,8 @@ Authorization: Bearer <token>
 ```
 
 ### 3. Verify Featured Room Payment
-```
+
+```md
 GET /api/featured-rooms/:roomId/verify?tap_id=chg_xxx
 Authorization: Bearer <token>
 ```
@@ -101,12 +112,15 @@ Authorization: Bearer <token>
 **Description**: Verifies the payment and activates the featured listing.
 
 **Path Parameters**:
+
 - `roomId`: MongoDB ObjectId of the room
 
 **Query Parameters**:
+
 - `tap_id`: Tap Payments charge ID
 
 **Response**:
+
 ```json
 {
   "message": "Room featured successfully",
@@ -123,7 +137,8 @@ Authorization: Bearer <token>
 ```
 
 ### 4. Get Room Featured Status
-```
+
+```md
 GET /api/featured-rooms/:roomId/status
 Authorization: Bearer <token>
 ```
@@ -131,9 +146,11 @@ Authorization: Bearer <token>
 **Description**: Gets the featured status and history for a specific room (owner only).
 
 **Path Parameters**:
+
 - `roomId`: MongoDB ObjectId of the room
 
 **Response**:
+
 ```json
 {
   "isFeatured": true,
@@ -161,7 +178,8 @@ Authorization: Bearer <token>
 ```
 
 ### 5. Cancel Featured Room
-```
+
+```md
 DELETE /api/featured-rooms/:roomId/:featuredId
 Authorization: Bearer <token>
 ```
@@ -169,10 +187,12 @@ Authorization: Bearer <token>
 **Description**: Cancels an active featured listing (owner only). Note: This does not refund the payment.
 
 **Path Parameters**:
+
 - `roomId`: MongoDB ObjectId of the room
 - `featuredId`: MongoDB ObjectId of the featured room record
 
 **Response**:
+
 ```json
 {
   "message": "Featured room cancelled successfully",
@@ -186,6 +206,7 @@ Authorization: Bearer <token>
 ## Database Schema
 
 ### FeaturedRoom Model
+
 ```typescript
 {
   roomId: ObjectId (ref: Room)
@@ -247,6 +268,7 @@ FRONTEND_URL=http://localhost:3000
 ## Error Handling
 
 Common error responses:
+
 - `400`: Invalid request (bad room ID, invalid days, room already featured)
 - `401`: Unauthorized (missing or invalid token)
 - `403`: Forbidden (not room owner)

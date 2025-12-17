@@ -5,6 +5,7 @@ import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { InviteLinkModal } from "@/components/rooms/InviteLinkModal";
 import { PendingRequestsModal } from "@/components/rooms/PendingRequestsModal";
+import { FeatureRoomModal } from "@/components/rooms/FeatureRoomModal";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
@@ -33,6 +34,7 @@ import {
   Smile,
   Share2,
   UserPlus,
+  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
@@ -700,9 +702,10 @@ interface RoomDetailsModalProps {
   onDelete: (roomId: string) => void;
   onOpenChat: (room: Room) => void;
   onEdit: (room: Room) => void;
+  onFeatureRoom: (room: Room) => void;
 }
 
-function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, onOpenChat, onEdit }: RoomDetailsModalProps) {
+function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, onOpenChat, onEdit, onFeatureRoom }: RoomDetailsModalProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -788,6 +791,18 @@ function RoomDetailsModal({ room, isOpen, onClose, onJoin, onLeave, onDelete, on
                     >
                       <Settings size={16} />
                       Edit Room
+                    </button>
+                  )}
+                  {room.role === "owner" && (
+                    <button
+                      onClick={() => {
+                        onFeatureRoom(room);
+                        setShowMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--text) hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-colors"
+                    >
+                      <Sparkles size={16} className="text-yellow-600" />
+                      Feature Room
                     </button>
                   )}
                   {room.role !== "owner" && (
@@ -1302,6 +1317,8 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeChat, setActiveChat] = useState<Room | null>(null);
+  const [featureRoomModalOpen, setFeatureRoomModalOpen] = useState(false);
+  const [roomToFeature, setRoomToFeature] = useState<Room | null>(null);
 
   const loadRooms = useCallback(async () => {
     setIsLoading(true);
@@ -1395,6 +1412,11 @@ export default function RoomsPage() {
   const handleRoomUpdated = () => {
     loadRooms();
     setIsDetailsModalOpen(false);
+  };
+
+  const handleFeatureRoom = (room: Room) => {
+    setRoomToFeature(room);
+    setFeatureRoomModalOpen(true);
   };
 
   const ownedCount = rooms.filter((r) => r.role === "owner").length;
@@ -1559,12 +1581,22 @@ export default function RoomsPage() {
         onDelete={handleDeleteRoom}
         onOpenChat={handleOpenChat}
         onEdit={handleEditRoom}
+        onFeatureRoom={handleFeatureRoom}
       />
       <EditRoomModal
         isOpen={isEditModalOpen}
         room={editingRoom}
         onClose={() => setIsEditModalOpen(false)}
         onRoomUpdated={handleRoomUpdated}
+      />
+      <FeatureRoomModal
+        isOpen={featureRoomModalOpen}
+        onClose={() => {
+          setFeatureRoomModalOpen(false);
+          setRoomToFeature(null);
+        }}
+        roomId={roomToFeature?.id || ""}
+        roomName={roomToFeature?.name || ""}
       />
     </div>
   );
