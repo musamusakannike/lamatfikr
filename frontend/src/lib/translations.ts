@@ -3175,6 +3175,278 @@ export const translations = {
       en: "Membership fee:",
     },
   },
+
+  // Wallet
+  wallet: {
+    title: {
+      ar: "المحفظة",
+      en: "Wallet",
+    },
+    overview: {
+      ar: "نظرة عامة",
+      en: "Overview",
+    },
+    balance: {
+      ar: "الرصيد",
+      en: "Balance",
+    },
+    availableBalance: {
+      ar: "الرصيد المتاح",
+      en: "Available Balance",
+    },
+    pendingBalance: {
+      ar: "الرصيد المعلق",
+      en: "Pending Balance",
+    },
+    totalEarned: {
+      ar: "إجمالي الأرباح",
+      en: "Total Earned",
+    },
+    totalWithdrawn: {
+      ar: "إجمالي المسحوبات",
+      en: "Total Withdrawn",
+    },
+    transactions: {
+      ar: "المعاملات",
+      en: "Transactions",
+    },
+    recentTransactions: {
+      ar: "المعاملات الأخيرة",
+      en: "Recent Transactions",
+    },
+    allTransactions: {
+      ar: "جميع المعاملات",
+      en: "All Transactions",
+    },
+    transactionHistory: {
+      ar: "سجل المعاملات",
+      en: "Transaction History",
+    },
+    noTransactions: {
+      ar: "لا توجد معاملات حتى الآن",
+      en: "No transactions yet",
+    },
+    withdraw: {
+      ar: "سحب",
+      en: "Withdraw",
+    },
+    withdrawal: {
+      ar: "السحب",
+      en: "Withdrawal",
+    },
+    withdrawals: {
+      ar: "المسحوبات",
+      en: "Withdrawals",
+    },
+    requestWithdrawal: {
+      ar: "طلب سحب",
+      en: "Request Withdrawal",
+    },
+    withdrawalRequests: {
+      ar: "طلبات السحب",
+      en: "Withdrawal Requests",
+    },
+    withdrawalAmount: {
+      ar: "مبلغ السحب",
+      en: "Withdrawal Amount",
+    },
+    withdrawalMethod: {
+      ar: "طريقة السحب",
+      en: "Withdrawal Method",
+    },
+    bankTransfer: {
+      ar: "تحويل بنكي",
+      en: "Bank Transfer",
+    },
+    paypal: {
+      ar: "باي بال",
+      en: "PayPal",
+    },
+    tapPayment: {
+      ar: "تاب للدفع",
+      en: "Tap Payment",
+    },
+    bankDetails: {
+      ar: "التفاصيل البنكية",
+      en: "Bank Details",
+    },
+    accountName: {
+      ar: "اسم الحساب",
+      en: "Account Name",
+    },
+    accountNumber: {
+      ar: "رقم الحساب",
+      en: "Account Number",
+    },
+    bankName: {
+      ar: "اسم البنك",
+      en: "Bank Name",
+    },
+    swiftCode: {
+      ar: "رمز سويفت",
+      en: "SWIFT Code",
+    },
+    iban: {
+      ar: "رقم الآيبان",
+      en: "IBAN",
+    },
+    paypalEmail: {
+      ar: "بريد باي بال الإلكتروني",
+      en: "PayPal Email",
+    },
+    tapAccountId: {
+      ar: "معرف حساب تاب",
+      en: "Tap Account ID",
+    },
+    notes: {
+      ar: "ملاحظات",
+      en: "Notes",
+    },
+    optionalNotes: {
+      ar: "ملاحظات اختيارية",
+      en: "Optional notes",
+    },
+    submitWithdrawal: {
+      ar: "إرسال طلب السحب",
+      en: "Submit Withdrawal",
+    },
+    cancelWithdrawal: {
+      ar: "إلغاء السحب",
+      en: "Cancel Withdrawal",
+    },
+    withdrawalStatus: {
+      ar: "حالة السحب",
+      en: "Withdrawal Status",
+    },
+    pending: {
+      ar: "قيد الانتظار",
+      en: "Pending",
+    },
+    processing: {
+      ar: "قيد المعالجة",
+      en: "Processing",
+    },
+    completed: {
+      ar: "مكتمل",
+      en: "Completed",
+    },
+    rejected: {
+      ar: "مرفوض",
+      en: "Rejected",
+    },
+    cancelled: {
+      ar: "ملغى",
+      en: "Cancelled",
+    },
+    transactionType: {
+      ar: "نوع المعاملة",
+      en: "Transaction Type",
+    },
+    roomPayment: {
+      ar: "دفع غرفة",
+      en: "Room Payment",
+    },
+    productPurchase: {
+      ar: "شراء منتج",
+      en: "Product Purchase",
+    },
+    platformFee: {
+      ar: "رسوم المنصة",
+      en: "Platform Fee",
+    },
+    refund: {
+      ar: "استرداد",
+      en: "Refund",
+    },
+    amount: {
+      ar: "المبلغ",
+      en: "Amount",
+    },
+    date: {
+      ar: "التاريخ",
+      en: "Date",
+    },
+    status: {
+      ar: "الحالة",
+      en: "Status",
+    },
+    description: {
+      ar: "الوصف",
+      en: "Description",
+    },
+    viewDetails: {
+      ar: "عرض التفاصيل",
+      en: "View Details",
+    },
+    insufficientBalance: {
+      ar: "رصيد غير كافٍ",
+      en: "Insufficient Balance",
+    },
+    minimumWithdrawal: {
+      ar: "الحد الأدنى للسحب",
+      en: "Minimum Withdrawal",
+    },
+    withdrawalSuccess: {
+      ar: "تم إرسال طلب السحب بنجاح",
+      en: "Withdrawal request submitted successfully",
+    },
+    withdrawalError: {
+      ar: "فشل في إرسال طلب السحب",
+      en: "Failed to submit withdrawal request",
+    },
+    withdrawalCancelled: {
+      ar: "تم إلغاء السحب بنجاح",
+      en: "Withdrawal cancelled successfully",
+    },
+    earnings: {
+      ar: "الأرباح",
+      en: "Earnings",
+    },
+    earningsFrom: {
+      ar: "الأرباح من",
+      en: "Earnings from",
+    },
+    roomMemberships: {
+      ar: "عضويات الغرف",
+      en: "Room Memberships",
+    },
+    productSales: {
+      ar: "مبيعات المنتجات",
+      en: "Product Sales",
+    },
+    lastTransaction: {
+      ar: "آخر معاملة",
+      en: "Last Transaction",
+    },
+    noWithdrawals: {
+      ar: "لا توجد طلبات سحب",
+      en: "No withdrawal requests",
+    },
+    processedBy: {
+      ar: "تمت المعالجة بواسطة",
+      en: "Processed by",
+    },
+    processedAt: {
+      ar: "تمت المعالجة في",
+      en: "Processed at",
+    },
+    rejectionReason: {
+      ar: "سبب الرفض",
+      en: "Rejection Reason",
+    },
+    platformFeeSplit: {
+      ar: "تقسيم الأرباح: 85% لك، 15% رسوم المنصة",
+      en: "Revenue split: 85% to you, 15% platform fee",
+    },
+    walletEmpty: {
+      ar: "محفظتك فارغة حالياً",
+      en: "Your wallet is currently empty",
+    },
+    startEarning: {
+      ar: "ابدأ في الكسب من خلال إنشاء غرف مدفوعة أو بيع المنتجات",
+      en: "Start earning by creating paid rooms or selling products",
+    },
+  },
 };
 
 export type TranslationKey = keyof typeof translations;

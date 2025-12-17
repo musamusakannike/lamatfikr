@@ -19,7 +19,7 @@ import {
   LayoutDashboard,
   Receipt,
   FileText,
-  Newspaper,
+  Wallet,
   Bell,
   Settings,
   ChevronRight,
@@ -111,7 +111,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: FileText, label: isRTL ? "المقالات" : "Articles", href: "/articles" },
-    { icon: Newspaper, label: isRTL ? "المنشورات" : "Posts", href: "/posts" },
+    { icon: Wallet, label: t("nav", "wallet"), href: "/wallet" },
     { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined },
     { icon: Settings, label: t("nav", "settings"), href: "/settings" },
   ];
