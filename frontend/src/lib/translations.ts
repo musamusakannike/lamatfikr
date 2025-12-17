@@ -4,7 +4,7 @@ export const translations = {
   // Common
   common: {
     appName: {
-      ar: "لمات فكر",
+      ar: "لمت فكر",
       en: "LamatFikr",
     },
     loading: {
@@ -84,7 +84,7 @@ export const translations = {
       en: "Welcome Back",
     },
     signInContinue: {
-      ar: "سجل دخولك لمتابعة رحلتك مع لمات فكر. مجتمعك في انتظارك.",
+      ar: "سجل دخولك لمتابعة رحلتك مع لمت فكر. مجتمعك في انتظارك.",
       en: "Sign in to continue your journey with LamatFikr. Your community awaits.",
     },
     signIn: {
@@ -218,7 +218,7 @@ export const translations = {
 
     // Register
     joinLamatfikr: {
-      ar: "انضم إلى لمات فكر",
+      ar: "انضم إلى لمت فكر",
       en: "Join LamatFikr",
     },
     joinDescription: {
