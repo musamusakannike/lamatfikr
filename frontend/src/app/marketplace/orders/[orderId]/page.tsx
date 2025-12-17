@@ -186,8 +186,8 @@ export default function OrderDetailsPage() {
     });
   };
 
-  const isBuyer = order?.buyerId._id === user?._id;
-  const isSeller = order?.sellerId._id === user?._id;
+  const isBuyer = order?.buyerId._id === user?.id;
+  const isSeller = order?.sellerId._id === user?.id;
 
   const canCancel = order && ["pending", "awaiting_payment", "paid"].includes(order.status) && isBuyer;
 
