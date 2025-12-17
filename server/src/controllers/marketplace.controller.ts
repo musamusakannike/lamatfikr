@@ -19,6 +19,8 @@ import {
   sendMarketplaceOrderPaidBuyerEmail,
   sendMarketplaceOrderPaidSellerEmail,
 } from "../services/email";
+import { WalletService } from "../services/wallet.service";
+import { TransactionType } from "../models/transaction.model";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 

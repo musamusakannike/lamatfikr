@@ -19,6 +19,8 @@ import {
   sendRoomPaymentCapturedOwnerEmail,
   sendRoomPaymentCapturedPayerEmail,
 } from "../services/email";
+import { WalletService } from "../services/wallet.service";
+import { TransactionType } from "../models/transaction.model";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
@@ -611,6 +613,28 @@ export async function verifyPaymentAndJoin(req: Request, res: Response, next: Ne
       });
       return;
     }
+
+    // Get room details for wallet splitting
+    const room = await RoomModel.findById(roomId).select("name ownerId currency").lean();
+    if (!room) {
+      res.status(404).json({ message: "Room not found" });
+      return;
+    }
+
+    // Split payment: 15% to superadmin, 85% to room owner
+    await WalletService.splitPayment(
+      payment.amount,
+      room.ownerId as Types.ObjectId,
+      TransactionType.roomPayment,
+      `Room membership payment for: ${room.name}`,
+      payment._id,
+      "RoomPayment",
+      {
+        roomId: roomId,
+        roomName: room.name,
+        payerId: userId.toString(),
+      }
+    );
 
     // Update payment status
     await RoomPaymentModel.updateOne(

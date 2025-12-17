@@ -22,6 +22,7 @@ import { communitiesRouter } from "./routes/communities";
 import { messagesRouter } from "./routes/messages";
 import { marketplaceRouter } from "./routes/marketplace";
 import { notificationsRouter } from "./routes/notifications";
+import walletRouter from "./routes/wallet";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
