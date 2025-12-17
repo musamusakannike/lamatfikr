@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Modal, Button, Card } from "@/components/ui";
+import { Modal, Button, Card, Badge } from "@/components/ui";
 import { featuredRoomsApi, FeaturedRoomStatusResponse } from "@/lib/api/featured-rooms";
 import { getErrorMessage } from "@/lib/api";
 import {
@@ -92,7 +92,7 @@ export function FeatureRoomModal({
   const totalCost = status ? days * status.pricePerDay : 0;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Feature Your Room" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={t("rooms", "featureYourRoom")} size="lg">
       <div className="p-6">
         {statusLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -107,10 +107,13 @@ export function FeatureRoomModal({
                     <CheckCircle size={24} className="text-green-600 shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
-                        Room is Currently Featured
+                        {t("rooms", "roomCurrentlyFeatured")}
                       </h3>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        Your room is being displayed in the featured section
+                        {t("rooms", "featuredUntil")} {new Date(status.activeFeatured.endDate).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        {Math.ceil((new Date(status.activeFeatured.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} {t("rooms", "daysRemaining")}
                       </p>
                     </div>
                   </div>
@@ -152,19 +155,19 @@ export function FeatureRoomModal({
                   {loading ? (
                     <>
                       <Loader2 size={16} className="animate-spin mr-2" />
-                      Cancelling...
+                      {t("rooms", "cancelling")}
                     </>
                   ) : (
                     <>
                       <XCircle size={16} className="mr-2" />
-                      Cancel Featured Listing
+                      {t("rooms", "cancelFeaturedListing")}
                     </>
                   )}
                 </Button>
 
                 {status.history.length > 1 && (
                   <div className="mt-6">
-                    <h4 className="font-semibold text-sm mb-3">Previous Featured Periods</h4>
+                    <h4 className="font-semibold text-sm mb-3">{t("rooms", "previousFeaturedPeriods")}</h4>
                     <div className="space-y-2">
                       {status.history.slice(1, 4).map((item) => (
                         <Card key={item._id} className="p-3">
@@ -176,15 +179,19 @@ export function FeatureRoomModal({
                                 {new Date(item.endDate).toLocaleDateString()}
                               </span>
                             </div>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                item.status === "expired"
-                                  ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-600"
-                              }`}
+                            <Badge
+                              variant={
+                                item.status === "active"
+                                  ? "success"
+                                  : item.status === "expired"
+                                    ? "secondary"
+                                    : item.status === "cancelled"
+                                      ? "default"
+                                      : "warning"
+                              }
                             >
-                              {item.status}
-                            </span>
+                              {item.status === "active" ? t("home", "active") : item.status === "expired" ? t("rooms", "expired") : item.status === "cancelled" ? t("rooms", "cancelled") : t("rooms", "pending")}
+                            </Badge>
                           </div>
                         </Card>
                       ))}
@@ -200,10 +207,9 @@ export function FeatureRoomModal({
                       <Sparkles size={24} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg mb-2">Feature Your Room</h3>
+                      <h3 className="font-semibold text-lg mb-2">{t("rooms", "featureYourRoom")}</h3>
                       <p className="text-sm text-(--text-muted) mb-4">
-                        Get more visibility by featuring your room at the top of the room list. Featured
-                        rooms get up to 10x more views and engagement!
+                        {t("rooms", "getMoreVisibility")}
                       </p>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="text-center">
@@ -225,7 +231,7 @@ export function FeatureRoomModal({
 
                 <div>
                   <label className="block text-sm font-medium mb-3">
-                    How many days would you like to feature your room?
+                    {t("rooms", "howLongToFeature")}
                   </label>
                   <div className="grid grid-cols-4 gap-3 mb-4">
                     {[3, 7, 14, 30].map((d) => (
@@ -245,7 +251,7 @@ export function FeatureRoomModal({
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm text-(--text-muted) mb-2">Or enter custom days (1-365)</label>
+                    <label className="block text-sm text-(--text-muted) mb-2">{t("rooms", "customDays")}</label>
                     <input
                       type="number"
                       min="1"
@@ -271,7 +277,7 @@ export function FeatureRoomModal({
                     </div>
                     <div className="h-px bg-(--border)" />
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold">Total Cost</span>
+                      <span className="font-semibold">{t("rooms", "totalCost")}</span>
                       <span className="text-2xl font-bold text-primary-600">
                         ${totalCost}
                       </span>
@@ -290,7 +296,7 @@ export function FeatureRoomModal({
 
                 <div className="flex gap-3">
                   <Button variant="outline" className="flex-1" onClick={onClose} disabled={processing}>
-                    Cancel
+                    {t("rooms", "cancel")}
                   </Button>
                   <Button
                     variant="primary"
@@ -301,19 +307,19 @@ export function FeatureRoomModal({
                     {processing ? (
                       <>
                         <Loader2 size={16} className="animate-spin mr-2" />
-                        Processing...
+                        {t("rooms", "processing")}
                       </>
                     ) : (
                       <>
                         <DollarSign size={16} className="mr-2" />
-                        Pay ${totalCost} & Feature Room
+                        {t("rooms", "payAndFeatureRoom")}
                       </>
                     )}
                   </Button>
                 </div>
 
                 <p className="text-xs text-(--text-muted) text-center">
-                  You will be redirected to a secure payment page to complete your transaction
+                  {t("rooms", "redirectedToSecurePaymentPage")}
                 </p>
               </div>
             )}

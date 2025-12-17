@@ -1192,6 +1192,184 @@ export const translations = {
       ar: "ليس لديك صلاحية الوصول لهذه الغرفة الخاصة",
       en: "You don't have access to this private room",
     },
+
+    // Featured Rooms
+    featureRoom: {
+      ar: "تمييز الغرفة",
+      en: "Feature Room",
+    },
+    featureYourRoom: {
+      ar: "ميّز غرفتك",
+      en: "Feature Your Room",
+    },
+    roomCurrentlyFeatured: {
+      ar: "الغرفة مميزة حالياً",
+      en: "Room is Currently Featured",
+    },
+    featuredUntil: {
+      ar: "مميزة حتى",
+      en: "Featured until",
+    },
+    daysRemaining: {
+      ar: "يوم متبقي",
+      en: "days remaining",
+    },
+    cancelFeaturedListing: {
+      ar: "إلغاء التمييز",
+      en: "Cancel Featured Listing",
+    },
+    cancelling: {
+      ar: "جاري الإلغاء...",
+      en: "Cancelling...",
+    },
+    confirmCancelFeatured: {
+      ar: "هل أنت متأكد من إلغاء تمييز هذه الغرفة؟",
+      en: "Are you sure you want to cancel the featured listing?",
+    },
+    getMoreVisibility: {
+      ar: "احصل على مزيد من الظهور بتمييز غرفتك في أعلى قائمة الغرف. الغرف المميزة تحصل على 10 أضعاف المشاهدات والتفاعل!",
+      en: "Get more visibility by featuring your room at the top of the room list. Featured rooms get up to 10x more views and engagement!",
+    },
+    howLongToFeature: {
+      ar: "كم يوماً تريد تمييز غرفتك؟",
+      en: "How long would you like to feature your room?",
+    },
+    selectDuration: {
+      ar: "اختر المدة",
+      en: "Select Duration",
+    },
+    days: {
+      ar: "أيام",
+      en: "days",
+    },
+    day: {
+      ar: "يوم",
+      en: "day",
+    },
+    customDays: {
+      ar: "أيام مخصصة (1-365)",
+      en: "Custom days (1-365)",
+    },
+    enterNumberOfDays: {
+      ar: "أدخل عدد الأيام",
+      en: "Enter number of days",
+    },
+    pricingDetails: {
+      ar: "تفاصيل التسعير",
+      en: "Pricing Details",
+    },
+    pricePerDay: {
+      ar: "السعر لكل يوم",
+      en: "Price per day",
+    },
+    duration: {
+      ar: "المدة",
+      en: "Duration",
+    },
+    totalCost: {
+      ar: "التكلفة الإجمالية",
+      en: "Total Cost",
+    },
+    payAndFeatureRoom: {
+      ar: "ادفع وميّز الغرفة",
+      en: "Pay & Feature Room",
+    },
+    processing: {
+      ar: "جاري المعالجة...",
+      en: "Processing...",
+    },
+    featuredHistory: {
+      ar: "سجل التمييز",
+      en: "Featured History",
+    },
+    viewHistory: {
+      ar: "عرض السجل",
+      en: "View History",
+    },
+    hideHistory: {
+      ar: "إخفاء السجل",
+      en: "Hide History",
+    },
+    noFeaturedHistory: {
+      ar: "لا يوجد سجل تمييز لهذه الغرفة بعد.",
+      en: "No featured history for this room yet.",
+    },
+    status: {
+      ar: "الحالة",
+      en: "Status",
+    },
+    pending: {
+      ar: "قيد الانتظار",
+      en: "Pending",
+    },
+    cancelled: {
+      ar: "ملغى",
+      en: "Cancelled",
+    },
+    amount: {
+      ar: "المبلغ",
+      en: "Amount",
+    },
+    startDate: {
+      ar: "تاريخ البدء",
+      en: "Start Date",
+    },
+    endDate: {
+      ar: "تاريخ الانتهاء",
+      en: "End Date",
+    },
+    roomFeaturedSuccessfully: {
+      ar: "تم تمييز الغرفة بنجاح!",
+      en: "Room Featured Successfully!",
+    },
+    paymentVerified: {
+      ar: "تم التحقق من الدفع وتفعيل تمييز غرفتك.",
+      en: "Your payment has been verified and your room is now featured.",
+    },
+    paymentFailed: {
+      ar: "فشل الدفع",
+      en: "Payment Failed",
+    },
+    paymentNotCompleted: {
+      ar: "لم يتم إكمال الدفع. يرجى المحاولة مرة أخرى.",
+      en: "Payment was not completed. Please try again.",
+    },
+    verifyingPayment: {
+      ar: "جاري التحقق من الدفع...",
+      en: "Verifying payment...",
+    },
+    pleaseWaitVerifying: {
+      ar: "يرجى الانتظار بينما نتحقق من دفعتك.",
+      en: "Please wait while we verify your payment.",
+    },
+    backToRooms: {
+      ar: "العودة للغرف",
+      en: "Back to Rooms",
+    },
+    goToRoom: {
+      ar: "الذهاب للغرفة",
+      en: "Go to Room",
+    },
+    featuredRoomDetails: {
+      ar: "تفاصيل الغرفة المميزة",
+      en: "Featured Room Details",
+    },
+    noFeaturedRooms: {
+      ar: "لا توجد غرف مميزة حالياً",
+      en: "No featured rooms at the moment",
+    },
+    checkBackLater: {
+      ar: "تحقق لاحقاً لاكتشاف غرف مميزة جديدة!",
+      en: "Check back later to discover new featured rooms!",
+    },
+    loadingFeaturedRooms: {
+      ar: "جاري تحميل الغرف المميزة...",
+      en: "Loading featured rooms...",
+    },
+    failedToLoadFeaturedRooms: {
+      ar: "فشل تحميل الغرف المميزة",
+      en: "Failed to load featured rooms",
+    },
   },
 
   // Marketplace Page

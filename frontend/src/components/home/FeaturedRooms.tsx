@@ -34,7 +34,7 @@ function RoomCard({ room }: { room: FeaturedRoomData }) {
           <div className="absolute top-2 right-2">
             <div className="flex items-center gap-1 bg-yellow-500/90 text-white text-xs font-semibold px-2 py-1 rounded-full">
               <Sparkles size={12} />
-              Featured
+              {t("marketplace", "featured")}
             </div>
           </div>
           <div className="absolute bottom-2 left-2 right-2">
