@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Search,
   Bell,
-  MessageCircle,
+  // MessageCircle,
   Menu,
   X,
   Sun,
@@ -263,24 +263,6 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                   {itemCount > 99 ? "99+" : itemCount}
                 </span>
               )}
-            </Button>
-
-            {/* Messages */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
-              aria-label="Messages"
-            >
-              <MessageCircle size={20} />
-              <span
-                className={cn(
-                  "absolute top-1.5 right-1.5 w-2.5 h-2.5",
-                  "bg-primary-500 rounded-full",
-                  "ring-2 ring-(--bg-card)",
-                  "animate-pulse"
-                )}
-              />
             </Button>
 
             {/* Notifications */}
