@@ -3,13 +3,21 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Button, Modal } from "@/components/ui";
-import { Plus, ChevronRight, Image, Video, X, Upload, Loader2 } from "lucide-react";
+import {
+  Plus,
+  ChevronRight,
+  Video,
+  X,
+  Upload,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import { storiesApi, Story as ApiStory } from "@/lib/api/stories";
 import { uploadApi } from "@/lib/api/upload";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDistanceToNow } from "date-fns";
+import { Camera } from "lucide-react"
 
 export interface Story {
   id: string;
@@ -31,12 +39,21 @@ function transformApiStory(apiStory: ApiStory): Story {
     hasUnviewed: apiStory.hasUnviewed,
     mediaType: firstMedia?.type || "image",
     mediaUrl: firstMedia?.url || "",
-    timestamp: formatDistanceToNow(new Date(apiStory.createdAt), { addSuffix: true }),
+    timestamp: formatDistanceToNow(new Date(apiStory.createdAt), {
+      addSuffix: true,
+    }),
   };
 }
 
-
-function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => void; onView?: (storyId: string) => void }) {
+function StoryItem({
+  story,
+  onClick,
+  onView,
+}: {
+  story: Story;
+  onClick: () => void;
+  onView?: (storyId: string) => void;
+}) {
   const handleClick = () => {
     onClick();
     if (onView && story.hasUnviewed) {
@@ -45,7 +62,10 @@ function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => vo
   };
 
   return (
-    <button onClick={handleClick} className="flex flex-col items-center gap-1.5 group">
+    <button
+      onClick={handleClick}
+      className="flex flex-col items-center gap-1.5 group"
+    >
       <div
         className={cn(
           "p-0.5 rounded-full",
@@ -70,9 +90,20 @@ function StoryItem({ story, onClick, onView }: { story: Story; onClick: () => vo
   );
 }
 
-function AddStoryButton({ onClick, userAvatar, label }: { onClick: () => void; userAvatar?: string; label: string }) {
+function AddStoryButton({
+  onClick,
+  userAvatar,
+  label,
+}: {
+  onClick: () => void;
+  userAvatar?: string;
+  label: string;
+}) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group">
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-1.5 group"
+    >
       <div className="relative">
         <Avatar
           src={userAvatar || "/images/default-avatar.png"}
@@ -95,8 +126,14 @@ interface AddStoryModalProps {
   onStoryCreated?: () => void;
 }
 
-function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) {
-  const [selectedType, setSelectedType] = useState<"image" | "video" | null>(null);
+function AddStoryModal({
+  isOpen,
+  onClose,
+  onStoryCreated,
+}: AddStoryModalProps) {
+  const [selectedType, setSelectedType] = useState<"image" | "video" | null>(
+    null
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -136,8 +173,11 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
 
     try {
       // Upload the media file
-      const uploadResponse = await uploadApi.uploadMedia(selectedFile, "stories");
-      
+      const uploadResponse = await uploadApi.uploadMedia(
+        selectedFile,
+        "stories"
+      );
+
       // Create the story with the uploaded media URL
       await storiesApi.createStory({
         media: [uploadResponse.url],
@@ -161,7 +201,12 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Add to Your Story" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add to Your Story"
+      size="md"
+    >
       <div className="p-4">
         <input
           ref={fileInputRef}
@@ -182,10 +227,12 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
                 className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-(--border) hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors group"
               >
                 <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Image size={28} className="text-primary-600" alt="Story"  />
+                  <Camera size={24} className="text-primary-600" />
                 </div>
                 <span className="font-medium text-(--text)">Photo</span>
-                <span className="text-xs text-(--text-muted)">Share an image</span>
+                <span className="text-xs text-(--text-muted)">
+                  Share an image
+                </span>
               </button>
 
               <button
@@ -196,7 +243,9 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
                   <Video size={28} className="text-accent-pink" />
                 </div>
                 <span className="font-medium text-(--text)">Video</span>
-                <span className="text-xs text-(--text-muted)">Share a video</span>
+                <span className="text-xs text-(--text-muted)">
+                  Share a video
+                </span>
               </button>
             </div>
           </div>
@@ -232,10 +281,20 @@ function AddStoryModal({ isOpen, onClose, onStoryCreated }: AddStoryModalProps) 
             )}
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={handleClear} disabled={isUploading}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleClear}
+                disabled={isUploading}
+              >
                 Change
               </Button>
-              <Button variant="primary" className="flex-1 gap-2" onClick={handleSubmit} disabled={isUploading}>
+              <Button
+                variant="primary"
+                className="flex-1 gap-2"
+                onClick={handleSubmit}
+                disabled={isUploading}
+              >
                 {isUploading ? (
                   <Loader2 size={18} className="animate-spin" />
                 ) : (
@@ -258,7 +317,12 @@ interface StoryViewerModalProps {
   onView?: (storyId: string) => void;
 }
 
-function StoryViewerModal({ story, isOpen, onClose, onView }: StoryViewerModalProps) {
+function StoryViewerModal({
+  story,
+  isOpen,
+  onClose,
+  onView,
+}: StoryViewerModalProps) {
   useEffect(() => {
     if (isOpen && story && onView) {
       onView(story.id);
@@ -352,7 +416,7 @@ export function StoriesSection() {
 
   const handleViewStory = async (storyId: string) => {
     if (!isAuthenticated) return;
-    
+
     try {
       await storiesApi.viewStory(storyId);
       // Update local state to mark as viewed
@@ -370,7 +434,11 @@ export function StoriesSection() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-lg">{t("home", "stories")}</h2>
           <Link href="/stories">
-            <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-primary-600 dark:text-primary-400 gap-1"
+            >
               {t("home", "viewAll")}
               <ChevronRight size={16} />
             </Button>
@@ -383,7 +451,11 @@ export function StoriesSection() {
             className="flex gap-4 overflow-x-auto hide-scrollbar pb-2"
           >
             {isAuthenticated && (
-              <AddStoryButton onClick={() => setIsAddModalOpen(true)} userAvatar={user?.avatar} label={t("home", "yourStory")} />
+              <AddStoryButton
+                onClick={() => setIsAddModalOpen(true)}
+                userAvatar={user?.avatar}
+                label={t("home", "yourStory")}
+              />
             )}
             {isLoading ? (
               <div className="flex items-center justify-center w-full py-4">
@@ -411,9 +483,9 @@ export function StoriesSection() {
         </div>
       </div>
 
-      <AddStoryModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
+      <AddStoryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
         onStoryCreated={fetchStories}
       />
       <StoryViewerModal
