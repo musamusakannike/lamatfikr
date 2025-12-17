@@ -12,7 +12,6 @@ import {
   ThumbsUp,
   CheckCircle,
   User,
-  Camera,
   X,
   Send,
 } from "lucide-react";
@@ -118,7 +117,7 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
 
   // Check if user has already reviewed
   const hasUserReviewed = reviews.some(
-    (review) => review.userId._id === user?._id
+    (review) => review.userId._id === user?.id
   );
 
   return (
