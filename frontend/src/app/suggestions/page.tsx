@@ -5,8 +5,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { userSuggestionsApi, type SuggestedUser } from "@/lib/api/user-suggestions";
 import { socialApi } from "@/lib/api/social";
 import { Avatar } from "@/components/ui";
+import { Navbar, Sidebar } from "@/components/layout";
 import { UserPlus, UserCheck, Loader2, ArrowLeft, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
@@ -19,6 +21,7 @@ export default function SuggestionsPage() {
   const [followingLoading, setFollowingLoading] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchSuggestedUsers();
@@ -76,15 +79,22 @@ export default function SuggestionsPage() {
 
   return (
     <div className="min-h-screen bg-(--bg)">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <Navbar
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        isSidebarOpen={sidebarOpen}
+      />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className={cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64")}>
+        <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="mb-6">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-(--text-muted) hover:text-(--text) transition-colors mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>{t("common", "back")}</span>
-          </a>
+          </Link>
 
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-xl">
@@ -224,6 +234,7 @@ export default function SuggestionsPage() {
           </>
         )}
       </div>
+      </main>
     </div>
   );
 }
