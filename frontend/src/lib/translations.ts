@@ -920,6 +920,278 @@ export const translations = {
       ar: "حذف الغرفة",
       en: "Delete Room",
     },
+
+    // Edit Room Modal
+    editRoom: {
+      ar: "تعديل الغرفة",
+      en: "Edit Room",
+    },
+    changeImage: {
+      ar: "تغيير الصورة",
+      en: "Change Image",
+    },
+    saveChanges: {
+      ar: "حفظ التغييرات",
+      en: "Save Changes",
+    },
+
+    // Room Details Modal
+    joinRoom: {
+      ar: "انضم للغرفة",
+      en: "Join Room",
+    },
+    payToJoin: {
+      ar: "ادفع للانضمام",
+      en: "Pay to Join",
+    },
+    pendingApproval: {
+      ar: "طلب عضويتك قيد المراجعة.",
+      en: "Your membership request is pending approval.",
+    },
+    confirmDeleteRoom: {
+      ar: "هل أنت متأكد من حذف هذه الغرفة؟ لا يمكن التراجع عن هذا الإجراء.",
+      en: "Are you sure you want to delete this room? This action cannot be undone.",
+    },
+
+    // Chat View
+    typeMessage: {
+      ar: "اكتب رسالة...",
+      en: "Type a message...",
+    },
+    noMessagesYet: {
+      ar: "لا توجد رسائل بعد. ابدأ المحادثة!",
+      en: "No messages yet. Start the conversation!",
+    },
+    searchEmoji: {
+      ar: "البحث عن إيموجي...",
+      en: "Search emoji...",
+    },
+    pendingRequests: {
+      ar: "الطلبات المعلقة",
+      en: "Pending requests",
+    },
+    shareInviteLink: {
+      ar: "مشاركة رابط الدعوة",
+      en: "Share invite link",
+    },
+
+    // Invite Link Modal
+    shareRoom: {
+      ar: "مشاركة الغرفة",
+      en: "Share Room",
+    },
+    sharePrivateRoom: {
+      ar: "مشاركة الغرفة الخاصة",
+      en: "Share Private Room",
+    },
+    inviteLinksOnlyPrivate: {
+      ar: "روابط الدعوة متاحة فقط للغرف الخاصة.",
+      en: "Invite links are only available for private rooms.",
+    },
+    generateNewInviteLink: {
+      ar: "إنشاء رابط دعوة جديد",
+      en: "Generate New Invite Link",
+    },
+    createInviteLink: {
+      ar: "إنشاء رابط دعوة",
+      en: "Create Invite Link",
+    },
+    expirationTime: {
+      ar: "وقت انتهاء الصلاحية (اختياري)",
+      en: "Expiration Time (optional)",
+    },
+    neverExpires: {
+      ar: "لا ينتهي أبداً",
+      en: "Never expires",
+    },
+    oneHour: {
+      ar: "ساعة واحدة",
+      en: "1 hour",
+    },
+    oneDay: {
+      ar: "يوم واحد",
+      en: "1 day",
+    },
+    oneWeek: {
+      ar: "أسبوع واحد",
+      en: "1 week",
+    },
+    thirtyDays: {
+      ar: "30 يوم",
+      en: "30 days",
+    },
+    maxUses: {
+      ar: "الحد الأقصى للاستخدام (اختياري)",
+      en: "Max Uses (optional)",
+    },
+    unlimited: {
+      ar: "غير محدود",
+      en: "Unlimited",
+    },
+    generate: {
+      ar: "إنشاء",
+      en: "Generate",
+    },
+    generating: {
+      ar: "جاري الإنشاء...",
+      en: "Generating...",
+    },
+    activeLinks: {
+      ar: "الروابط النشطة",
+      en: "Active Links",
+    },
+    noInviteLinksYet: {
+      ar: "لا توجد روابط دعوة بعد. أنشئ واحداً للمشاركة مع الآخرين.",
+      en: "No invite links yet. Create one to share with others.",
+    },
+    active: {
+      ar: "نشط",
+      en: "Active",
+    },
+    revoked: {
+      ar: "ملغى",
+      en: "Revoked",
+    },
+    copyLink: {
+      ar: "نسخ الرابط",
+      en: "Copy link",
+    },
+    uses: {
+      ar: "استخدام",
+      en: "uses",
+    },
+    expiresIn: {
+      ar: "ينتهي في",
+      en: "Expires in",
+    },
+    never: {
+      ar: "أبداً",
+      en: "Never",
+    },
+    expired: {
+      ar: "منتهي",
+      en: "Expired",
+    },
+    revokeLink: {
+      ar: "إلغاء الرابط",
+      en: "Revoke Link",
+    },
+    confirmRevokeLink: {
+      ar: "هل أنت متأكد من إلغاء رابط الدعوة هذا؟",
+      en: "Are you sure you want to revoke this invite link?",
+    },
+    howToShare: {
+      ar: "كيفية المشاركة:",
+      en: "How to share:",
+    },
+    shareInstructions: {
+      ar: "انسخ رابط الدعوة وشاركه مع الأشخاص الذين تريد دعوتهم. يمكنهم الانضمام مباشرة دون الحاجة للموافقة.",
+      en: "Copy the invite link and share it with people you want to invite. They can join directly without needing approval.",
+    },
+
+    // Pending Requests Modal
+    manageMembershipRequests: {
+      ar: "إدارة طلبات العضوية لـ",
+      en: "Manage membership requests for",
+    },
+    paidRoomNote: {
+      ar: "هذه غرفة مدفوعة. المستخدمون الموافق عليهم سيحتاجون لإكمال الدفع للانضمام.",
+      en: "This is a paid room. Approved users will need to complete payment to join.",
+    },
+    noPendingRequests: {
+      ar: "لا توجد طلبات معلقة",
+      en: "No pending requests",
+    },
+    newRequestsWillAppear: {
+      ar: "ستظهر الطلبات الجديدة هنا",
+      en: "New requests will appear here",
+    },
+    requested: {
+      ar: "طلب",
+      en: "Requested",
+    },
+    approve: {
+      ar: "موافقة",
+      en: "Approve",
+    },
+    reject: {
+      ar: "رفض",
+      en: "Reject",
+    },
+    viewProfile: {
+      ar: "عرض الملف الشخصي",
+      en: "View profile",
+    },
+    justNow: {
+      ar: "الآن",
+      en: "Just now",
+    },
+    minutesAgo: {
+      ar: "دقيقة مضت",
+      en: "m ago",
+    },
+    hoursAgo: {
+      ar: "ساعة مضت",
+      en: "h ago",
+    },
+    daysAgo: {
+      ar: "يوم مضى",
+      en: "d ago",
+    },
+
+    // Time formatting
+    now: {
+      ar: "الآن",
+      en: "now",
+    },
+
+    // Categories
+    technology: {
+      ar: "التكنولوجيا",
+      en: "Technology",
+    },
+    finance: {
+      ar: "المالية",
+      en: "Finance",
+    },
+    artAndDesign: {
+      ar: "الفن والتصميم",
+      en: "Art & Design",
+    },
+    business: {
+      ar: "الأعمال",
+      en: "Business",
+    },
+    healthAndFitness: {
+      ar: "الصحة واللياقة",
+      en: "Health & Fitness",
+    },
+    photography: {
+      ar: "التصوير",
+      en: "Photography",
+    },
+    music: {
+      ar: "الموسيقى",
+      en: "Music",
+    },
+    gaming: {
+      ar: "الألعاب",
+      en: "Gaming",
+    },
+    education: {
+      ar: "التعليم",
+      en: "Education",
+    },
+    lifestyle: {
+      ar: "نمط الحياة",
+      en: "Lifestyle",
+    },
+
+    // Access errors
+    noAccessToPrivateRoom: {
+      ar: "ليس لديك صلاحية الوصول لهذه الغرفة الخاصة",
+      en: "You don't have access to this private room",
+    },
   },
 
   // Marketplace Page
