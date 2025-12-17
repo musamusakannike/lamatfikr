@@ -23,6 +23,7 @@ import { messagesRouter } from "./routes/messages";
 import { marketplaceRouter } from "./routes/marketplace";
 import { notificationsRouter } from "./routes/notifications";
 import walletRouter from "./routes/wallet";
+import { userSuggestionsRouter } from "./routes/user-suggestions";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -68,6 +69,7 @@ export function createApp() {
   app.use("/api/messages", messagesRouter);
   app.use("/api/marketplace", marketplaceRouter);
   app.use("/api/notifications", notificationsRouter);
+  app.use("/api/users", userSuggestionsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
