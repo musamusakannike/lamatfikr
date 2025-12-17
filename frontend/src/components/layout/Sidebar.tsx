@@ -12,6 +12,7 @@ import { notificationsApi } from "@/lib/api/notifications";
 import {
   Home,
   MessageSquare,
+  Mail,
   Users,
   ShoppingBag,
   List,
@@ -105,6 +106,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navItems: NavItem[] = [
     { icon: Home, label: t("nav", "home"), href: "/" },
+    { icon: Mail, label: t("nav", "messages"), href: "/messages" },
     { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: roomsUnreadCount > 0 ? roomsUnreadCount : undefined },
     { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
