@@ -68,7 +68,7 @@ const ProductSchema = new Schema<Product>(
     description: { type: String, required: true, index: "text" },
     price: { type: Number, required: true, min: 0 },
     originalPrice: { type: Number, min: 0 },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     images: [{ type: String }],
     category: { type: String, required: true, index: true },
     condition: {

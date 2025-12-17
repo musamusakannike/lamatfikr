@@ -51,7 +51,7 @@ export default function WalletPage() {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = "USD") => {
+  const formatCurrency = (amount: number, currency: string = "SAR") => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency,

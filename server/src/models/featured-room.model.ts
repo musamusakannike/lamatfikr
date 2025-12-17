@@ -31,7 +31,7 @@ const FeaturedRoomSchema = new Schema<FeaturedRoom>(
     endDate: { type: Date, required: true, index: true },
     days: { type: Number, required: true, min: 1 },
     amount: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: "USD", required: true },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"], required: true },
     status: {
       type: String,
       enum: Object.values(FeaturedRoomStatus),

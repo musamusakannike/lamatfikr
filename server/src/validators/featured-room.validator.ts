@@ -3,7 +3,7 @@ import { z } from "zod";
 export const initiateFeaturedRoomSchema = z.object({
   body: z.object({
     days: z.number().int().min(1).max(365),
-    currency: z.string().optional().default("USD"),
+    currency: z.string().optional().default("SAR"),
   }),
   params: z.object({
     roomId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid room ID"),

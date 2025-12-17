@@ -43,7 +43,7 @@ const TransactionSchema = new Schema<Transaction>(
       index: true,
     },
     amount: { type: Number, required: true },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     status: {
       type: String,
       enum: Object.values(TransactionStatus),

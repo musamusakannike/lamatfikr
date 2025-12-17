@@ -57,7 +57,7 @@ const WithdrawalSchema = new Schema<Withdrawal>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     amount: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     method: {
       type: String,
       enum: Object.values(WithdrawalMethod),

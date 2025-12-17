@@ -26,7 +26,7 @@ const RoomPaymentSchema = new Schema<RoomPayment>(
     roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     amount: { type: Number, required: true },
-    currency: { type: String, required: true, default: "USD" },
+    currency: { type: String, required: true, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     tapChargeId: { type: String, required: true, unique: true },
     status: {
       type: String,

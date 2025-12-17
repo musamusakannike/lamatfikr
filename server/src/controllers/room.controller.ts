@@ -56,7 +56,7 @@ export async function createRoom(req: Request, res: Response, next: NextFunction
       category,
       membershipType: membershipType || RoomMembershipType.free,
       price: membershipType === RoomMembershipType.paid ? price : undefined,
-      currency: membershipType === RoomMembershipType.paid ? (currency || "USD") : undefined,
+      currency: membershipType === RoomMembershipType.paid ? (currency || "SAR") : undefined,
       isPrivate: isPrivate || false,
       ownerId: userId,
       memberCount: 1,
@@ -435,7 +435,7 @@ export async function initiatePaidRoomJoin(req: Request, res: Response, next: Ne
       TAP_API_URL,
       {
         amount: room.price,
-        currency: room.currency || "USD",
+        currency: room.currency || "SAR",
         threeDSecure: true,
         save_card: false,
         description: `Membership for room: ${room.name}`,
@@ -467,7 +467,7 @@ export async function initiatePaidRoomJoin(req: Request, res: Response, next: Ne
       roomId,
       userId,
       amount: room.price!,
-      currency: room.currency || "USD",
+      currency: room.currency || "SAR",
       tapChargeId: response.data.id,
       status: PaymentStatus.pending,
       metadata: {

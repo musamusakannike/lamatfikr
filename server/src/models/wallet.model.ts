@@ -16,7 +16,7 @@ const WalletSchema = new Schema<Wallet>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true },
     balance: { type: Number, default: 0, min: 0 },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     pendingBalance: { type: Number, default: 0, min: 0 },
     totalEarned: { type: Number, default: 0, min: 0 },
     totalWithdrawn: { type: Number, default: 0, min: 0 },

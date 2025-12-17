@@ -63,7 +63,7 @@ export function FeatureRoomModal({
 
       const response = await featuredRoomsApi.initiateFeaturedPayment(roomId, {
         days,
-        currency: "USD",
+        currency: "SAR",
       });
 
       window.location.href = response.redirectUrl;

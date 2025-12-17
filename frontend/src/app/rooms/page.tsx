@@ -171,7 +171,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   const [category, setCategory] = useState("");
   const [membershipType, setMembershipType] = useState<MembershipType>("free");
   const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("SAR");
   const [isPrivate, setIsPrivate] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -226,7 +226,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     setCategory("");
     setMembershipType("free");
     setPrice("");
-    setCurrency("USD");
+    setCurrency("SAR");
     setIsPrivate(false);
     setImageFile(null);
     setImagePreview(null);
@@ -457,12 +457,9 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   onChange={(e) => setCurrency(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
+                  <option value="SAR">SAR (﷼)</option>
+                  <option value="OMR">OMR (ر.ع.)</option>
                   <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="SAR">SAR (SAR)</option>
-                  <option value="AED">AED (AED)</option>
-                  <option value="KWD">KWD (KWD)</option>
                 </select>
               </div>
             </div>

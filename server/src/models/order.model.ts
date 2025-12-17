@@ -104,7 +104,7 @@ const OrderSchema = new Schema<Order>(
     shippingFee: { type: Number, default: 0, min: 0 },
     serviceFee: { type: Number, default: 0, min: 0 },
     total: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     status: {
       type: String,
       enum: Object.values(OrderStatus),
