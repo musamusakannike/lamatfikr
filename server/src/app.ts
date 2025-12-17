@@ -20,6 +20,7 @@ import { roomsRouter } from "./routes/rooms";
 import { communitiesRouter } from "./routes/communities";
 import { messagesRouter } from "./routes/messages";
 import { marketplaceRouter } from "./routes/marketplace";
+import { notificationsRouter } from "./routes/notifications";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -63,6 +64,7 @@ export function createApp() {
   app.use("/api/communities", communitiesRouter);
   app.use("/api/messages", messagesRouter);
   app.use("/api/marketplace", marketplaceRouter);
+  app.use("/api/notifications", notificationsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -8,6 +8,7 @@ export interface Notification {
   actorId?: ObjectId;
   type: NotificationTypeType;
   targetId?: ObjectId;
+  url: string;
   isRead: boolean;
 }
 
@@ -17,6 +18,7 @@ const NotificationSchema = new Schema<Notification>(
     actorId: { type: Schema.Types.ObjectId, ref: "User" },
     type: { type: String, enum: Object.values(NotificationType), required: true },
     targetId: { type: Schema.Types.ObjectId },
+    url: { type: String, required: true },
     isRead: { type: Boolean, default: false },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

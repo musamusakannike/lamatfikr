@@ -8,7 +8,15 @@ import { SavedItemModel } from "../models/saved-item.model";
 import { BlockModel } from "../models/block.model";
 import { FriendshipModel } from "../models/friendship.model";
 import { FollowModel } from "../models/follow.model";
-import { PostPrivacy, ReactionTargetType, SavedItemType, FriendshipStatus, FollowStatus } from "../models/common";
+import {
+  PostPrivacy,
+  ReactionTargetType,
+  SavedItemType,
+  FriendshipStatus,
+  FollowStatus,
+  NotificationType,
+} from "../models/common";
+import { createNotification } from "../services/notification";
 import {
   createCommentSchema,
   updateCommentSchema,
@@ -111,6 +119,31 @@ export const createComment: RequestHandler = async (req, res, next) => {
       content,
       media: media || [],
     });
+
+    if (parentCommentId) {
+      const parentComment = await CommentModel.findById(parentCommentId).select("userId").lean();
+      const recipientId = parentComment?.userId?.toString();
+      if (recipientId) {
+        await createNotification({
+          userId: recipientId,
+          actorId: userId,
+          type: NotificationType.comment,
+          targetId: comment._id.toString(),
+          url: `/posts/${postId}`,
+        });
+      }
+    } else {
+      const postOwnerId = post.userId?.toString?.() ?? post.userId;
+      if (typeof postOwnerId === "string") {
+        await createNotification({
+          userId: postOwnerId,
+          actorId: userId,
+          type: NotificationType.comment,
+          targetId: comment._id.toString(),
+          url: `/posts/${postId}`,
+        });
+      }
+    }
 
     post.commentCount += 1;
     await post.save();
@@ -420,6 +453,17 @@ export const reactToComment: RequestHandler = async (req, res, next) => {
       targetId: commentId,
       reactionType,
     });
+
+    const commentOwnerId = comment.userId?.toString?.() ?? comment.userId;
+    if (typeof commentOwnerId === "string") {
+      await createNotification({
+        userId: commentOwnerId,
+        actorId: userId,
+        type: NotificationType.like,
+        targetId: commentId,
+        url: `/posts/${postId}`,
+      });
+    }
 
     comment.reactionCount += 1;
     await comment.save();

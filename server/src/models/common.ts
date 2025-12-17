@@ -69,6 +69,8 @@ export const NotificationType = {
   comment: "comment",
   follow: "follow",
   mention: "mention",
+  friend_request: "friend_request",
+  friend_accept: "friend_accept",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

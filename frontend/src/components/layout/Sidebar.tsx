@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { roomsApi } from "@/lib/api/rooms";
 import { communitiesApi } from "@/lib/api/communities";
+import { notificationsApi } from "@/lib/api/notifications";
 import {
   Home,
   MessageSquare,
@@ -74,6 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, isAuthenticated } = useAuth();
   const [roomsUnreadCount, setRoomsUnreadCount] = useState(0);
   const [communitiesUnreadCount, setCommunitiesUnreadCount] = useState(0);
+  const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
 
   const isMarketplaceRoute = pathname === "/marketplace" || pathname.startsWith("/marketplace/");
 
@@ -82,12 +84,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const fetchUnreadCounts = async () => {
       try {
-        const [roomsResponse, communitiesResponse] = await Promise.all([
+        const [roomsResponse, communitiesResponse, notificationsResponse] = await Promise.all([
           roomsApi.getTotalUnreadCount(),
           communitiesApi.getTotalUnreadCount(),
+          notificationsApi.getUnreadCount(),
         ]);
         setRoomsUnreadCount(roomsResponse.totalUnreadCount);
         setCommunitiesUnreadCount(communitiesResponse.totalUnreadCount);
+        setNotificationsUnreadCount(notificationsResponse.unreadCount);
       } catch {
         // Silently ignore errors
       }
@@ -106,7 +110,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: FileText, label: isRTL ? "المقالات" : "Articles", href: "/articles" },
     { icon: Newspaper, label: isRTL ? "المنشورات" : "Posts", href: "/posts" },
-    { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: 5 },
+    { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined },
     { icon: Settings, label: t("nav", "settings"), href: "/settings" },
   ];
 

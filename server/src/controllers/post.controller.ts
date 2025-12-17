@@ -15,7 +15,15 @@ import { FriendshipModel } from "../models/friendship.model";
 import { FollowModel } from "../models/follow.model";
 import { BlockModel } from "../models/block.model";
 import { MuteModel } from "../models/mute.model";
-import { PostPrivacy, VoteType, SavedItemType, FriendshipStatus, FollowStatus } from "../models/common";
+import {
+  PostPrivacy,
+  VoteType,
+  SavedItemType,
+  FriendshipStatus,
+  FollowStatus,
+  NotificationType,
+} from "../models/common";
+import { createNotification } from "../services/notification";
 import { parseContent } from "../utils/content-parser";
 import {
   createPostSchema,
@@ -158,6 +166,27 @@ export const createPost: RequestHandler = async (req, res, next) => {
     }
 
     await processHashtagsAndMentions(post._id as Types.ObjectId, contentText);
+
+    if (contentText) {
+      const { mentions } = parseContent(contentText);
+      if (mentions.length > 0) {
+        const mentionedUsers = await UserModel.find({ username: { $in: mentions } })
+          .select("_id")
+          .lean();
+
+        await Promise.all(
+          mentionedUsers.map((u) =>
+            createNotification({
+              userId: u._id.toString(),
+              actorId: userId,
+              type: NotificationType.mention,
+              targetId: post._id.toString(),
+              url: `/posts/${post._id.toString()}`,
+            })
+          )
+        );
+      }
+    }
 
     const populatedPost = await PostModel.findById(post._id)
       .populate("userId", "firstName lastName username avatar verified")
@@ -647,6 +676,19 @@ export const votePost: RequestHandler = async (req, res, next) => {
         existingVote.voteType = voteType;
         await Promise.all([existingVote.save(), post.save()]);
 
+        if (voteType === VoteType.upvote) {
+          const postOwnerId = post.userId?.toString?.() ?? post.userId;
+          if (typeof postOwnerId === "string") {
+            await createNotification({
+              userId: postOwnerId,
+              actorId: userId,
+              type: NotificationType.like,
+              targetId: postId,
+              url: `/posts/${postId}`,
+            });
+          }
+        }
+
         res.json({ message: "Vote changed", userVote: voteType });
         return;
       }
@@ -659,6 +701,19 @@ export const votePost: RequestHandler = async (req, res, next) => {
       post.downvoteCount += 1;
     }
     await post.save();
+
+    if (voteType === VoteType.upvote) {
+      const postOwnerId = post.userId?.toString?.() ?? post.userId;
+      if (typeof postOwnerId === "string") {
+        await createNotification({
+          userId: postOwnerId,
+          actorId: userId,
+          type: NotificationType.like,
+          targetId: postId,
+          url: `/posts/${postId}`,
+        });
+      }
+    }
 
     res.json({ message: "Vote recorded", userVote: voteType });
   } catch (error) {

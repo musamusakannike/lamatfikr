@@ -18,6 +18,9 @@ export type { Story, StoryUser, StoryMediaItem, StoryViewer, CreateStoryData, St
 export { messagesApi } from "./messages";
 export type { Message, MessageUser, Conversation, ConversationsResponse, MessagesResponse, SendMessageData } from "./messages";
 
+export { notificationsApi } from "./notifications";
+export type { Notification } from "./notifications";
+
 export { marketplaceApi } from "./marketplace";
 export type {
   Product,

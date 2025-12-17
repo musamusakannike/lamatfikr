@@ -26,6 +26,7 @@ import Link from "next/link";
 import { CreatePost } from "@/components/home/CreatePost";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
+import { notificationsApi } from "@/lib/api/notifications";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -39,6 +40,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const { t, isRTL } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount, openCart } = useCart();
+  const [notificationsUnreadCount, setNotificationsUnreadCount] = useState(0);
   const [searchFocused, setSearchFocused] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -71,6 +73,23 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
       searchInputRef.current.focus();
     }
   }, [mobileSearchOpen]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchUnread = async () => {
+      try {
+        const { unreadCount } = await notificationsApi.getUnreadCount();
+        setNotificationsUnreadCount(unreadCount);
+      } catch {
+        // Silently ignore errors
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -270,21 +289,24 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               size="icon"
               className="relative hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
               aria-label="Notifications"
+              onClick={() => router.push("/notifications")}
             >
               <Bell size={20} />
-              <span
-                className={cn(
-                  "absolute -top-0.5 -right-0.5",
-                  "min-w-[20px] h-[20px] px-1.5",
-                  "flex items-center justify-center",
-                  "text-[10px] font-bold text-white",
-                  "bg-linear-to-r from-red-500 to-red-600",
-                  "rounded-full shadow-sm",
-                  "ring-2 ring-(--bg-card)"
-                )}
-              >
-                5
-              </span>
+              {notificationsUnreadCount > 0 && (
+                <span
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5",
+                    "min-w-[20px] h-[20px] px-1.5",
+                    "flex items-center justify-center",
+                    "text-[10px] font-bold text-white",
+                    "bg-linear-to-r from-red-500 to-red-600",
+                    "rounded-full shadow-sm",
+                    "ring-2 ring-(--bg-card)"
+                  )}
+                >
+                  {notificationsUnreadCount > 99 ? "99+" : notificationsUnreadCount}
+                </span>
+              )}
             </Button>
 
             {/* Language Switcher */}

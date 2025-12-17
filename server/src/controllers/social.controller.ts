@@ -6,7 +6,8 @@ import { FollowModel } from "../models/follow.model";
 import { BlockModel } from "../models/block.model";
 import { MuteModel } from "../models/mute.model";
 import { UserModel } from "../models/user.model";
-import { FriendshipStatus, FollowStatus } from "../models/common";
+import { FriendshipStatus, FollowStatus, NotificationType } from "../models/common";
+import { createNotification } from "../services/notification";
 import {
   sendFriendRequestSchema,
   respondFriendRequestSchema,
@@ -85,6 +86,14 @@ export const sendFriendRequest: RequestHandler = async (req, res, next) => {
       status: FriendshipStatus.pending,
     });
 
+    await createNotification({
+      userId: addresseeId,
+      actorId: userId,
+      type: NotificationType.friend_request,
+      targetId: friendship._id.toString(),
+      url: `/user/${addressee.username}`,
+    });
+
     res.status(201).json({
       message: "Friend request sent",
       friendship,
@@ -127,6 +136,19 @@ export const respondToFriendRequest: RequestHandler = async (req, res, next) => 
     friendship.status = accept ? FriendshipStatus.accepted : FriendshipStatus.rejected;
     friendship.respondedAt = new Date();
     await friendship.save();
+
+    if (accept) {
+      const requester = await UserModel.findById(requesterId).select("username");
+      if (requester?.username) {
+        await createNotification({
+          userId: requesterId,
+          actorId: userId,
+          type: NotificationType.friend_accept,
+          targetId: friendship._id.toString(),
+          url: `/user/${requester.username}`,
+        });
+      }
+    }
 
     res.json({
       message: accept ? "Friend request accepted" : "Friend request rejected",
@@ -355,6 +377,14 @@ export const followUser: RequestHandler = async (req, res, next) => {
       followerId: userId,
       followingId,
       status: FollowStatus.accepted,
+    });
+
+    await createNotification({
+      userId: followingId,
+      actorId: userId,
+      type: NotificationType.follow,
+      targetId: follow._id.toString(),
+      url: `/user/${targetUser.username}`,
     });
 
     res.status(201).json({
