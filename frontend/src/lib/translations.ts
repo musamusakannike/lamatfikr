@@ -301,6 +301,68 @@ export const translations = {
       ar: "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.",
       en: "Registration successful! Please check your email to verify your account.",
     },
+
+    // Email Verification
+    emailVerificationTitle: {
+      ar: "تأكيد البريد الإلكتروني",
+      en: "Email Verification",
+    },
+    emailVerificationSubtitle: {
+      ar: "نحن نتحقق من بريدك الإلكتروني لتأمين حسابك.",
+      en: "We're verifying your email to secure your account.",
+    },
+    verifyingEmail: {
+      ar: "جاري التحقق من البريد الإلكتروني...",
+      en: "Verifying your email...",
+    },
+    pleaseWait: {
+      ar: "يرجى الانتظار بينما نتحقق من بريدك الإلكتروني.",
+      en: "Please wait while we verify your email address.",
+    },
+    emailVerified: {
+      ar: "تم تأكيد البريد الإلكتروني!",
+      en: "Email Verified!",
+    },
+    emailVerifiedSuccess: {
+      ar: "تم التحقق من بريدك الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول.",
+      en: "Your email has been verified successfully. You can now log in.",
+    },
+    verificationFailed: {
+      ar: "فشل التحقق",
+      en: "Verification Failed",
+    },
+    noVerificationToken: {
+      ar: "رمز التحقق غير موجود",
+      en: "No verification token found",
+    },
+    checkEmailForLink: {
+      ar: "يرجى التحقق من بريدك الإلكتروني للحصول على رابط التحقق.",
+      en: "Please check your email for the verification link.",
+    },
+    resendVerificationPrompt: {
+      ar: "لم تستلم البريد الإلكتروني؟ أدخل بريدك الإلكتروني لإعادة الإرسال.",
+      en: "Didn't receive the email? Enter your email to resend.",
+    },
+    resendVerificationEmail: {
+      ar: "إعادة إرسال رابط التحقق",
+      en: "Resend Verification Email",
+    },
+    sendingVerification: {
+      ar: "جاري الإرسال...",
+      en: "Sending...",
+    },
+    verificationEmailSent: {
+      ar: "تم إرسال رابط التحقق إلى بريدك الإلكتروني.",
+      en: "Verification email has been sent to your inbox.",
+    },
+    proceedToLogin: {
+      ar: "المتابعة لتسجيل الدخول",
+      en: "Proceed to Login",
+    },
+    backToLogin: {
+      ar: "العودة لتسجيل الدخول",
+      en: "Back to Login",
+    },
   },
 
   // Navigation
