@@ -24,7 +24,7 @@ function RoomCard({ room }: { room: FeaturedRoomData }) {
             height={200}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
           <Badge
             variant="primary"
             className="absolute top-2 left-2"

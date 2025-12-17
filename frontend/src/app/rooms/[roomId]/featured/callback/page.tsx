@@ -55,14 +55,14 @@ function FeaturedCallbackContent() {
 
         {status === "success" && (
           <>
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-linear-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 flex items-center justify-center">
               <Sparkles size={48} className="text-yellow-600" />
             </div>
             <h1 className="text-2xl font-bold text-(--text) mb-2">Room Featured Successfully!</h1>
             <p className="text-(--text-muted) mb-6">{message}</p>
             
             {featuredData && (
-              <div className="bg-gradient-to-br from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-6">
+              <div className="bg-linear-to-br from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-6">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-(--text-muted)">Duration:</span>
