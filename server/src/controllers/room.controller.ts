@@ -13,7 +13,12 @@ import {
   PaymentStatus,
   RoomMembershipType,
   RoomInviteLinkModel,
+  UserModel,
 } from "../models";
+import {
+  sendRoomPaymentCapturedOwnerEmail,
+  sendRoomPaymentCapturedPayerEmail,
+} from "../services/email";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
@@ -544,6 +549,57 @@ export async function verifyPaymentAndJoin(req: Request, res: Response, next: Ne
     }
 
     if (payment.status === PaymentStatus.captured) {
+      const emailFlags = (payment.metadata as any)?.emails || {};
+      const shouldSendPayer = !emailFlags.payerRoomPaymentCaptured;
+      const shouldSendOwner = !emailFlags.ownerRoomPaymentCaptured;
+
+      if (shouldSendPayer || shouldSendOwner) {
+        const room = await RoomModel.findById(roomId).select("name ownerId currency").lean();
+        if (room) {
+          const [payer, owner] = await Promise.all([
+            UserModel.findById(userId).select("email firstName").lean(),
+            UserModel.findById(room.ownerId).select("email firstName").lean(),
+          ]);
+
+          const roomUrl = `${env.FRONTEND_URL}/rooms`;
+
+          let payerEmailSent = false;
+          let ownerEmailSent = false;
+
+          if (shouldSendPayer && payer?.email) {
+            await sendRoomPaymentCapturedPayerEmail({
+              to: payer.email,
+              payerFirstName: payer.firstName || "there",
+              roomName: room.name,
+              amount: payment.amount,
+              currency: payment.currency,
+              roomUrl,
+            });
+            payerEmailSent = true;
+          }
+
+          if (shouldSendOwner && owner?.email) {
+            await sendRoomPaymentCapturedOwnerEmail({
+              to: owner.email,
+              ownerFirstName: owner.firstName || "there",
+              roomName: room.name,
+              amount: payment.amount,
+              currency: payment.currency,
+              roomUrl,
+            });
+            ownerEmailSent = true;
+          }
+
+          const setUpdates: Record<string, boolean> = {};
+          if (payerEmailSent) setUpdates["metadata.emails.payerRoomPaymentCaptured"] = true;
+          if (ownerEmailSent) setUpdates["metadata.emails.ownerRoomPaymentCaptured"] = true;
+
+          if (Object.keys(setUpdates).length > 0) {
+            await RoomPaymentModel.updateOne({ _id: payment._id }, { $set: setUpdates });
+          }
+        }
+      }
+
       // Payment already processed - user is already a member
       res.json({
         message: "Payment verified. You have successfully joined the room!",
@@ -564,6 +620,57 @@ export async function verifyPaymentAndJoin(req: Request, res: Response, next: Ne
         paidAt: new Date(),
       }
     );
+
+    const emailFlags = (payment.metadata as any)?.emails || {};
+    const shouldSendPayer = !emailFlags.payerRoomPaymentCaptured;
+    const shouldSendOwner = !emailFlags.ownerRoomPaymentCaptured;
+
+    if (shouldSendPayer || shouldSendOwner) {
+      const room = await RoomModel.findById(roomId).select("name ownerId currency").lean();
+      if (room) {
+        const [payer, owner] = await Promise.all([
+          UserModel.findById(userId).select("email firstName").lean(),
+          UserModel.findById(room.ownerId).select("email firstName").lean(),
+        ]);
+
+        const roomUrl = `${env.FRONTEND_URL}/rooms`;
+
+        let payerEmailSent = false;
+        let ownerEmailSent = false;
+
+        if (shouldSendPayer && payer?.email) {
+          await sendRoomPaymentCapturedPayerEmail({
+            to: payer.email,
+            payerFirstName: payer.firstName || "there",
+            roomName: room.name,
+            amount: payment.amount,
+            currency: payment.currency,
+            roomUrl,
+          });
+          payerEmailSent = true;
+        }
+
+        if (shouldSendOwner && owner?.email) {
+          await sendRoomPaymentCapturedOwnerEmail({
+            to: owner.email,
+            ownerFirstName: owner.firstName || "there",
+            roomName: room.name,
+            amount: payment.amount,
+            currency: payment.currency,
+            roomUrl,
+          });
+          ownerEmailSent = true;
+        }
+
+        const setUpdates: Record<string, boolean> = {};
+        if (payerEmailSent) setUpdates["metadata.emails.payerRoomPaymentCaptured"] = true;
+        if (ownerEmailSent) setUpdates["metadata.emails.ownerRoomPaymentCaptured"] = true;
+
+        if (Object.keys(setUpdates).length > 0) {
+          await RoomPaymentModel.updateOne({ _id: payment._id }, { $set: setUpdates });
+        }
+      }
+    }
 
     // Check if membership already exists
     const existingMembership = await RoomMemberModel.findOne({

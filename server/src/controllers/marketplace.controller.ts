@@ -15,6 +15,10 @@ import {
   CartModel,
   UserModel,
 } from "../models/index.js";
+import {
+  sendMarketplaceOrderPaidBuyerEmail,
+  sendMarketplaceOrderPaidSellerEmail,
+} from "../services/email";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
@@ -1184,6 +1188,66 @@ export async function verifyOrderPayment(req: Request, res: Response, next: Next
         paidAt: new Date(),
       }
     );
+
+    const emailFlags = (order.metadata as any)?.emails || {};
+    const shouldSendBuyer = !emailFlags.buyerOrderPaid;
+    const shouldSendSeller = !emailFlags.sellerOrderPaid;
+
+    if (shouldSendBuyer || shouldSendSeller) {
+      const [buyer, seller] = await Promise.all([
+        UserModel.findById(order.buyerId).select("email firstName").lean(),
+        UserModel.findById(order.sellerId).select("email firstName").lean(),
+      ]);
+
+      const orderUrl = `${env.FRONTEND_URL}/marketplace/orders/${order._id.toString()}`;
+      const items = order.items.map((i) => ({
+        title: i.title,
+        quantity: i.quantity,
+        price: i.price,
+      }));
+
+      let buyerEmailSent = false;
+      let sellerEmailSent = false;
+
+      if (shouldSendBuyer && buyer?.email) {
+        await sendMarketplaceOrderPaidBuyerEmail({
+          to: buyer.email,
+          buyerFirstName: buyer.firstName || "there",
+          orderNumber: order.orderNumber,
+          total: order.total,
+          currency: order.currency,
+          orderUrl,
+          items,
+        });
+        buyerEmailSent = true;
+      }
+
+      if (shouldSendSeller && seller?.email) {
+        await sendMarketplaceOrderPaidSellerEmail({
+          to: seller.email,
+          sellerFirstName: seller.firstName || "there",
+          orderNumber: order.orderNumber,
+          total: order.total,
+          currency: order.currency,
+          orderUrl,
+          items,
+        });
+        sellerEmailSent = true;
+      }
+
+      const setUpdates: Record<string, boolean> = {};
+      if (buyerEmailSent) setUpdates["metadata.emails.buyerOrderPaid"] = true;
+      if (sellerEmailSent) setUpdates["metadata.emails.sellerOrderPaid"] = true;
+
+      if (Object.keys(setUpdates).length > 0) {
+        await OrderModel.updateOne(
+          { _id: orderId },
+          {
+            $set: setUpdates,
+          }
+        );
+      }
+    }
 
     // Update product quantities
     for (const item of order.items) {
