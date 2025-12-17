@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { uploadApi } from "@/lib/api/upload";
 import { postsApi } from "@/lib/api/posts";
 import type { CreatePostData } from "@/lib/api/posts";
+import { useLanguage } from "@/contexts/LanguageContext"; // Added import statement
 
 const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
@@ -554,15 +555,17 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
     }
   };
 
+  const { t } = useLanguage();
+
   const getVisibilityLabel = () => {
     const selected: string[] = [];
-    if (visibility.only_me) selected.push("Only me");
-    if (visibility.followers) selected.push("Followers");
-    if (visibility.following) selected.push("Following");
+    if (visibility.only_me) selected.push(t("home", "onlyMe"));
+    if (visibility.followers) selected.push(t("home", "followers"));
+    if (visibility.following) selected.push(t("home", "peopleIFollow"));
 
-    if (selected.length === 0) return "Select visibility";
+    if (selected.length === 0) return t("home", "selectVisibility");
     if (selected.length === 1) return selected[0];
-    return `${selected.length} groups selected`;
+    return `${selected.length} ${t("home", "groupsSelected")}`;
   };
 
   const getVisibilityIcon = () => {
@@ -746,7 +749,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                 ref={textareaRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind?"
+                placeholder={t("home", "whatsOnMind")}
                 className="w-full resize-none bg-transparent text-(--text) placeholder:text-(--text-muted) focus:outline-none text-base min-h-[80px]"
                 rows={3}
               />

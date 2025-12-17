@@ -3,6 +3,7 @@
 import { Badge, Button, Card } from "@/components/ui";
 import { Users, ChevronRight, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FeaturedRoom {
   id: string;
@@ -45,6 +46,7 @@ const featuredRooms: FeaturedRoom[] = [
 ];
 
 function RoomCard({ room }: { room: FeaturedRoom }) {
+  const { t } = useLanguage();
   return (
     <Card hover className="overflow-hidden min-w-[280px] max-w-[280px] shrink-0">
       <div className="relative h-32">
@@ -78,11 +80,11 @@ function RoomCard({ room }: { room: FeaturedRoom }) {
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              {room.activeNow} active
+              {room.activeNow} {t("home", "active")}
             </span>
           </div>
           <Button variant="secondary" size="sm">
-            Join
+            {t("home", "join")}
           </Button>
         </div>
       </div>
@@ -91,15 +93,16 @@ function RoomCard({ room }: { room: FeaturedRoom }) {
 }
 
 export function FeaturedRooms() {
+  const { t } = useLanguage();
   return (
     <div className="bg-(--bg-card) rounded-xl border border-(--border) p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles size={20} className="text-primary-500" />
-          <h2 className="font-semibold text-lg">Featured Room Chats</h2>
+          <h2 className="font-semibold text-lg">{t("home", "featuredRoomChats")}</h2>
         </div>
         <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 gap-1">
-          Explore all
+          {t("home", "exploreAll")}
           <ChevronRight size={16} />
         </Button>
       </div>
