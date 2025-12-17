@@ -37,7 +37,7 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
-      toast.success(t("auth", "loginSuccess") || "Login successful!");
+      toast.success(t("auth", "loginSuccess"));
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
@@ -70,7 +70,7 @@ export default function LoginPage() {
         // Redirect to complete profile page
         window.location.href = "/auth/complete-profile";
       } else {
-        toast.success(t("auth", "loginSuccess") || "Login successful!");
+        toast.success(t("auth", "loginSuccess"));
       }
     } catch (err) {
       const errorMessage = getErrorMessage(err);
@@ -92,7 +92,7 @@ export default function LoginPage() {
       <div className={`hidden lg:block lg:w-1/2 xl:w-3/5 relative ${isRTL ? "order-2" : "order-1"}`}>
         <Image
           src="/images/auth-bg.png"
-          alt="Authentication background"
+          alt={t("auth", "authBackgroundAlt")}
           fill
           className="object-cover"
           priority
@@ -194,7 +194,7 @@ export default function LoginPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder={t("auth", "emailPlaceholder") || "Enter your email"}
+                    placeholder={t("auth", "emailPlaceholder")}
                     required
                     className={`w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 ${isRTL ? "pr-10 pl-4" : "pl-10 pr-4"}`}
                   />
@@ -224,7 +224,7 @@ export default function LoginPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="••••••••"
+                    placeholder={t("auth", "passwordPlaceholder")}
                     required
                     className={`w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 ${isRTL ? "pr-10 pl-12" : "pl-10 pr-12"}`}
                   />

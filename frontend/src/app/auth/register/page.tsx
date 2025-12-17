@@ -62,8 +62,7 @@ export default function RegisterPage() {
         gender: formData.gender as Gender,
       });
       toast.success(
-        t("auth", "registrationSuccess") ||
-          "Registration successful! Please check your email to verify your account."
+        t("auth", "registrationSuccess")
       );
       // Redirect to login page after successful registration
       router.push("/auth/login?registered=true");
@@ -99,7 +98,7 @@ export default function RegisterPage() {
         // Redirect to complete profile page
         router.push("/auth/complete-profile");
       } else {
-        toast.success(t("auth", "registrationSuccess") || "Registration successful!");
+        toast.success(t("auth", "registrationSuccess"));
       }
     } catch (err) {
       const errorMessage = getErrorMessage(err);
@@ -121,7 +120,7 @@ export default function RegisterPage() {
       <div className={cn("hidden lg:block lg:w-1/2 xl:w-3/5 relative", isRTL ? "order-2" : "order-1")}>
         <Image
           src="/images/auth-bg.png"
-          alt="Authentication background"
+          alt={t("auth", "authBackgroundAlt")}
           fill
           className="object-cover"
           priority
@@ -228,7 +227,7 @@ export default function RegisterPage() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="John"
+                      placeholder={t("auth", "firstNamePlaceholder")}
                       required
                       className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                     />
@@ -243,7 +242,7 @@ export default function RegisterPage() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Doe"
+                    placeholder={t("auth", "lastNamePlaceholder")}
                     required
                     className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
@@ -265,7 +264,7 @@ export default function RegisterPage() {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    placeholder="johndoe"
+                    placeholder={t("auth", "usernamePlaceholder")}
                     required
                     className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                   />
@@ -287,7 +286,7 @@ export default function RegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="john@example.com"
+                    placeholder={t("auth", "emailPlaceholder")}
                     required
                     className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
                   />
@@ -309,7 +308,7 @@ export default function RegisterPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="••••••••"
+                    placeholder={t("auth", "passwordPlaceholder")}
                     required
                     minLength={8}
                     className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-12" : "pl-10 pr-12")}

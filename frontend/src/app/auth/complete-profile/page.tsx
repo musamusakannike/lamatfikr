@@ -98,7 +98,7 @@ export default function CompleteProfilePage() {
 
       // Clear stored data
       sessionStorage.removeItem("pendingFirebaseUser");
-      toast.success(t("auth", "profileCompleted") || "Profile completed successfully!");
+      toast.success(t("auth", "profileCompleted"));
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
@@ -135,7 +135,7 @@ export default function CompleteProfilePage() {
       >
         <Image
           src="/images/auth-bg.png"
-          alt="Authentication background"
+          alt={t("auth", "authBackgroundAlt")}
           fill
           className="object-cover"
           priority
@@ -144,11 +144,10 @@ export default function CompleteProfilePage() {
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-white max-w-lg">
             <h1 className="text-4xl xl:text-5xl font-bold mb-4">
-              {t("auth", "almostThere") || "Almost There!"}
+              {t("auth", "almostThere")}
             </h1>
             <p className="text-lg xl:text-xl text-white/80">
-              {t("auth", "completeProfileDescription") ||
-                "Just a few more details to complete your profile."}
+              {t("auth", "completeProfileDescription")}
             </p>
           </div>
         </div>
@@ -168,7 +167,7 @@ export default function CompleteProfilePage() {
               {t("common", "appName")}
             </h1>
             <p className="text-(--text-muted) mt-2">
-              {t("auth", "completeYourProfile") || "Complete Your Profile"}
+              {t("auth", "completeYourProfile")}
             </p>
           </div>
 
@@ -180,7 +179,7 @@ export default function CompleteProfilePage() {
                 <div className="flex justify-center mb-4">
                   <Image
                     src={pendingUser.photoURL}
-                    alt="Profile"
+                    alt={t("auth", "profileImageAlt")}
                     width={80}
                     height={80}
                     className="rounded-full border-4 border-primary-100"
@@ -188,14 +187,13 @@ export default function CompleteProfilePage() {
                 </div>
               )}
               <h2 className="text-2xl font-bold text-(--text)">
-                {t("auth", "completeYourProfile") || "Complete Your Profile"}
+                {t("auth", "completeYourProfile")}
               </h2>
               <p className="text-(--text-muted) mt-1">
                 {pendingUser.email && (
                   <span className="block text-sm">{pendingUser.email}</span>
                 )}
-                {t("auth", "fillRemainingDetails") ||
-                  "Please fill in the remaining details"}
+                {t("auth", "fillRemainingDetails")}
               </p>
             </div>
 
@@ -227,7 +225,7 @@ export default function CompleteProfilePage() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="John"
+                      placeholder={t("auth", "firstNamePlaceholder")}
                       required
                       className={cn(
                         "w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
@@ -245,7 +243,7 @@ export default function CompleteProfilePage() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Doe"
+                    placeholder={t("auth", "lastNamePlaceholder")}
                     required
                     className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
@@ -270,7 +268,7 @@ export default function CompleteProfilePage() {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
-                    placeholder="johndoe"
+                    placeholder={t("auth", "usernamePlaceholder")}
                     required
                     pattern="^[a-zA-Z0-9_]+$"
                     minLength={2}
@@ -282,8 +280,7 @@ export default function CompleteProfilePage() {
                   />
                 </div>
                 <p className="text-xs text-(--text-muted) mt-1">
-                  {t("auth", "usernameHint") ||
-                    "Only letters, numbers, and underscores allowed"}
+                  {t("auth", "usernameHint")}
                 </p>
               </div>
 
@@ -328,10 +325,10 @@ export default function CompleteProfilePage() {
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {t("auth", "completing") || "Completing..."}
+                    {t("auth", "completing")}
                   </div>
                 ) : (
-                  t("auth", "completeProfile") || "Complete Profile"
+                  t("auth", "completeProfile")
                 )}
               </Button>
             </form>
@@ -343,7 +340,7 @@ export default function CompleteProfilePage() {
                 className="text-primary-600 hover:text-primary-700 font-medium"
                 onClick={() => sessionStorage.removeItem("pendingFirebaseUser")}
               >
-                {t("common", "cancel") || "Cancel"}
+                {t("common", "cancel")}
               </Link>
             </p>
           </div>

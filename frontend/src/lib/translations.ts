@@ -201,9 +201,19 @@ export const translations = {
       en: "john@example.com",
     },
 
+    passwordPlaceholder: {
+      ar: "••••••••",
+      en: "••••••••",
+    },
+
     authBackgroundAlt: {
       ar: "خلفية صفحة المصادقة",
       en: "Authentication background",
+    },
+
+    profileImageAlt: {
+      ar: "الصورة الشخصية",
+      en: "Profile",
     },
 
     // Register

@@ -55,6 +55,8 @@ const categories = [
 type FilterType = "all" | "owned" | "joined" | "paid" | "free";
 
 function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
+  const { language, t } = useLanguage();
+
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -62,6 +64,13 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
+
+    if (language === "ar") {
+      if (minutes < 1) return "الآن";
+      if (minutes < 60) return `منذ ${minutes}د`;
+      if (hours < 24) return `منذ ${hours}س`;
+      return `منذ ${days}ي`;
+    }
 
     if (minutes < 1) return "now";
     if (minutes < 60) return `${minutes}m ago`;
@@ -103,7 +112,11 @@ function RoomChatCard({ room, onClick }: { room: Room; onClick: () => void }) {
               <div className="flex items-center gap-2 mt-0.5">
                 {room.role && (
                   <Badge variant={room.role === "owner" ? "primary" : room.role === "admin" ? "secondary" : "default"} className="text-xs">
-                    {room.role}
+                    {room.role === "owner"
+                      ? t("rooms", "owner")
+                      : room.role === "admin"
+                        ? t("rooms", "admin")
+                        : t("rooms", "member")}
                   </Badge>
                 )}
                 <span className="text-xs text-(--text-muted)">{room.category}</span>
@@ -150,6 +163,7 @@ interface CreateRoomModalProps {
 }
 
 function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -223,7 +237,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Create New Room Chat" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("rooms", "createNewRoom")} size="lg">
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         {error && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
@@ -234,7 +248,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Room Image */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Room Image
+            {t("rooms", "roomImage")}
           </label>
           <div className="flex items-center gap-4">
             <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
@@ -269,9 +283,9 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                 className="cursor-pointer"
                 onClick={() => document.getElementById("room-image")?.click()}
               >
-                <span>Upload Image</span>
+                <span>{t("rooms", "uploadImage")}</span>
               </Button>
-              <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
+              <p className="text-xs text-(--text-muted) mt-1">{t("rooms", "recommended")}</p>
             </div>
           </div>
         </div>
@@ -279,13 +293,13 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Room Name */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Room Name <span className="text-red-500">*</span>
+            {t("rooms", "roomName")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter room name"
+            placeholder={t("rooms", "enterRoomName")}
             required
             className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
@@ -294,12 +308,12 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Description <span className="text-red-500">*</span>
+            {t("rooms", "description")} <span className="text-red-500">*</span>
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe what your room is about"
+            placeholder={t("rooms", "describeRoom")}
             required
             rows={3}
             className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
@@ -309,7 +323,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Category */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Category <span className="text-red-500">*</span>
+            {t("rooms", "category")} <span className="text-red-500">*</span>
           </label>
           <select
             value={category}
@@ -317,7 +331,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
             required
             className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            <option value="">Select a category</option>
+            <option value="">{t("rooms", "selectCategory")}</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
@@ -331,8 +345,8 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
           <div className="flex items-center gap-3">
             {isPrivate ? <Lock size={20} className="text-(--text-muted)" /> : <Globe size={20} className="text-(--text-muted)" />}
             <div>
-              <p className="font-medium text-(--text)">Private Room</p>
-              <p className="text-sm text-(--text-muted)">Only invited members can join</p>
+              <p className="font-medium text-(--text)">{t("rooms", "privateRoom")}</p>
+              <p className="text-sm text-(--text-muted)">{t("rooms", "onlyInvitedMembers")}</p>
             </div>
           </div>
           <button
@@ -355,7 +369,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Membership Type */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-3">
-            Membership Type <span className="text-red-500">*</span>
+            {t("rooms", "membershipType")} <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -376,8 +390,8 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   </div>
                 )}
               </div>
-              <p className="font-semibold text-(--text)">Free</p>
-              <p className="text-sm text-(--text-muted)">Anyone can join for free</p>
+              <p className="font-semibold text-(--text)">{t("rooms", "free")}</p>
+              <p className="text-sm text-(--text-muted)">{t("rooms", "freeDescription")}</p>
             </button>
 
             <button
@@ -398,8 +412,8 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
                   </div>
                 )}
               </div>
-              <p className="font-semibold text-(--text)">Paid</p>
-              <p className="text-sm text-(--text-muted)">Charge for membership</p>
+              <p className="font-semibold text-(--text)">{t("rooms", "paid")}</p>
+              <p className="text-sm text-(--text-muted)">{t("rooms", "paidDescription")}</p>
             </button>
           </div>
         </div>
@@ -409,13 +423,13 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
           <div className="p-4 rounded-xl border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 space-y-4">
             <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
               <DollarSign size={20} />
-              <span className="font-medium">Membership Pricing</span>
+              <span className="font-medium">{t("rooms", "membershipPricing")}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-2">
-                  Price <span className="text-red-500">*</span>
+                  {t("rooms", "price")} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)">$</span>
@@ -434,7 +448,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
 
               <div>
                 <label className="block text-sm font-medium text-(--text) mb-2">
-                  Currency
+                  {t("rooms", "currency")}
                 </label>
                 <select
                   value={currency}
@@ -452,7 +466,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
             </div>
 
             <p className="text-sm text-(--text-muted)">
-              Members will be charged this amount to join your room. You&apos;ll receive payments minus platform fees.
+              {t("rooms", "pricingNote")}
             </p>
           </div>
         )}
@@ -460,7 +474,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
         {/* Submit Buttons */}
         <div className="flex gap-3 pt-4 border-t border-(--border)">
           <Button type="button" variant="outline" className="flex-1" onClick={handleClose} disabled={isLoading}>
-            Cancel
+            {t("common", "cancel")}
           </Button>
           <Button type="submit" variant="primary" className="flex-1 gap-2" disabled={isLoading}>
             {isLoading ? (
@@ -468,7 +482,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
             ) : (
               <Plus size={18} />
             )}
-            Create Room
+            {t("rooms", "createRoom")}
           </Button>
         </div>
       </form>
@@ -1419,7 +1433,7 @@ export default function RoomsPage() {
             <div>
               <h1 className="text-2xl font-bold text-(--text)">{t("rooms", "title")}</h1>
               <p className="text-(--text-muted) text-sm mt-1">
-                {rooms.length} rooms • {rooms.reduce((acc, r) => acc + r.unreadCount, 0)} unread messages
+                {rooms.length} {t("rooms", "roomsCount")} • {rooms.reduce((acc, r) => acc + r.unreadCount, 0)} {t("rooms", "unreadMessages")}
               </p>
             </div>
             <Button variant="primary" className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
@@ -1515,15 +1529,15 @@ export default function RoomsPage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-(--bg-card) flex items-center justify-center">
                 <MessageSquare size={32} className="text-(--text-muted)" />
               </div>
-              <h3 className="text-lg font-medium text-(--text) mb-2">No rooms found</h3>
+              <h3 className="text-lg font-medium text-(--text) mb-2">{t("rooms", "noRoomsFound")}</h3>
               <p className="text-(--text-muted) mb-4">
                 {searchQuery
-                  ? "Try a different search term"
-                  : "Create your first room to get started"}
+                  ? t("rooms", "tryDifferentSearch")
+                  : t("rooms", "createFirstRoom")}
               </p>
               <Button variant="primary" className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
                 <Plus size={18} />
-                Create Room
+                {t("rooms", "createRoom")}
               </Button>
             </div>
           )}
