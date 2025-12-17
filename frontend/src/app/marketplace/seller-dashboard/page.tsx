@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { AddProductModal, ProductFormData as AddProductFormData } from "@/components/marketplace/AddProductModal";
 
 export default function SellerDashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function SellerDashboardPage() {
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
   const fetchStats = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -83,6 +85,25 @@ export default function SellerDashboardPage() {
     fetchStats();
     fetchRecentOrders();
   }, [fetchStats, fetchRecentOrders]);
+
+  const handleAddProduct = async (formData: AddProductFormData) => {
+    try {
+      await marketplaceApi.createProduct({
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        images: formData.images,
+        category: formData.category,
+        quantity: formData.inStock ? 1 : 0,
+      });
+      toast.success("Product created successfully");
+      fetchStats();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to create product");
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -344,9 +365,10 @@ export default function SellerDashboardPage() {
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-(--text) mb-4">Quick Actions</h2>
               <div className="space-y-3">
-                <Link
-                  href="/marketplace/create-product"
-                  className="flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setShowAddProduct(true)}
+                  className="w-full text-left flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                 >
                   <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/50">
                     <Package size={20} className="text-primary-600" />
@@ -355,7 +377,7 @@ export default function SellerDashboardPage() {
                     <p className="font-medium text-(--text)">Add New Product</p>
                     <p className="text-sm text-(--text-muted)">List a new item for sale</p>
                   </div>
-                </Link>
+                </button>
 
                 <Link
                   href="/marketplace/orders?type=sold&status=paid"
@@ -416,6 +438,12 @@ export default function SellerDashboardPage() {
           </div>
         </div>
       </main>
+
+      <AddProductModal
+        isOpen={showAddProduct}
+        onClose={() => setShowAddProduct(false)}
+        onSubmit={handleAddProduct}
+      />
     </div>
   );
 }

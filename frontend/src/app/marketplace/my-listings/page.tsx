@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { AddProductModal, ProductFormData as AddProductFormData } from "@/components/marketplace/AddProductModal";
 
 type ProductStatus = "active" | "sold" | "reserved" | "inactive";
 
@@ -66,6 +67,7 @@ export default function MyListingsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<string | null>(null);
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -145,6 +147,26 @@ export default function MyListingsPage() {
     setActiveMenu(null);
   };
 
+  const handleAddProduct = async (formData: AddProductFormData) => {
+    try {
+      await marketplaceApi.createProduct({
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        images: formData.images,
+        category: formData.category,
+        quantity: formData.inStock ? 1 : 0,
+      });
+      toast.success("Product created successfully");
+      fetchProducts();
+      fetchStats();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to create product");
+    }
+  };
+
   const filteredProducts = products.filter((product) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -180,12 +202,10 @@ export default function MyListingsPage() {
                 Manage your products and track performance
               </p>
             </div>
-            <Link href="/marketplace/create-product">
-              <Button variant="primary">
-                <Plus size={18} className="mr-2" />
-                Add New Product
-              </Button>
-            </Link>
+            <Button variant="primary" onClick={() => setShowAddProduct(true)}>
+              <Plus size={18} className="mr-2" />
+              Add New Product
+            </Button>
           </div>
 
           {/* Stats Cards */}
@@ -332,12 +352,10 @@ export default function MyListingsPage() {
                   ? "No products match the selected filter."
                   : "You haven't listed any products yet."}
               </p>
-              <Link href="/marketplace/create-product">
-                <Button variant="primary">
-                  <Plus size={18} className="mr-2" />
-                  Add Your First Product
-                </Button>
-              </Link>
+              <Button variant="primary" onClick={() => setShowAddProduct(true)}>
+                <Plus size={18} className="mr-2" />
+                Add Your First Product
+              </Button>
             </Card>
           ) : (
             <>
@@ -505,6 +523,12 @@ export default function MyListingsPage() {
           onClick={() => setActiveMenu(null)}
         />
       )}
+
+      <AddProductModal
+        isOpen={showAddProduct}
+        onClose={() => setShowAddProduct(false)}
+        onSubmit={handleAddProduct}
+      />
     </div>
   );
 }
