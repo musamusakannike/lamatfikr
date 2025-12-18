@@ -12,6 +12,60 @@ export const translations = {
     },
   },
 
+  adminNav: {
+    dashboard: { ar: "لوحة التحكم", en: "Dashboard" },
+    overview: { ar: "نظرة عامة", en: "Overview" },
+    users: { ar: "المستخدمون", en: "Users" },
+    userDirectory: { ar: "قائمة المستخدمين", en: "User Directory" },
+    bannedUsers: { ar: "المحظورون", en: "Banned Users" },
+    rolesPermissions: { ar: "الأدوار والصلاحيات", en: "Roles & Permissions" },
+
+    content: { ar: "المحتوى", en: "Content" },
+    posts: { ar: "المنشورات", en: "Posts" },
+    comments: { ar: "التعليقات", en: "Comments" },
+    stories: { ar: "القصص", en: "Stories" },
+    uploadsMedia: { ar: "الوسائط والرفع", en: "Uploads & Media" },
+
+    social: { ar: "الاجتماعي", en: "Social" },
+    followsFriends: { ar: "المتابعات والأصدقاء", en: "Follows & Friends" },
+    blocksMutes: { ar: "الحظر والكتم", en: "Blocks & Mutes" },
+
+    communities: { ar: "المجتمعات", en: "Communities" },
+    communitiesList: { ar: "المجتمعات", en: "Communities" },
+    groups: { ar: "المجموعات", en: "Groups" },
+    pages: { ar: "الصفحات", en: "Pages" },
+    rooms: { ar: "الغرف", en: "Rooms" },
+    featuredRooms: { ar: "الغرف المميزة", en: "Featured Rooms" },
+
+    messaging: { ar: "الرسائل", en: "Messaging" },
+    conversations: { ar: "المحادثات", en: "Conversations" },
+    messages: { ar: "الرسائل", en: "Messages" },
+
+    marketplace: { ar: "المتجر", en: "Marketplace" },
+    listings: { ar: "العروض", en: "Listings" },
+    orders: { ar: "الطلبات", en: "Orders" },
+
+    wallet: { ar: "المحفظة", en: "Wallet" },
+    walletOverview: { ar: "نظرة عامة", en: "Overview" },
+    transactions: { ar: "المعاملات", en: "Transactions" },
+    withdrawals: { ar: "السحوبات", en: "Withdrawals" },
+    adminWithdrawals: { ar: "سحوبات (إدارة)", en: "Withdrawals (Admin)" },
+
+    verification: { ar: "التوثيق", en: "Verification" },
+    verificationRequests: { ar: "طلبات التوثيق", en: "Requests" },
+    verificationStats: { ar: "الإحصائيات", en: "Stats" },
+
+    notifications: { ar: "الإشعارات", en: "Notifications" },
+    pushInApp: { ar: "داخل التطبيق", en: "In-app" },
+
+    suggestions: { ar: "الاقتراحات", en: "Suggestions" },
+    userSuggestions: { ar: "اقتراحات المستخدمين", en: "User Suggestions" },
+
+    system: { ar: "النظام", en: "System" },
+    health: { ar: "الحالة الصحية", en: "Health" },
+    stripe: { ar: "Stripe", en: "Stripe" },
+  },
+
   language: {
     switchLanguage: {
       ar: "English",

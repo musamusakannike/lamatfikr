@@ -11,14 +11,17 @@ export default function Home() {
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (isLoading) return;
+    if (!user) {
       router.push("/auth/login");
+      return;
     }
+    router.push("/dashboard");
   }, [isLoading, user, router]);
 
   if (isLoading || !user) {
     return null;
   }
 
-  return <div>Admin dashboard</div>;
+  return null;
 }
