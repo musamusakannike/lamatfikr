@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { LanguageSwitcher } from "@/components/ui";
+
 import {
   LayoutDashboard,
   Users,
@@ -217,11 +219,15 @@ export default function AdminSidebar() {
   return (
     <aside className="h-screen w-72 shrink-0 border-e border-(--border) bg-(--bg-card) flex flex-col">
       <div className="px-4 py-4 border-b border-(--border)">
-        <div className={cn("flex items-center justify-between", isRTL ? "flex-row-reverse" : "flex-row")}> 
+        <div className={cn("flex items-center justify-between", isRTL ? "flex-row-reverse" : "flex-row")}>
           <div>
             <div className="text-lg font-bold text-(--text)">{t("common", "appName")}</div>
             <div className="text-xs text-(--text-muted)">{t("adminNav", "dashboard")}</div>
           </div>
+          <LanguageSwitcher
+            variant="icon"
+            className="border border-(--border) bg-(--bg) hover:bg-primary-50 dark:hover:bg-primary-900/30"
+          />
         </div>
       </div>
 
