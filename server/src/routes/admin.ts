@@ -20,6 +20,16 @@ import {
   listAdminPosts,
   listAdminStories,
 } from "../controllers/admin-content.controller";
+import {
+  adminMarketplaceConstants,
+  adminMarketplaceDeleteListing,
+  adminMarketplaceRestoreListing,
+  adminMarketplaceSetListingFeatured,
+  adminMarketplaceSetListingStatus,
+  adminMarketplaceUpdateOrder,
+  listAdminMarketplaceListings,
+  listAdminMarketplaceOrders,
+} from "../controllers/admin-marketplace.controller";
 
 export const adminRouter = Router();
 
@@ -49,3 +59,34 @@ adminRouter.post("/content/media/:mediaId/delete", requireAuth, requireAdmin, ad
 adminRouter.post("/content/media/:mediaId/restore", requireAuth, requireAdmin, adminRestoreMedia);
 
 adminRouter.get("/social/top-followed", requireAuth, requireAdmin, getAdminTopFollowed);
+
+adminRouter.get("/marketplace/constants", requireAuth, requireAdmin, adminMarketplaceConstants);
+
+adminRouter.get("/marketplace/listings", requireAuth, requireAdmin, listAdminMarketplaceListings);
+adminRouter.patch(
+  "/marketplace/listings/:productId/featured",
+  requireAuth,
+  requireAdmin,
+  adminMarketplaceSetListingFeatured
+);
+adminRouter.patch(
+  "/marketplace/listings/:productId/status",
+  requireAuth,
+  requireAdmin,
+  adminMarketplaceSetListingStatus
+);
+adminRouter.post(
+  "/marketplace/listings/:productId/delete",
+  requireAuth,
+  requireAdmin,
+  adminMarketplaceDeleteListing
+);
+adminRouter.post(
+  "/marketplace/listings/:productId/restore",
+  requireAuth,
+  requireAdmin,
+  adminMarketplaceRestoreListing
+);
+
+adminRouter.get("/marketplace/orders", requireAuth, requireAdmin, listAdminMarketplaceOrders);
+adminRouter.patch("/marketplace/orders/:orderId", requireAuth, requireAdmin, adminMarketplaceUpdateOrder);

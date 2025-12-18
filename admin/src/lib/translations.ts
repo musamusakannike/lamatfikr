@@ -264,6 +264,85 @@ export const translations = {
     page: { ar: "صفحة", en: "Page" },
   },
 
+  adminMarketplace: {
+    listingsTitle: { ar: "عروض المتجر", en: "Marketplace Listings" },
+    ordersTitle: { ar: "طلبات المتجر", en: "Marketplace Orders" },
+
+    searchPlaceholderListings: { ar: "ابحث بالعنوان أو الوصف", en: "Search by title or description" },
+    searchPlaceholderOrders: { ar: "ابحث برقم الطلب أو المعرف", en: "Search by order number or ID" },
+
+    filterStatus: { ar: "الحالة", en: "Status" },
+    filterCategory: { ar: "التصنيف", en: "Category" },
+    filterFeatured: { ar: "مميز", en: "Featured" },
+    filterDeleted: { ar: "المحذوف", en: "Deleted" },
+    filterPaymentMethod: { ar: "طريقة الدفع", en: "Payment" },
+    filterAll: { ar: "الكل", en: "All" },
+
+    deletedActive: { ar: "نشط", en: "Active" },
+    deletedDeleted: { ar: "محذوف", en: "Deleted" },
+    deletedAll: { ar: "الكل", en: "All" },
+
+    featuredOnly: { ar: "المميز فقط", en: "Featured only" },
+    featuredYes: { ar: "نعم", en: "Yes" },
+    featuredNo: { ar: "لا", en: "No" },
+
+    statusActive: { ar: "نشط", en: "Active" },
+    statusInactive: { ar: "غير نشط", en: "Inactive" },
+    statusSold: { ar: "مباع", en: "Sold" },
+    statusReserved: { ar: "محجوز", en: "Reserved" },
+
+    orderStatusPending: { ar: "قيد الانتظار", en: "Pending" },
+    orderStatusAwaitingPayment: { ar: "بانتظار الدفع", en: "Awaiting payment" },
+    orderStatusPaid: { ar: "مدفوع", en: "Paid" },
+    orderStatusProcessing: { ar: "قيد المعالجة", en: "Processing" },
+    orderStatusShipped: { ar: "تم الشحن", en: "Shipped" },
+    orderStatusDelivered: { ar: "تم التسليم", en: "Delivered" },
+    orderStatusCompleted: { ar: "مكتمل", en: "Completed" },
+    orderStatusCancelled: { ar: "ملغى", en: "Cancelled" },
+    orderStatusRefunded: { ar: "مسترد", en: "Refunded" },
+    orderStatusDisputed: { ar: "متنازع عليه", en: "Disputed" },
+
+    paymentTap: { ar: "تاب", en: "Tap" },
+    paymentCash: { ar: "نقداً", en: "Cash" },
+
+    colId: { ar: "المعرف", en: "ID" },
+    colTitle: { ar: "العنوان", en: "Title" },
+    colPrice: { ar: "السعر", en: "Price" },
+    colSeller: { ar: "البائع", en: "Seller" },
+    colCategory: { ar: "التصنيف", en: "Category" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colFeatured: { ar: "مميز", en: "Featured" },
+    colDeleted: { ar: "محذوف", en: "Deleted" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    colOrderNumber: { ar: "رقم الطلب", en: "Order #" },
+    colBuyer: { ar: "المشتري", en: "Buyer" },
+    colTotal: { ar: "الإجمالي", en: "Total" },
+    colPayment: { ar: "الدفع", en: "Payment" },
+    colItems: { ar: "العناصر", en: "Items" },
+
+    btnFeature: { ar: "تمييز", en: "Feature" },
+    btnUnfeature: { ar: "إلغاء التمييز", en: "Unfeature" },
+    btnActivate: { ar: "تفعيل", en: "Activate" },
+    btnDeactivate: { ar: "تعطيل", en: "Deactivate" },
+    btnDelete: { ar: "حذف", en: "Delete" },
+    btnRestore: { ar: "استعادة", en: "Restore" },
+    btnUpdateStatus: { ar: "تحديث الحالة", en: "Update status" },
+    btnSetTracking: { ar: "تعيين رقم التتبع", en: "Set tracking" },
+
+    trackingPrompt: { ar: "أدخل رقم التتبع", en: "Enter tracking number" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    confirmDelete: { ar: "هل أنت متأكد من الحذف؟", en: "Are you sure you want to delete?" },
+    confirmRestore: { ar: "هل أنت متأكد من الاستعادة؟", en: "Are you sure you want to restore?" },
+
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+  },
+
   adminOverview: {
     title: { ar: "نظرة عامة", en: "Overview" },
     totalUsers: { ar: "إجمالي المستخدمين", en: "Total Users" },
