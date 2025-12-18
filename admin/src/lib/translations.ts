@@ -190,6 +190,66 @@ export const translations = {
     page: { ar: "صفحة", en: "Page" },
   },
 
+  adminWallet: {
+    overviewTitle: { ar: "نظرة عامة على المحفظة", en: "Wallet Overview" },
+    overviewSubtitle: { ar: "ملخص سريع ومؤشرات مهمة", en: "Quick summary and key metrics" },
+    balance: { ar: "الرصيد", en: "Balance" },
+    pendingBalance: { ar: "رصيد معلّق", en: "Pending balance" },
+    totalEarned: { ar: "إجمالي الأرباح", en: "Total earned" },
+    totalWithdrawn: { ar: "إجمالي المسحوب", en: "Total withdrawn" },
+    currency: { ar: "العملة", en: "Currency" },
+    lastTransactionAt: { ar: "آخر معاملة", en: "Last transaction" },
+    recentTransactions: { ar: "آخر المعاملات", en: "Recent transactions" },
+
+    transactionsTitle: { ar: "المعاملات", en: "Transactions" },
+    withdrawalsTitle: { ar: "السحوبات", en: "Withdrawals" },
+    adminWithdrawalsTitle: { ar: "سحوبات (إدارة)", en: "Withdrawals (Admin)" },
+
+    filterType: { ar: "نوع المعاملة", en: "Type" },
+    filterStatus: { ar: "الحالة", en: "Status" },
+    filterAll: { ar: "الكل", en: "All" },
+
+    statusPending: { ar: "قيد الانتظار", en: "Pending" },
+    statusProcessing: { ar: "قيد المعالجة", en: "Processing" },
+    statusCompleted: { ar: "مكتملة", en: "Completed" },
+    statusRejected: { ar: "مرفوضة", en: "Rejected" },
+    statusCancelled: { ar: "ملغاة", en: "Cancelled" },
+    statusFailed: { ar: "فشلت", en: "Failed" },
+
+    typeRoomPayment: { ar: "دفع غرفة", en: "Room payment" },
+    typeProductPurchase: { ar: "شراء منتج", en: "Product purchase" },
+    typeWithdrawal: { ar: "سحب", en: "Withdrawal" },
+    typeRefund: { ar: "استرجاع", en: "Refund" },
+    typePlatformFee: { ar: "رسوم المنصة", en: "Platform fee" },
+
+    colId: { ar: "المعرف", en: "ID" },
+    colUser: { ar: "المستخدم", en: "User" },
+    colAmount: { ar: "المبلغ", en: "Amount" },
+    colDescription: { ar: "الوصف", en: "Description" },
+    colType: { ar: "النوع", en: "Type" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colMethod: { ar: "الطريقة", en: "Method" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    colProcessedAt: { ar: "تاريخ المعالجة", en: "Processed" },
+    colProcessedBy: { ar: "تمت المعالجة بواسطة", en: "Processed by" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    methodBankTransfer: { ar: "تحويل بنكي", en: "Bank transfer" },
+    methodPaypal: { ar: "بايبال", en: "PayPal" },
+    methodTap: { ar: "تاب", en: "Tap" },
+
+    btnMarkProcessing: { ar: "وضع قيد المعالجة", en: "Mark processing" },
+    btnApprove: { ar: "اعتماد", en: "Approve" },
+    btnReject: { ar: "رفض", en: "Reject" },
+    rejectReasonPrompt: { ar: "اكتب سبب الرفض", en: "Enter rejection reason" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+  },
+
   adminSocial: {
     topFollowedTitle: { ar: "الأكثر متابعة", en: "Top Followed" },
     topFollowedSubtitle: { ar: "ترتيب المستخدمين حسب عدد المتابعين", en: "Ranking users by follower count" },

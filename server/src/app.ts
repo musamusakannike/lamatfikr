@@ -75,6 +75,7 @@ export function createApp() {
   app.use("/api/messages", messagesRouter);
   app.use("/api/marketplace", marketplaceRouter);
   app.use("/api/notifications", notificationsRouter);
+  app.use("/api/wallet", walletRouter);
   app.use("/api/users", userSuggestionsRouter);
   app.use("/api/presence", presenceRouter);
 
