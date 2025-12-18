@@ -27,6 +27,8 @@ import type {
   MessageResponse,
 } from "@/types/auth";
 
+const ADMIN_ROLE = "admin";
+
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
@@ -55,6 +57,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isAuthenticated = !!user;
 
+  const logoutAndRedirect = useCallback(
+    (redirectTo: string = "/auth/login") => {
+      localStorage.removeItem("accessToken");
+      setUser(null);
+      router.push(redirectTo);
+    },
+    [router]
+  );
+
   const fetchUser = useCallback(async () => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -64,9 +75,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const response = await apiClient.get<{ user: User }>("/auth/me");
-      console.log("response:", response)
       const userData = response.user;
-      console.log("context's user:", userData)
+
+      if (userData.role !== ADMIN_ROLE) {
+        logoutAndRedirect();
+        return;
+      }
 
       setUser({
         id: userData._id,
@@ -79,10 +93,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         role: userData.role,
       });
     } catch {
-      localStorage.removeItem("accessToken");
-      setUser(null);
+      logoutAndRedirect();
     }
-  }, []);
+  }, [logoutAndRedirect]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -97,11 +110,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = useCallback(
     async (data: LoginInput) => {
       const response = await apiClient.post<AuthResponse>("/auth/login", data);
+
+      if (response.user.role !== ADMIN_ROLE) {
+        logoutAndRedirect();
+        throw new Error("Admin access only");
+      }
+
       localStorage.setItem("accessToken", response.accessToken);
       setUser(response.user);
       router.push("/");
     },
-    [router]
+    [router, logoutAndRedirect]
   );
 
   const register = useCallback(async (data: RegisterInput) => {
@@ -120,6 +139,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
 
       if (!response.requiresProfileCompletion && response.accessToken && response.user) {
+        if (response.user.role !== ADMIN_ROLE) {
+          logoutAndRedirect();
+          throw new Error("Admin access only");
+        }
+
         localStorage.setItem("accessToken", response.accessToken);
         setUser(response.user);
         router.push("/");
@@ -127,7 +151,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       return response;
     },
-    [router]
+    [router, logoutAndRedirect]
   );
 
   const completeSocialProfile = useCallback(
@@ -136,18 +160,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         "/auth/social/complete-profile",
         data
       );
+
+      if (response.user.role !== ADMIN_ROLE) {
+        logoutAndRedirect();
+        throw new Error("Admin access only");
+      }
+
       localStorage.setItem("accessToken", response.accessToken);
       setUser(response.user);
       router.push("/");
     },
-    [router]
+    [router, logoutAndRedirect]
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
-    router.push("/auth/login");
-  }, [router]);
+    logoutAndRedirect("/auth/login");
+  }, [logoutAndRedirect]);
 
   const forgotPassword = useCallback(async (data: ForgotPasswordInput) => {
     return await apiClient.post<MessageResponse>("/auth/forgot-password", data);

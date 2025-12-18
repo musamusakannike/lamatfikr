@@ -1,1 +1,86 @@
 @import "tailwindcss";
+
+ /* Font Classes */
+ .font-arabic {
+   font-family: var(--font-arabic), "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+ }
+ 
+ .font-english {
+   font-family: "Google Sans", "Segoe UI", Roboto, sans-serif;
+ }
+ 
+ /* RTL Support */
+ [dir="rtl"] {
+   text-align: right;
+ }
+ 
+ [dir="ltr"] {
+   text-align: left;
+ }
+ 
+ @theme {
+   /* Primary Purple Colors */
+   --color-primary-50: #f5f3ff;
+   --color-primary-100: #ede9fe;
+   --color-primary-200: #ddd6fe;
+   --color-primary-300: #c4b5fd;
+   --color-primary-400: #a78bfa;
+   --color-primary-500: #8b5cf6;
+   --color-primary-600: #7c3aed;
+   --color-primary-700: #6d28d9;
+   --color-primary-800: #5b21b6;
+   --color-primary-900: #4c1d95;
+   --color-primary-950: #2e1065;
+ 
+   /* Light Theme */
+   --color-bg-light: #faf5ff;
+   --color-bg-card-light: #ffffff;
+   --color-bg-sidebar-light: #ffffff;
+   --color-text-light: #1f2937;
+   --color-text-muted-light: #6b7280;
+   --color-border-light: #e5e7eb;
+ 
+   /* Dark Theme */
+   --color-bg-dark: #0f0a1a;
+   --color-bg-card-dark: #1a1425;
+   --color-bg-sidebar-dark: #150f20;
+   --color-text-dark: #f9fafb;
+   --color-text-muted-dark: #9ca3af;
+   --color-border-dark: #2d2640;
+ }
+ 
+ /* Base styles */
+ * {
+   box-sizing: border-box;
+ }
+ 
+ button {
+   cursor: pointer;
+ }
+ 
+ /* Light theme (default) */
+ :root,
+ .light {
+   --bg: var(--color-bg-light);
+   --bg-card: var(--color-bg-card-light);
+   --bg-sidebar: var(--color-bg-sidebar-light);
+   --text: var(--color-text-light);
+   --text-muted: var(--color-text-muted-light);
+   --border: var(--color-border-light);
+ }
+ 
+ /* Dark theme */
+ .dark {
+   --bg: var(--color-bg-dark);
+   --bg-card: var(--color-bg-card-dark);
+   --bg-sidebar: var(--color-bg-sidebar-dark);
+   --text: var(--color-text-dark);
+   --text-muted: var(--color-text-muted-dark);
+   --border: var(--color-border-dark);
+ }
+ 
+ body {
+   background-color: var(--bg);
+   color: var(--text);
+   transition: background-color 0.2s ease, color 0.2s ease;
+ }
