@@ -116,6 +116,36 @@ export const translations = {
     failedToLoad: { ar: "فشل تحميل المستخدمين", en: "Failed to load users" },
   },
 
+  adminRoles: {
+    title: { ar: "الأدوار والصلاحيات", en: "Roles & Permissions" },
+    subtitle: { ar: "ملخص سريع للأدوار والصلاحيات (للعرض فقط)", en: "Quick summary of roles and permissions (view-only)" },
+    lastUpdated: { ar: "آخر تحديث", en: "Last updated" },
+
+    rolesSummary: { ar: "ملخص الأدوار", en: "Roles summary" },
+    role: { ar: "الدور", en: "Role" },
+    usersCount: { ar: "عدد المستخدمين", en: "Users" },
+
+    permissionsMatrix: { ar: "مصفوفة الصلاحيات", en: "Permissions matrix" },
+    note: {
+      ar: "ملاحظة: الصلاحيات تُفرض على مستوى الخادم. هذا الجدول للعرض فقط.",
+      en: "Note: permissions are enforced server-side. This table is view-only.",
+    },
+
+    roleUser: { ar: "مستخدم", en: "User" },
+    roleModerator: { ar: "مشرف", en: "Moderator" },
+    roleAdmin: { ar: "مدير", en: "Admin" },
+    roleSuperadmin: { ar: "مدير أعلى", en: "Superadmin" },
+
+    permViewUsers: { ar: "عرض المستخدمين", en: "View users" },
+    permManageUsers: { ar: "إدارة المستخدمين", en: "Manage users" },
+    permBanUnban: { ar: "حظر/إلغاء الحظر", en: "Ban/Unban" },
+    permGrantVerified: { ar: "منح شارة التوثيق", en: "Grant verified badge" },
+    permManageContent: { ar: "إدارة المحتوى", en: "Manage content" },
+    permManageWallet: { ar: "إدارة المحفظة", en: "Manage wallet" },
+    permManageVerification: { ar: "إدارة التوثيق", en: "Manage verification" },
+    permViewAnalytics: { ar: "عرض التحليلات", en: "View analytics" },
+  },
+
   adminOverview: {
     title: { ar: "نظرة عامة", en: "Overview" },
     totalUsers: { ar: "إجمالي المستخدمين", en: "Total Users" },
