@@ -35,6 +35,7 @@ import { commentsApi, type Comment } from "@/lib/api/comments";
 import { socialApi } from "@/lib/api/social";
 import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface PostCardProps {
     post: Post;
@@ -241,9 +242,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                                     </span>
                                 </Link>
                                 {post.userId.verified && (
-                                    <svg className="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                                    </svg>
+                                    <VerifiedBadge size={16} />
                                 )}
                                 {isAnnouncement && (
                                     <Badge variant="primary" size="sm" className="ml-1">
@@ -841,9 +840,7 @@ function CommentCard({ comment, postId }: { comment: Comment; postId: string }) 
                                 {comment.userId.firstName} {comment.userId.lastName}
                             </span>
                             {comment.userId.verified && (
-                                <svg className="w-3 h-3 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                                </svg>
+                                <VerifiedBadge size={12} />
                             )}
                             <span className="text-xs text-(--text-muted)">
                                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}

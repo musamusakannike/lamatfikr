@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Modal, Avatar, Button } from "@/components/ui";
-import { Search, UserPlus, UserMinus, CheckCircle, Loader2 } from "lucide-react";
+import { Search, UserPlus, UserMinus, Loader2 } from "lucide-react";
 import { socialApi, type UserSummary } from "@/lib/api/index";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface FollowersModalProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ function UserCard({
         <div className="flex items-center gap-1.5">
           <span className="font-semibold text-sm truncate">{user.name}</span>
           {user.verified && (
-            <CheckCircle size={14} className="text-primary-500 shrink-0" fill="currentColor" />
+            <VerifiedBadge size={14} className="shrink-0" />
           )}
         </div>
         <p className="text-sm text-(--text-muted) truncate">@{user.username}</p>

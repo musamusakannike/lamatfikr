@@ -14,7 +14,6 @@ import {
   Heart,
   Mail,
   Phone,
-  CheckCircle,
   MoreHorizontal,
   Loader2,
 } from "lucide-react";
@@ -24,6 +23,7 @@ import { profileApi, socialApi, uploadApi } from "@/lib/api/index";
 import type { User } from "@/types/auth";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "@/lib/api";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface ProfileHeaderProps {
   onEditProfile: () => void;
@@ -273,8 +273,8 @@ export function ProfileHeader({
 
             {/* Verified badge */}
             {profile.verified && (
-              <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center border-2 border-(--bg-card)">
-                <CheckCircle size={16} className="text-white" />
+              <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-(--bg-card)">
+                <VerifiedBadge size={18} className="" />
               </div>
             )}
           </div>
@@ -307,7 +307,7 @@ export function ProfileHeader({
                   {isInitiatingVerifiedPurchase ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
-                    <CheckCircle size={16} />
+                    <VerifiedBadge size={16} />
                   )}
                   {isInitiatingVerifiedPurchase ? "Redirecting..." : "Get Verified (1 month)"}
                 </Button>
