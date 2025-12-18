@@ -66,6 +66,28 @@ export const translations = {
     stripe: { ar: "Stripe", en: "Stripe" },
   },
 
+  adminOverview: {
+    title: { ar: "نظرة عامة", en: "Overview" },
+    totalUsers: { ar: "إجمالي المستخدمين", en: "Total Users" },
+    onlineUsers: { ar: "المستخدمون المتصلون", en: "Users Online" },
+    bannedUsers: { ar: "المستخدمون المحظورون", en: "Banned Users" },
+    visitsToday: { ar: "زيارات اليوم", en: "Visits Today" },
+    visitsThisMonth: { ar: "زيارات هذا الشهر", en: "Visits This Month" },
+    totalPosts: { ar: "إجمالي المنشورات", en: "Total Posts" },
+    postsToday: { ar: "منشورات اليوم", en: "Posts Today" },
+    postsThisMonth: { ar: "منشورات هذا الشهر", en: "Posts This Month" },
+    totalComments: { ar: "إجمالي التعليقات", en: "Total Comments" },
+    commentsToday: { ar: "تعليقات اليوم", en: "Comments Today" },
+    commentsThisMonth: { ar: "تعليقات هذا الشهر", en: "Comments This Month" },
+    totalCommunities: { ar: "إجمالي المجتمعات", en: "Total Communities" },
+    totalRoomChats: { ar: "إجمالي رسائل الغرف", en: "Total Room Chats" },
+    manage: { ar: "إدارة", en: "Manage" },
+    viewAll: { ar: "عرض الكل", en: "View all" },
+    lastUpdated: { ar: "آخر تحديث", en: "Last updated" },
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل تحميل الإحصائيات", en: "Failed to load stats" },
+  },
+
   language: {
     switchLanguage: {
       ar: "English",

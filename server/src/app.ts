@@ -9,6 +9,7 @@ import rateLimit from "express-rate-limit";
 import { env } from "./config/env";
 import { healthRouter } from "./routes/health";
 import { stripeWebhookRouter } from "./routes/stripe";
+import { adminRouter } from "./routes/admin";
 import { authRouter } from "./routes/auth";
 import { profileRouter } from "./routes/profile";
 import { verificationRouter } from "./routes/verification";
@@ -25,6 +26,7 @@ import { notificationsRouter } from "./routes/notifications";
 import walletRouter from "./routes/wallet";
 import { userSuggestionsRouter } from "./routes/user-suggestions";
 import { presenceRouter } from "./routes/presence";
+import { trackAppVisit } from "./middleware/app-visit";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -56,8 +58,11 @@ export function createApp() {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));
 
+  app.use(trackAppVisit);
+
   app.use("/health", healthRouter);
   app.use("/api/auth", authRouter);
+  app.use("/api/admin", adminRouter);
   app.use("/api/profile", profileRouter);
   app.use("/api/verification", verificationRouter);
   app.use("/api/social", socialRouter);

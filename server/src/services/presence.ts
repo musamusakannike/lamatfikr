@@ -25,3 +25,7 @@ export function isOnline(userId: string) {
 export function getOnlineCount(userId: string) {
   return connectionCounts.get(userId) ?? 0;
 }
+
+export function getTotalOnlineUsers() {
+  return connectionCounts.size;
+}
