@@ -39,6 +39,20 @@ function StatCard({
   );
 }
 
+function StatCardSkeleton() {
+  return (
+    <div className="bg-(--bg-card) border border-(--border) rounded-xl p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="w-full">
+          <div className="h-4 w-32 bg-(--border) rounded animate-pulse" />
+          <div className="h-9 w-24 bg-(--border) rounded mt-3 animate-pulse" />
+        </div>
+        <div className="h-4 w-16 bg-(--border) rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { t, isRTL } = useLanguage();
   const [data, setData] = useState<AdminOverviewResponse | null>(null);
@@ -164,7 +178,11 @@ export default function DashboardPage() {
       </div>
 
       {loading ? (
-        <div className="text-(--text-muted)">{t("adminOverview", "loading")}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 12 }).map((_, idx) => (
+            <StatCardSkeleton key={idx} />
+          ))}
+        </div>
       ) : null}
 
       {error ? (
@@ -174,7 +192,7 @@ export default function DashboardPage() {
       ) : null}
 
       {!loading && !error && data ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {cards.map((c) => (
             <StatCard
               key={c.title}
