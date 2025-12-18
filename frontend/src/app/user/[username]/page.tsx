@@ -28,8 +28,11 @@ import { profileApi, type PublicProfile } from "@/lib/api/profile";
 import { socialApi } from "@/lib/api/social";
 import { postsApi, type Post } from "@/lib/api/posts";
 import { messagesApi } from "@/lib/api/messages";
+import { presenceApi } from "@/lib/api/presence";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
+import type { Socket } from "socket.io-client";
+import { createAuthedSocket } from "@/lib/socket";
 
 const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
@@ -59,6 +62,8 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const [isFollowLoading, setIsFollowLoading] = useState(false);
     const [isStartingConversation, setIsStartingConversation] = useState(false);
 
+    const [isUserOnline, setIsUserOnline] = useState<boolean | null>(null);
+
     const isOwnProfile = currentUser?.username === username;
 
     // Redirect to own profile page if viewing own profile
@@ -76,6 +81,13 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 setError(null);
                 const { profile: profileData } = await profileApi.getPublicProfile(username);
                 setProfile(profileData);
+
+                try {
+                    const presence = await presenceApi.getUserPresence(profileData.id);
+                    setIsUserOnline(presence.isOnline);
+                } catch {
+                    setIsUserOnline(null);
+                }
 
                 // Fetch followers/following counts
                 const [followersRes, followingRes] = await Promise.all([
@@ -106,6 +118,35 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
             fetchProfile();
         }
     }, [username, isAuthenticated, isOwnProfile]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        if (!profile?.id) return;
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        let socket: Socket | null = null;
+
+        try {
+            socket = createAuthedSocket(token);
+        } catch {
+            return;
+        }
+
+        const handler = (payload: { userId: string; isOnline: boolean }) => {
+            if (payload.userId === profile.id) {
+                setIsUserOnline(payload.isOnline);
+            }
+        };
+
+        socket.on("presence:update", handler);
+
+        return () => {
+            socket?.off("presence:update", handler);
+            socket?.disconnect();
+        };
+    }, [isAuthenticated, profile?.id]);
 
     // Fetch user posts
     useEffect(() => {
@@ -310,6 +351,18 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                 <h1 className="text-2xl font-bold">
                                                     {profile.firstName} {profile.lastName}
                                                 </h1>
+                                                {isUserOnline !== null && (
+                                                    <span
+                                                        className={cn(
+                                                            "text-xs font-medium px-2 py-0.5 rounded-full",
+                                                            isUserOnline
+                                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                                : "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
+                                                        )}
+                                                    >
+                                                        {isUserOnline ? "Online" : "Offline"}
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="text-(--text-muted)">@{profile.username}</p>
                                         </div>

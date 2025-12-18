@@ -24,6 +24,7 @@ import { marketplaceRouter } from "./routes/marketplace";
 import { notificationsRouter } from "./routes/notifications";
 import walletRouter from "./routes/wallet";
 import { userSuggestionsRouter } from "./routes/user-suggestions";
+import { presenceRouter } from "./routes/presence";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 export function createApp() {
@@ -70,6 +71,7 @@ export function createApp() {
   app.use("/api/marketplace", marketplaceRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/users", userSuggestionsRouter);
+  app.use("/api/presence", presenceRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
