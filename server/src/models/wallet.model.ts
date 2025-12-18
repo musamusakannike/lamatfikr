@@ -14,7 +14,7 @@ export interface Wallet {
 
 const WalletSchema = new Schema<Wallet>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
     balance: { type: Number, default: 0, min: 0 },
     currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
     pendingBalance: { type: Number, default: 0, min: 0 },
@@ -24,8 +24,6 @@ const WalletSchema = new Schema<Wallet>(
   },
   { timestamps: true }
 );
-
-WalletSchema.index({ userId: 1 });
 
 export const WalletModel =
   (mongoose.models.Wallet as mongoose.Model<Wallet>) ||

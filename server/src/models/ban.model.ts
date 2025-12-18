@@ -10,7 +10,7 @@ export interface Ban {
 
 const BanSchema = new Schema<Ban>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     reason: { type: String, required: true },
     expiresAt: { type: Date },
   },

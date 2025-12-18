@@ -47,8 +47,6 @@ const VerifiedTagPaymentSchema = new Schema<VerifiedTagPayment>(
 );
 
 VerifiedTagPaymentSchema.index({ userId: 1, createdAt: -1 });
-VerifiedTagPaymentSchema.index({ tapChargeId: 1 });
-VerifiedTagPaymentSchema.index({ status: 1 });
 
 export const VerifiedTagPaymentModel =
   (mongoose.models.VerifiedTagPayment as mongoose.Model<VerifiedTagPayment>) ||

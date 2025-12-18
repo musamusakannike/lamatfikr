@@ -136,7 +136,6 @@ const OrderSchema = new Schema<Order>(
   { timestamps: true }
 );
 
-OrderSchema.index({ orderNumber: 1 });
 OrderSchema.index({ buyerId: 1, status: 1 });
 OrderSchema.index({ sellerId: 1, status: 1 });
 OrderSchema.index({ tapChargeId: 1 });

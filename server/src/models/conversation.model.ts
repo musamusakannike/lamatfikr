@@ -19,7 +19,6 @@ const ConversationSchema = new Schema<Conversation>(
         validator: (v: unknown) => Array.isArray(v) && v.length >= 2,
         message: "participants must contain at least 2 users",
       },
-      index: true,
     },
     lastMessageId: { type: Schema.Types.ObjectId, ref: "Message" },
     deletedAt: { type: Date, default: null },

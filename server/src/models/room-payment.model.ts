@@ -41,7 +41,6 @@ const RoomPaymentSchema = new Schema<RoomPayment>(
 );
 
 RoomPaymentSchema.index({ roomId: 1, userId: 1 });
-RoomPaymentSchema.index({ tapChargeId: 1 });
 RoomPaymentSchema.index({ status: 1 });
 
 export const RoomPaymentModel =
