@@ -352,6 +352,8 @@ export const getFeed: RequestHandler = async (req, res, next) => {
       return;
     }
 
+    const now = Date.now();
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -400,7 +402,7 @@ export const getFeed: RequestHandler = async (req, res, next) => {
         },
       ],
     })
-      .populate("userId", "firstName lastName username avatar verified")
+      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -441,8 +443,18 @@ export const getFeed: RequestHandler = async (req, res, next) => {
 
     const enrichedPosts = posts.map((post) => {
       const poll = pollByPost.get(post._id.toString());
+
+      const populatedUser: any = post.userId;
+      const paidUntil = populatedUser?.paidVerifiedUntil;
+      const paidUntilMs = paidUntil ? new Date(paidUntil).getTime() : 0;
+      const effectiveVerified = !!populatedUser?.verified || paidUntilMs > now;
+
       return {
         ...post,
+        userId:
+          populatedUser && typeof populatedUser === "object"
+            ? { ...populatedUser, verified: effectiveVerified }
+            : post.userId,
         upvotes: post.upvoteCount,
         downvotes: post.downvoteCount,
         media: mediaByPost.get(post._id.toString()) || [],
@@ -486,6 +498,8 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
   try {
     const { userId: targetUserId } = req.params;
     const viewerId = req.userId;
+
+    const now = Date.now();
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -545,13 +559,28 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
       deletedAt: null,
       ...privacyFilter,
     })
-      .populate("userId", "firstName lastName username avatar verified")
+      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const postIds = posts.map((p) => p._id);
+    const postsWithEffectiveVerified = posts.map((post: any) => {
+      const populatedUser: any = post.userId;
+      const paidUntil = populatedUser?.paidVerifiedUntil;
+      const paidUntilMs = paidUntil ? new Date(paidUntil).getTime() : 0;
+      const effectiveVerified = !!populatedUser?.verified || paidUntilMs > now;
+
+      return {
+        ...post,
+        userId:
+          populatedUser && typeof populatedUser === "object"
+            ? { ...populatedUser, verified: effectiveVerified }
+            : post.userId,
+      };
+    });
+
+    const postIds = postsWithEffectiveVerified.map((p) => p._id);
 
     const [allMedia, allPolls, userVotes] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
@@ -584,7 +613,7 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
       pollVotesByPoll.get(key)!.push(v.optionId.toString());
     });
 
-    const enrichedPosts = posts.map((post) => {
+    const enrichedPosts = postsWithEffectiveVerified.map((post: any) => {
       const poll = pollByPost.get(post._id.toString());
       return {
         ...post,
