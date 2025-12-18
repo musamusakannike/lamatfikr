@@ -5,6 +5,7 @@ import { requireAdmin } from "../middleware/admin";
 import { getAdminAnalytics, getAdminOverview } from "../controllers/admin.controller";
 import { batchAdminUsers, listAdminUsers, updateAdminUser } from "../controllers/admin-users.controller";
 import { getAdminRolesSummary } from "../controllers/admin-roles.controller";
+import { getAdminTopFollowed } from "../controllers/admin-social.controller";
 import {
   adminDeleteComment,
   adminDeleteMedia,
@@ -46,3 +47,5 @@ adminRouter.post("/content/stories/:storyId/restore", requireAuth, requireAdmin,
 adminRouter.get("/content/media", requireAuth, requireAdmin, listAdminMedia);
 adminRouter.post("/content/media/:mediaId/delete", requireAuth, requireAdmin, adminDeleteMedia);
 adminRouter.post("/content/media/:mediaId/restore", requireAuth, requireAdmin, adminRestoreMedia);
+
+adminRouter.get("/social/top-followed", requireAuth, requireAdmin, getAdminTopFollowed);

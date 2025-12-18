@@ -190,6 +190,20 @@ export const translations = {
     page: { ar: "صفحة", en: "Page" },
   },
 
+  adminSocial: {
+    topFollowedTitle: { ar: "الأكثر متابعة", en: "Top Followed" },
+    topFollowedSubtitle: { ar: "ترتيب المستخدمين حسب عدد المتابعين", en: "Ranking users by follower count" },
+    colRank: { ar: "الترتيب", en: "Rank" },
+    colUser: { ar: "المستخدم", en: "User" },
+    colFollowers: { ar: "المتابعون", en: "Followers" },
+    colUserId: { ar: "معرف المستخدم", en: "User ID" },
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+  },
+
   adminOverview: {
     title: { ar: "نظرة عامة", en: "Overview" },
     totalUsers: { ar: "إجمالي المستخدمين", en: "Total Users" },
