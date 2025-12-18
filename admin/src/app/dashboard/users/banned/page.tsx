@@ -1,3 +1,5 @@
+import UsersTable from "@/components/users/UsersTable";
+
 export default function BannedUsersPage() {
-  return <div>Banned Users</div>;
+  return <UsersTable mode="banned" />;
 }

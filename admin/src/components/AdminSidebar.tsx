@@ -64,6 +64,7 @@ export default function AdminSidebar() {
       items: [
         { key: "userDirectory", href: "/dashboard/users" },
         { key: "bannedUsers", href: "/dashboard/users/banned" },
+        { key: "verifiedUsers", href: "/dashboard/users/verified" },
         { key: "rolesPermissions", href: "/dashboard/users/roles" },
       ],
     },
@@ -174,6 +175,7 @@ export default function AdminSidebar() {
     uploadsMedia: ImageIcon,
     userDirectory: Users,
     bannedUsers: Ban,
+    verifiedUsers: ShieldCheck,
     rolesPermissions: UserCog,
     rooms: Radio,
     featuredRooms: Star,

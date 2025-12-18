@@ -16,8 +16,9 @@ export const translations = {
     dashboard: { ar: "لوحة التحكم", en: "Dashboard" },
     overview: { ar: "نظرة عامة", en: "Overview" },
     users: { ar: "المستخدمون", en: "Users" },
-    userDirectory: { ar: "قائمة المستخدمين", en: "User Directory" },
-    bannedUsers: { ar: "المحظورون", en: "Banned Users" },
+    userDirectory: { ar: "دليل المستخدمين", en: "User Directory" },
+    bannedUsers: { ar: "المستخدمون المحظورون", en: "Banned Users" },
+    verifiedUsers: { ar: "المستخدمون الموثقون", en: "Verified Users" },
     rolesPermissions: { ar: "الأدوار والصلاحيات", en: "Roles & Permissions" },
 
     content: { ar: "المحتوى", en: "Content" },
@@ -64,6 +65,55 @@ export const translations = {
     system: { ar: "النظام", en: "System" },
     health: { ar: "الحالة الصحية", en: "Health" },
     stripe: { ar: "Stripe", en: "Stripe" },
+  },
+
+  adminUsers: {
+    title: { ar: "المستخدمون", en: "Users" },
+    bannedTitle: { ar: "المستخدمون المحظورون", en: "Banned Users" },
+    verifiedTitle: { ar: "المستخدمون الموثقون", en: "Verified Users" },
+
+    searchPlaceholder: { ar: "ابحث بالاسم أو اسم المستخدم أو البريد", en: "Search by name, username, or email" },
+    filters: { ar: "الفلاتر", en: "Filters" },
+
+    colUser: { ar: "المستخدم", en: "User" },
+    colUsername: { ar: "اسم المستخدم", en: "Username" },
+    colEmail: { ar: "البريد الإلكتروني", en: "Email" },
+    colRole: { ar: "الدور", en: "Role" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colVerified: { ar: "توثيق", en: "Verified" },
+    colEmailVerified: { ar: "تأكيد البريد", en: "Email Verified" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    colLastActive: { ar: "آخر نشاط", en: "Last Active" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    statusActive: { ar: "نشط", en: "Active" },
+    statusBanned: { ar: "محظور", en: "Banned" },
+
+    yes: { ar: "نعم", en: "Yes" },
+    no: { ar: "لا", en: "No" },
+
+    actionBan: { ar: "حظر", en: "Ban" },
+    actionUnban: { ar: "إلغاء الحظر", en: "Unban" },
+    actionGrantVerified: { ar: "منح توثيق لمدة", en: "Grant verified for" },
+    actionRevokeVerified: { ar: "إلغاء التوثيق", en: "Revoke verified" },
+    actionSetRole: { ar: "تغيير الدور", en: "Set role" },
+    actionSetEmailVerified: { ar: "تعديل تأكيد البريد", en: "Set email verified" },
+    emailVerifiedTrue: { ar: "مؤكد", en: "Verified" },
+    emailVerifiedFalse: { ar: "غير مؤكد", en: "Not verified" },
+
+    batchSelected: { ar: "المحدد", en: "Selected" },
+    batchApply: { ar: "تطبيق", en: "Apply" },
+    batchNone: { ar: "إجراء جماعي", en: "Batch action" },
+
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+
+    grantDaysLabel: { ar: "عدد الأيام", en: "Days" },
+    grantDaysHint: { ar: "مثال: 7 أو 30", en: "Example: 7 or 30" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل تحميل المستخدمين", en: "Failed to load users" },
   },
 
   adminOverview: {

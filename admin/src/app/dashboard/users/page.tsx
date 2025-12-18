@@ -1,3 +1,5 @@
+import UsersTable from "@/components/users/UsersTable";
+
 export default function UsersPage() {
-  return <div>Users</div>;
+  return <UsersTable mode="all" />;
 }
