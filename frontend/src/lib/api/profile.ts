@@ -14,6 +14,21 @@ export interface ProfileData {
   school?: string;
 }
 
+export interface VerifiedTagInitiateResponse {
+  message: string;
+  redirectUrl: string;
+  chargeId: string;
+  amount: number;
+  currency: string;
+  durationDays: number;
+}
+
+export interface VerifiedTagVerifyResponse {
+  message: string;
+  profile: User;
+  verifiedUntil: string;
+}
+
 export interface PrivacySettings {
   whoCanFollowMe?: "everyone" | "friends" | "nobody";
   whoCanMessageMe?: "everyone" | "friends" | "nobody";
@@ -85,4 +100,10 @@ export const profileApi = {
     apiClient.delete<{ message: string }>("/profile", {
       data: password ? { password } : undefined,
     }),
+
+  initiateVerifiedTagPurchase: () =>
+    apiClient.post<VerifiedTagInitiateResponse>("/profile/verified-tag/initiate"),
+
+  verifyVerifiedTagPurchase: (tapId: string) =>
+    apiClient.get<VerifiedTagVerifyResponse>(`/profile/verified-tag/verify?tap_id=${tapId}`),
 };

@@ -43,6 +43,7 @@ export function ProfileHeader({
   const { user: authUser, refreshUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitiatingVerifiedPurchase, setIsInitiatingVerifiedPurchase] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isHoveringBanner, setIsHoveringBanner] = useState(false);
@@ -125,6 +126,24 @@ export function ProfileHeader({
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  };
+
+  const isPaidVerifiedActive = !!profile?.paidVerifiedUntil && new Date(profile.paidVerifiedUntil).getTime() > Date.now();
+
+  const handleBuyVerified = async () => {
+    try {
+      setIsInitiatingVerifiedPurchase(true);
+      const response = await profileApi.initiateVerifiedTagPurchase();
+      if (!response.redirectUrl) {
+        toast.error("Payment URL not available");
+        return;
+      }
+      window.location.href = response.redirectUrl;
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsInitiatingVerifiedPurchase(false);
+    }
   };
 
   if (isLoading) {
@@ -269,9 +288,30 @@ export function ProfileHeader({
                 </h1>
               </div>
               <p className="text-(--text-muted)">@{profile.username}</p>
+              {isPaidVerifiedActive && (
+                <p className="text-sm text-(--text-muted)">
+                  Verified until {new Date(profile.paidVerifiedUntil as string).toLocaleDateString()}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
+              {!profile.verified && !isPaidVerifiedActive && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleBuyVerified}
+                  disabled={isInitiatingVerifiedPurchase}
+                  className="gap-2"
+                >
+                  {isInitiatingVerifiedPurchase ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <CheckCircle size={16} />
+                  )}
+                  {isInitiatingVerifiedPurchase ? "Redirecting..." : "Get Verified (1 month)"}
+                </Button>
+              )}
               <Button
                 variant="primary"
                 size="sm"

@@ -32,6 +32,8 @@ export interface User {
   workingAt?: string;
   school?: string;
   verified: boolean;
+  paidVerifiedUntil?: Date;
+  paidVerifiedPurchasedAt?: Date;
   role: UserRoleType;
   privacySettings: PrivacySettings;
   lastActive?: Date;
@@ -102,6 +104,8 @@ const UserSchema = new Schema<User>(
     workingAt: { type: String },
     school: { type: String },
     verified: { type: Boolean, default: false },
+    paidVerifiedUntil: { type: Date },
+    paidVerifiedPurchasedAt: { type: Date },
     role: {
       type: String,
       enum: Object.values(UserRole),

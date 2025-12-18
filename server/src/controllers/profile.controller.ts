@@ -1,8 +1,11 @@
 import type { RequestHandler } from "express";
 import bcrypt from "bcryptjs";
+import axios from "axios";
 
 import { UserModel } from "../models/user.model";
 import { AuthProvider } from "../models/common";
+import { VerifiedTagPaymentModel, VerifiedTagPaymentStatus } from "../models";
+import { env } from "../config/env";
 import {
   updateProfileSchema,
   updateAvatarSchema,
@@ -12,6 +15,11 @@ import {
 } from "../validators/profile.validator";
 
 const SALT_ROUNDS = 12;
+
+const TAP_API_URL = "https://api.tap.company/v2/charges";
+const VERIFIED_TAG_DURATION_DAYS = 30;
+const VERIFIED_TAG_PRICE = 30;
+const VERIFIED_TAG_CURRENCY = "SAR";
 
 export const getProfile: RequestHandler = async (req, res, next) => {
   try {
@@ -30,7 +38,12 @@ export const getProfile: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    res.json({ profile: user });
+    const now = Date.now();
+    const isPaidVerified = !!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > now;
+    const profile: any = user.toObject();
+    profile.verified = profile.verified || isPaidVerified;
+
+    res.json({ profile });
   } catch (error) {
     next(error);
   }
@@ -41,7 +54,7 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
     const { username } = req.params;
 
     const user = await UserModel.findOne({ username }).select(
-      "firstName lastName username avatar coverPhoto bio gender birthday relationshipStatus address website workingAt school verified role privacySettings createdAt"
+      "firstName lastName username avatar coverPhoto bio gender birthday relationshipStatus address website workingAt school verified paidVerifiedUntil role privacySettings createdAt"
     );
 
     if (!user) {
@@ -57,7 +70,9 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
       avatar: user.avatar,
       coverPhoto: user.coverPhoto,
       bio: user.bio,
-      verified: user.verified,
+      verified:
+        user.verified ||
+        (!!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > Date.now()),
       role: user.role,
       createdAt: user.createdAt,
     };
@@ -77,6 +92,205 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
 
     res.json({ profile: publicProfile });
   } catch (error) {
+    next(error);
+  }
+};
+
+export const initiateVerifiedTagPurchase: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const tapSecretKey = env.TAP_SECRET_KEY;
+    if (!tapSecretKey) {
+      res.status(501).json({ message: "Payment gateway not configured" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId).select("email paidVerifiedUntil");
+    if (!user?.email) {
+      res.status(400).json({ message: "User email not found" });
+      return;
+    }
+
+    const now = new Date();
+    const startsAt = user.paidVerifiedUntil && user.paidVerifiedUntil > now ? user.paidVerifiedUntil : now;
+    const endsAt = new Date(startsAt);
+    endsAt.setDate(endsAt.getDate() + VERIFIED_TAG_DURATION_DAYS);
+
+    const response = await axios.post(
+      TAP_API_URL,
+      {
+        amount: VERIFIED_TAG_PRICE,
+        currency: VERIFIED_TAG_CURRENCY,
+        threeDSecure: true,
+        save_card: false,
+        description: `Verified tag (${VERIFIED_TAG_DURATION_DAYS} days)`,
+        statement_descriptor: "LamatFikr Verified",
+        customer: {
+          email: user.email,
+        },
+        metadata: {
+          userId: userId.toString(),
+          type: "verified_tag",
+          durationDays: VERIFIED_TAG_DURATION_DAYS.toString(),
+          startsAt: startsAt.toISOString(),
+          endsAt: endsAt.toISOString(),
+        },
+        source: {
+          id: "src_all",
+        },
+        redirect: {
+          url: `${env.FRONTEND_URL}/profile/verified/callback`,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${tapSecretKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    await VerifiedTagPaymentModel.create({
+      userId,
+      amount: VERIFIED_TAG_PRICE,
+      currency: VERIFIED_TAG_CURRENCY,
+      tapChargeId: response.data.id,
+      status: VerifiedTagPaymentStatus.pending,
+      durationDays: VERIFIED_TAG_DURATION_DAYS,
+      startsAt,
+      endsAt,
+      metadata: {
+        transactionUrl: response.data.transaction?.url,
+      },
+    });
+
+    res.json({
+      message: "Payment initiated",
+      redirectUrl: response.data.transaction?.url,
+      chargeId: response.data.id,
+      amount: VERIFIED_TAG_PRICE,
+      currency: VERIFIED_TAG_CURRENCY,
+      durationDays: VERIFIED_TAG_DURATION_DAYS,
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Tap Payment Error:", error.response?.data);
+      res.status(500).json({ message: "Payment initiation failed", error: error.response?.data });
+      return;
+    }
+    next(error);
+  }
+};
+
+export const verifyVerifiedTagPurchase: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { tap_id } = req.query;
+    if (!tap_id || typeof tap_id !== "string") {
+      res.status(400).json({ message: "Payment ID is required" });
+      return;
+    }
+
+    const tapSecretKey = env.TAP_SECRET_KEY;
+    if (!tapSecretKey) {
+      res.status(501).json({ message: "Payment gateway not configured" });
+      return;
+    }
+
+    const response = await axios.get(`https://api.tap.company/v2/charges/${tap_id}`, {
+      headers: {
+        Authorization: `Bearer ${tapSecretKey}`,
+      },
+    });
+
+    const chargeData = response.data;
+    if (chargeData.status !== "CAPTURED") {
+      await VerifiedTagPaymentModel.updateOne(
+        { tapChargeId: tap_id, userId },
+        { status: VerifiedTagPaymentStatus.failed }
+      );
+
+      res.status(400).json({
+        message: "Payment was not successful",
+        status: chargeData.status,
+      });
+      return;
+    }
+
+    const payment = await VerifiedTagPaymentModel.findOne({
+      tapChargeId: tap_id,
+      userId,
+    });
+
+    if (!payment) {
+      res.status(400).json({ message: "Payment record not found" });
+      return;
+    }
+
+    if (payment.status === VerifiedTagPaymentStatus.captured) {
+      const user = await UserModel.findById(userId).select(
+        "-passwordHash -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires"
+      );
+      res.json({
+        message: "Payment already verified",
+        profile: user,
+        verifiedUntil: payment.endsAt,
+      });
+      return;
+    }
+
+    await VerifiedTagPaymentModel.updateOne(
+      { _id: payment._id },
+      {
+        status: VerifiedTagPaymentStatus.captured,
+        paidAt: new Date(),
+      }
+    );
+
+    const user = await UserModel.findById(userId).select("paidVerifiedUntil verified");
+    const currentUntil = user?.paidVerifiedUntil && user.paidVerifiedUntil > new Date() ? user.paidVerifiedUntil : new Date();
+    const newUntil = payment.endsAt > currentUntil ? payment.endsAt : currentUntil;
+
+    await UserModel.updateOne(
+      { _id: userId },
+      {
+        paidVerifiedUntil: newUntil,
+        paidVerifiedPurchasedAt: new Date(),
+      }
+    );
+
+    const updatedUser = await UserModel.findById(userId).select(
+      "-passwordHash -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires"
+    );
+
+    const updatedObj: any = updatedUser?.toObject();
+    if (updatedObj) {
+      updatedObj.verified =
+        updatedObj.verified ||
+        (!!updatedObj.paidVerifiedUntil && new Date(updatedObj.paidVerifiedUntil).getTime() > Date.now());
+    }
+
+    res.json({
+      message: "Payment verified successfully",
+      profile: updatedObj,
+      verifiedUntil: newUntil,
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Tap Verification Error:", error.response?.data);
+      res.status(500).json({ message: "Payment verification failed" });
+      return;
+    }
     next(error);
   }
 };

@@ -76,6 +76,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: userData.email,
         avatar: userData.avatar,
         verified: userData.verified,
+        paidVerifiedUntil: (userData as any).paidVerifiedUntil,
         role: userData.role,
       });
     } catch {

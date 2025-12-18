@@ -3,6 +3,8 @@ import { Router } from "express";
 import {
   getProfile,
   getPublicProfile,
+  initiateVerifiedTagPurchase,
+  verifyVerifiedTagPurchase,
   updateProfile,
   updateAvatar,
   updateCoverPhoto,
@@ -17,6 +19,8 @@ export const profileRouter = Router();
 
 profileRouter.get("/me", requireAuth, getProfile);
 profileRouter.get("/user/:username", getPublicProfile);
+profileRouter.post("/verified-tag/initiate", requireAuth, initiateVerifiedTagPurchase);
+profileRouter.get("/verified-tag/verify", requireAuth, verifyVerifiedTagPurchase);
 profileRouter.patch("/", requireAuth, updateProfile);
 profileRouter.patch("/avatar", requireAuth, updateAvatar);
 profileRouter.patch("/cover-photo", requireAuth, updateCoverPhoto);

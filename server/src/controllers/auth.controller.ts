@@ -142,6 +142,10 @@ export const login: RequestHandler = async (req, res, next) => {
 
     await UserModel.updateOne({ _id: user._id }, { lastActive: new Date() });
 
+    const now = Date.now();
+    const isPaidVerified = !!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > now;
+    const effectiveVerified = user.verified || isPaidVerified;
+
     const accessToken = signAccessToken(user._id.toString());
     const refreshToken = signRefreshToken(user._id.toString());
 
@@ -163,7 +167,7 @@ export const login: RequestHandler = async (req, res, next) => {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
-        verified: user.verified,
+        verified: effectiveVerified,
         role: user.role,
       },
     });
@@ -287,7 +291,9 @@ export const socialAuth: RequestHandler = async (req, res, next) => {
           username: user.username,
           email: user.email,
           avatar: user.avatar,
-          verified: user.verified,
+          verified:
+            user.verified ||
+            (!!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > Date.now()),
           role: user.role,
         },
         requiresProfileCompletion: false,
@@ -385,7 +391,9 @@ export const socialAuth: RequestHandler = async (req, res, next) => {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
-        verified: user.verified,
+        verified:
+          user.verified ||
+          (!!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > Date.now()),
         role: user.role,
       },
       requiresProfileCompletion: false,
@@ -481,7 +489,9 @@ export const completeSocialProfile: RequestHandler = async (req, res, next) => {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
-        verified: user.verified,
+        verified:
+          user.verified ||
+          (!!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > Date.now()),
         role: user.role,
       },
     });
@@ -677,7 +687,13 @@ export const getMe: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    res.json({ user });
+    const isPaidVerified =
+      !!(user as any).paidVerifiedUntil && (user as any).paidVerifiedUntil.getTime() > Date.now();
+
+    const userObj: any = user.toObject();
+    userObj.verified = userObj.verified || isPaidVerified;
+
+    res.json({ user: userObj });
   } catch (error) {
     next(error);
   }

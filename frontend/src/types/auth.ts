@@ -56,6 +56,7 @@ export interface User {
   workingAt?: string;
   school?: string;
   verified: boolean;
+  paidVerifiedUntil?: string;
   role: UserRole;
   privacySettings?: PrivacySettings;
   lastActive?: string;
@@ -73,6 +74,7 @@ export interface AuthUser {
   email: string;
   avatar?: string;
   verified: boolean;
+  paidVerifiedUntil?: string;
   role: UserRole;
 }
 

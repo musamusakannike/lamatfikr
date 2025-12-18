@@ -55,6 +55,7 @@ export * from "./room-message.model";
 export * from "./room-payment.model";
 export * from "./room-invite-link.model";
 export * from "./featured-room.model";
+export * from "./verified-tag-payment.model";
 
 export * from "./community.model";
 export * from "./community-member.model";
