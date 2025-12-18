@@ -9,6 +9,20 @@ import type { AdminRolesSummaryResponse } from "@/types/admin-roles";
 
 type RoleKey = "user" | "moderator" | "admin" | "superadmin";
 
+type AdminRolesPermissionKey =
+  | "permViewUsers"
+  | "permManageUsers"
+  | "permBanUnban"
+  | "permGrantVerified"
+  | "permManageContent"
+  | "permManagePosts"
+  | "permManageComments"
+  | "permManageStories"
+  | "permManageMedia"
+  | "permManageWallet"
+  | "permManageVerification"
+  | "permViewAnalytics";
+
 function RoleCard({ title, value }: { title: string; value: number }) {
   return (
     <div className="bg-(--bg-card) border border-(--border) rounded-xl p-4 shadow-sm">
@@ -60,62 +74,90 @@ export default function RolesPermissionsPage() {
   const permissions = useMemo(() => {
     return [
       {
-        key: "permViewUsers",
+        key: "permViewUsers" as AdminRolesPermissionKey,
         user: true,
         moderator: true,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permManageUsers",
+        key: "permManageUsers" as AdminRolesPermissionKey,
         user: false,
         moderator: false,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permBanUnban",
+        key: "permBanUnban" as AdminRolesPermissionKey,
         user: false,
         moderator: true,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permGrantVerified",
+        key: "permGrantVerified" as AdminRolesPermissionKey,
         user: false,
         moderator: false,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permManageContent",
+        key: "permManageContent" as AdminRolesPermissionKey,
         user: false,
         moderator: true,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permManageWallet",
+        key: "permManagePosts" as AdminRolesPermissionKey,
+        user: false,
+        moderator: true,
+        admin: true,
+        superadmin: true,
+      },
+      {
+        key: "permManageComments" as AdminRolesPermissionKey,
+        user: false,
+        moderator: true,
+        admin: true,
+        superadmin: true,
+      },
+      {
+        key: "permManageStories" as AdminRolesPermissionKey,
+        user: false,
+        moderator: true,
+        admin: true,
+        superadmin: true,
+      },
+      {
+        key: "permManageMedia" as AdminRolesPermissionKey,
+        user: false,
+        moderator: true,
+        admin: true,
+        superadmin: true,
+      },
+      {
+        key: "permManageWallet" as AdminRolesPermissionKey,
         user: false,
         moderator: false,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permManageVerification",
+        key: "permManageVerification" as AdminRolesPermissionKey,
         user: false,
         moderator: false,
         admin: true,
         superadmin: true,
       },
       {
-        key: "permViewAnalytics",
+        key: "permViewAnalytics" as AdminRolesPermissionKey,
         user: false,
         moderator: false,
         admin: true,
         superadmin: true,
       },
-    ] as Array<{ key: string } & Record<RoleKey, boolean>>;
+    ] as Array<{ key: AdminRolesPermissionKey } & Record<RoleKey, boolean>>;
   }, []);
 
   return (
@@ -170,7 +212,7 @@ export default function RolesPermissionsPage() {
                 {permissions.map((p) => (
                   <tr key={p.key} className="border-t border-(--border)">
                     <td className={cn("px-3 py-3", isRTL ? "text-right" : "text-left")}>
-                      <div className="font-medium text-(--text)">{t("adminRoles", p.key as any)}</div>
+                      <div className="font-medium text-(--text)">{t("adminRoles", p.key)}</div>
                     </td>
                     <td className="px-3 py-3 text-center">{p.user ? "✓" : "—"}</td>
                     <td className="px-3 py-3 text-center">{p.moderator ? "✓" : "—"}</td>

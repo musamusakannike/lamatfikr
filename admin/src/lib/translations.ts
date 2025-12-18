@@ -141,9 +141,53 @@ export const translations = {
     permBanUnban: { ar: "حظر/إلغاء الحظر", en: "Ban/Unban" },
     permGrantVerified: { ar: "منح شارة التوثيق", en: "Grant verified badge" },
     permManageContent: { ar: "إدارة المحتوى", en: "Manage content" },
+    permManagePosts: { ar: "إدارة المنشورات", en: "Manage posts" },
+    permManageComments: { ar: "إدارة التعليقات", en: "Manage comments" },
+    permManageStories: { ar: "إدارة القصص", en: "Manage stories" },
+    permManageMedia: { ar: "إدارة الوسائط", en: "Manage uploads & media" },
     permManageWallet: { ar: "إدارة المحفظة", en: "Manage wallet" },
     permManageVerification: { ar: "إدارة التوثيق", en: "Manage verification" },
     permViewAnalytics: { ar: "عرض التحليلات", en: "View analytics" },
+  },
+
+  adminContent: {
+    postsTitle: { ar: "المنشورات", en: "Posts" },
+    commentsTitle: { ar: "التعليقات", en: "Comments" },
+    storiesTitle: { ar: "القصص", en: "Stories" },
+    mediaTitle: { ar: "الوسائط والرفع", en: "Uploads & Media" },
+
+    searchPlaceholderPosts: { ar: "ابحث في نص المنشور أو الموقع أو الشعور", en: "Search post text, location, or feeling" },
+    searchPlaceholderComments: { ar: "ابحث في نص التعليق", en: "Search comment text" },
+    searchPlaceholderMedia: { ar: "ابحث في رابط الملف", en: "Search by file URL" },
+
+    status: { ar: "الحالة", en: "Status" },
+    statusActive: { ar: "نشط", en: "Active" },
+    statusDeleted: { ar: "محذوف", en: "Deleted" },
+    statusAll: { ar: "الكل", en: "All" },
+
+    type: { ar: "النوع", en: "Type" },
+    typeAll: { ar: "الكل", en: "All" },
+
+    colId: { ar: "المعرف", en: "ID" },
+    colUser: { ar: "المستخدم", en: "User" },
+    colText: { ar: "النص", en: "Text" },
+    colPostId: { ar: "معرف المنشور", en: "Post ID" },
+    colMediaCount: { ar: "عدد الوسائط", en: "Media" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    colExpiresAt: { ar: "ينتهي في", en: "Expires" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    btnDelete: { ar: "حذف", en: "Delete" },
+    btnRestore: { ar: "استعادة", en: "Restore" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    confirmDelete: { ar: "هل أنت متأكد من الحذف؟", en: "Are you sure you want to delete?" },
+    confirmRestore: { ar: "هل أنت متأكد من الاستعادة؟", en: "Are you sure you want to restore?" },
+
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
   },
 
   adminOverview: {
