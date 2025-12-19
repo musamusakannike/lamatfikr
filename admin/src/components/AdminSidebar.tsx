@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 import { LanguageSwitcher } from "@/components/ui";
 
@@ -43,9 +44,26 @@ type NavItem =
       items: Array<{ key: string; href: string }>;
     };
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  open,
+  onClose,
+  onNavigate,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const { t, isRTL } = useLanguage();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
 
   const nav: NavItem[] = [
     {
@@ -166,6 +184,10 @@ export default function AdminSidebar() {
       <Link
         key={href}
         href={href}
+        onClick={() => {
+          onNavigate?.();
+          onClose?.();
+        }}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
           active
@@ -180,7 +202,19 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="h-screen w-72 shrink-0 border-e border-(--border) bg-(--bg-card) flex flex-col">
+    <aside
+      className={cn(
+        "h-screen w-72 border-(--border) bg-(--bg-card) flex flex-col",
+        "fixed inset-y-0 z-50 transition-transform duration-200 ease-out",
+        isRTL ? "right-0 border-l" : "left-0 border-r",
+        open
+          ? "translate-x-0"
+          : isRTL
+            ? "translate-x-full"
+            : "-translate-x-full",
+        "lg:static lg:translate-x-0 lg:shrink-0"
+      )}
+    >
       <div className="px-4 py-4 border-b border-(--border)">
         <div className={cn("flex items-center justify-between", isRTL ? "flex-row-reverse" : "flex-row")}>
           <div>
@@ -205,6 +239,10 @@ export default function AdminSidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => {
+                    onNavigate?.();
+                    onClose?.();
+                  }}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                     active
