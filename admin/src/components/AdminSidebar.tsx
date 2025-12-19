@@ -9,11 +9,8 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  MessageSquare,
   ShieldCheck,
   Wallet,
-  Bell,
-  Lightbulb,
   Store,
   Image as ImageIcon,
   Radio,
@@ -107,15 +104,6 @@ export default function AdminSidebar() {
     },
     {
       type: "group",
-      key: "messaging",
-      icon: MessageSquare,
-      items: [
-        { key: "conversations", href: "/dashboard/messaging/conversations" },
-        { key: "messages", href: "/dashboard/messaging/messages" },
-      ],
-    },
-    {
-      type: "group",
       key: "marketplace",
       icon: Store,
       items: [
@@ -133,27 +121,6 @@ export default function AdminSidebar() {
         { key: "withdrawals", href: "/dashboard/wallet/withdrawals" },
         { key: "adminWithdrawals", href: "/dashboard/wallet/admin-withdrawals" },
       ],
-    },
-    {
-      type: "group",
-      key: "verification",
-      icon: ShieldCheck,
-      items: [
-        { key: "verificationRequests", href: "/dashboard/verification/requests" },
-        { key: "verificationStats", href: "/dashboard/verification/stats" },
-      ],
-    },
-    {
-      type: "link",
-      key: "notifications",
-      href: "/dashboard/notifications",
-      icon: Bell,
-    },
-    {
-      type: "link",
-      key: "suggestions",
-      href: "/dashboard/suggestions",
-      icon: Lightbulb,
     },
     {
       type: "group",
@@ -180,8 +147,6 @@ export default function AdminSidebar() {
     communitiesList: Building2,
     groups: Layers,
     pages: Layers,
-    conversations: MessageSquare,
-    messages: MessageSquare,
     marketplace: Store,
     listings: Store,
     orders: Store,
@@ -189,8 +154,6 @@ export default function AdminSidebar() {
     transactions: CreditCard,
     withdrawals: Wallet,
     adminWithdrawals: Wallet,
-    verificationRequests: ShieldCheck,
-    verificationStats: ShieldCheck,
   };
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + "/");
