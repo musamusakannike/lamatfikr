@@ -142,6 +142,15 @@ export default function AdminSidebar({
     },
     {
       type: "group",
+      key: "verification",
+      icon: ShieldCheck,
+      items: [
+        { key: "verificationRequests", href: "/dashboard/verification/requests" },
+        { key: "verificationStats", href: "/dashboard/verification/stats" },
+      ],
+    },
+    {
+      type: "group",
       key: "system",
       icon: Activity,
       items: [
@@ -172,6 +181,8 @@ export default function AdminSidebar({
     transactions: CreditCard,
     withdrawals: Wallet,
     adminWithdrawals: Wallet,
+    verificationRequests: ShieldCheck,
+    verificationStats: Activity,
   };
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + "/");
