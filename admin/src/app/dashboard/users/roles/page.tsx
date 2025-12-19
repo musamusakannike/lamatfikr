@@ -197,31 +197,83 @@ export default function RolesPermissionsPage() {
             <div className="text-sm text-(--text-muted) mt-1">{t("adminRoles", "note")}</div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-(--border) bg-(--bg-card)">
-            <table className="min-w-[900px] w-full text-sm">
-              <thead className="bg-(--bg)">
-                <tr className="text-(--text-muted)">
-                  <th className={cn("px-3 py-3", isRTL ? "text-right" : "text-left")}>{t("adminRoles", "permissionsMatrix")}</th>
-                  <th className="px-3 py-3">{t("adminRoles", "roleUser")}</th>
-                  <th className="px-3 py-3">{t("adminRoles", "roleModerator")}</th>
-                  <th className="px-3 py-3">{t("adminRoles", "roleAdmin")}</th>
-                  <th className="px-3 py-3">{t("adminRoles", "roleSuperadmin")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {permissions.map((p) => (
-                  <tr key={p.key} className="border-t border-(--border)">
-                    <td className={cn("px-3 py-3", isRTL ? "text-right" : "text-left")}>
-                      <div className="font-medium text-(--text)">{t("adminRoles", p.key)}</div>
-                    </td>
-                    <td className="px-3 py-3 text-center">{p.user ? "✓" : "—"}</td>
-                    <td className="px-3 py-3 text-center">{p.moderator ? "✓" : "—"}</td>
-                    <td className="px-3 py-3 text-center">{p.admin ? "✓" : "—"}</td>
-                    <td className="px-3 py-3 text-center">{p.superadmin ? "✓" : "—"}</td>
+          <div className="space-y-3">
+            <div className="md:hidden space-y-3">
+              {permissions.map((p) => (
+                <div key={p.key} className="rounded-xl border border-(--border) bg-(--bg-card) p-3">
+                  <div className={cn("font-medium text-(--text)", isRTL ? "text-right" : "text-left")}
+                  >
+                    {t("adminRoles", p.key)}
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className={cn("text-(--text-muted)", isRTL ? "text-right" : "text-left")}
+                    >
+                      {t("adminRoles", "roleUser")}
+                    </div>
+                    <div className={cn("font-medium", isRTL ? "text-left" : "text-right")}
+                    >
+                      {p.user ? "✓" : "—"}
+                    </div>
+
+                    <div className={cn("text-(--text-muted)", isRTL ? "text-right" : "text-left")}
+                    >
+                      {t("adminRoles", "roleModerator")}
+                    </div>
+                    <div className={cn("font-medium", isRTL ? "text-left" : "text-right")}
+                    >
+                      {p.moderator ? "✓" : "—"}
+                    </div>
+
+                    <div className={cn("text-(--text-muted)", isRTL ? "text-right" : "text-left")}
+                    >
+                      {t("adminRoles", "roleAdmin")}
+                    </div>
+                    <div className={cn("font-medium", isRTL ? "text-left" : "text-right")}
+                    >
+                      {p.admin ? "✓" : "—"}
+                    </div>
+
+                    <div className={cn("text-(--text-muted)", isRTL ? "text-right" : "text-left")}
+                    >
+                      {t("adminRoles", "roleSuperadmin")}
+                    </div>
+                    <div className={cn("font-medium", isRTL ? "text-left" : "text-right")}
+                    >
+                      {p.superadmin ? "✓" : "—"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-(--border) bg-(--bg-card)">
+              <table className="min-w-[900px] w-full text-sm">
+                <thead className="bg-(--bg)">
+                  <tr className="text-(--text-muted)">
+                    <th className={cn("px-3 py-3", isRTL ? "text-right" : "text-left")}>{t("adminRoles", "permissionsMatrix")}</th>
+                    <th className="px-3 py-3">{t("adminRoles", "roleUser")}</th>
+                    <th className="px-3 py-3">{t("adminRoles", "roleModerator")}</th>
+                    <th className="px-3 py-3">{t("adminRoles", "roleAdmin")}</th>
+                    <th className="px-3 py-3">{t("adminRoles", "roleSuperadmin")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {permissions.map((p) => (
+                    <tr key={p.key} className="border-t border-(--border)">
+                      <td className={cn("px-3 py-3", isRTL ? "text-right" : "text-left")}
+                      >
+                        <div className="font-medium text-(--text)">{t("adminRoles", p.key)}</div>
+                      </td>
+                      <td className="px-3 py-3 text-center">{p.user ? "✓" : "—"}</td>
+                      <td className="px-3 py-3 text-center">{p.moderator ? "✓" : "—"}</td>
+                      <td className="px-3 py-3 text-center">{p.admin ? "✓" : "—"}</td>
+                      <td className="px-3 py-3 text-center">{p.superadmin ? "✓" : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       ) : null}
