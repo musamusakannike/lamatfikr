@@ -113,7 +113,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: UserPlus, label: t("suggestions", "peopleYouMayKnow"), href: "/suggestions" },
     { icon: Wallet, label: t("nav", "wallet"), href: "/wallet" },
     { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined },
-    { icon: Settings, label: t("nav", "settings"), href: "/settings" },
+    { icon: Settings, label: t("nav", "settings"), href: "/profile" },
   ];
 
   const marketplaceManagementItems: NavItem[] = [

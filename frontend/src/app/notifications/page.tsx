@@ -26,6 +26,12 @@ function getNotificationText(n: Notification, t: (section: string, key: string) 
       return `${actor} ${t("notifications", "sentFriendRequest")}`;
     case "friend_accept":
       return `${actor} ${t("notifications", "acceptedFriendRequest")}`;
+    case "verification_request_submitted":
+      return `${actor} ${t("notifications", "verificationRequestSubmitted")}`;
+    case "verification_request_approved":
+      return t("notifications", "verificationRequestApproved");
+    case "verification_request_rejected":
+      return t("notifications", "verificationRequestRejected");
     default:
       return t("notifications", "newNotification");
   }

@@ -24,6 +24,7 @@ import type { User } from "@/types/auth";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "@/lib/api";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
+import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
   onEditProfile: () => void;
@@ -40,6 +41,7 @@ export function ProfileHeader({
   onShowFollowing,
   onProfileUpdate,
 }: ProfileHeaderProps) {
+  const router = useRouter();
   const { user: authUser, refreshUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,12 +135,7 @@ export function ProfileHeader({
   const handleBuyVerified = async () => {
     try {
       setIsInitiatingVerifiedPurchase(true);
-      const response = await profileApi.initiateVerifiedTagPurchase();
-      if (!response.redirectUrl) {
-        toast.error("Payment URL not available");
-        return;
-      }
-      window.location.href = response.redirectUrl;
+      router.push("/profile/verified");
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {

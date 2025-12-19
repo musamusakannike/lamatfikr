@@ -24,6 +24,9 @@ export type { Message, MessageUser, Conversation, ConversationsResponse, Message
 export { notificationsApi } from "./notifications";
 export type { Notification } from "./notifications";
 
+export { verificationApi } from "./verification";
+export type { VerificationStatus, DocumentType, VerificationRequest, CreateVerificationRequestInput } from "./verification";
+
 export { marketplaceApi } from "./marketplace";
 export type {
   Product,

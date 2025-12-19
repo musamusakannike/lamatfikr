@@ -72,6 +72,9 @@ export const NotificationType = {
   mention: "mention",
   friend_request: "friend_request",
   friend_accept: "friend_accept",
+  verification_request_submitted: "verification_request_submitted",
+  verification_request_approved: "verification_request_approved",
+  verification_request_rejected: "verification_request_rejected",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

@@ -2,7 +2,14 @@ import type { RequestHandler } from "express";
 
 import { UserModel } from "../models/user.model";
 import { VerificationRequestModel } from "../models/verification-request.model";
-import { VerificationStatus, UserRole } from "../models/common";
+import { NotificationType, VerificationStatus, UserRole } from "../models/common";
+import { createNotification } from "../services/notification";
+import {
+  sendVerificationRequestSubmittedAdminEmail,
+  sendVerificationRequestApprovedUserEmail,
+  sendVerificationRequestRejectedUserEmail,
+} from "../services/email";
+import { env } from "../config/env";
 import {
   createVerificationRequestSchema,
   reviewVerificationRequestSchema,
@@ -59,6 +66,32 @@ export const createVerificationRequest: RequestHandler = async (req, res, next) 
       selfieUrl,
       status: VerificationStatus.pending,
     });
+
+    const adminUsers = await UserModel.find({ role: { $in: [UserRole.admin, UserRole.moderator] } }).select(
+      "_id email firstName lastName username"
+    );
+    const reviewUrl = `${env.FRONTEND_URL.replace(/\/$/, "")}/admin/dashboard/verification/requests?requestId=${verificationRequest._id}`;
+
+    await Promise.all(
+      adminUsers.map(async (adminUser) => {
+        await createNotification({
+          userId: adminUser._id.toString(),
+          actorId: userId,
+          type: NotificationType.verification_request_submitted,
+          targetId: verificationRequest._id.toString(),
+          url: "/dashboard/verification/requests",
+        });
+
+        if (adminUser.email) {
+          await sendVerificationRequestSubmittedAdminEmail({
+            to: adminUser.email,
+            userDisplayName: `${user.firstName} ${user.lastName}`,
+            username: user.username,
+            reviewUrl,
+          });
+        }
+      })
+    );
 
     res.status(201).json({
       message: "Verification request submitted successfully",
@@ -268,8 +301,45 @@ export const reviewVerificationRequest: RequestHandler = async (req, res, next) 
     request.reviewedAt = new Date();
     await request.save();
 
+    const requestUser = await UserModel.findById(request.userId).select("email firstName");
+    const payUrl = `${env.FRONTEND_URL.replace(/\/$/, "")}/profile`;
+    const retryUrl = `${env.FRONTEND_URL.replace(/\/$/, "")}/profile`;
+
     if (status === VerificationStatus.approved) {
-      await UserModel.updateOne({ _id: request.userId }, { verified: true });
+      await createNotification({
+        userId: request.userId.toString(),
+        actorId: admin._id.toString(),
+        type: NotificationType.verification_request_approved,
+        targetId: request._id.toString(),
+        url: "/profile",
+      });
+
+      if (requestUser?.email) {
+        await sendVerificationRequestApprovedUserEmail({
+          to: requestUser.email,
+          firstName: requestUser.firstName,
+          payUrl,
+        });
+      }
+    }
+
+    if (status === VerificationStatus.rejected) {
+      await createNotification({
+        userId: request.userId.toString(),
+        actorId: admin._id.toString(),
+        type: NotificationType.verification_request_rejected,
+        targetId: request._id.toString(),
+        url: "/profile",
+      });
+
+      if (requestUser?.email) {
+        await sendVerificationRequestRejectedUserEmail({
+          to: requestUser.email,
+          firstName: requestUser.firstName,
+          reason: adminNotes,
+          retryUrl,
+        });
+      }
     }
 
     res.json({

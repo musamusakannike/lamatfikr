@@ -19,7 +19,10 @@ export interface Notification {
     | "follow"
     | "mention"
     | "friend_request"
-    | "friend_accept";
+    | "friend_accept"
+    | "verification_request_submitted"
+    | "verification_request_approved"
+    | "verification_request_rejected";
   targetId?: string;
   url: string;
   isRead: boolean;

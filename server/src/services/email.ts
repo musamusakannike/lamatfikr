@@ -158,6 +158,132 @@ export async function sendWelcomeEmail(email: string, firstName: string): Promis
   });
 }
 
+export async function sendVerificationRequestSubmittedAdminEmail(params: {
+  to: string;
+  userDisplayName: string;
+  username?: string;
+  reviewUrl: string;
+}): Promise<void> {
+  const bodyHtml = `
+    <div style="margin-bottom: 18px;">
+      <p style="font-size:16px; margin:0 0 8px;"><strong>New verification request</strong></p>
+      <p style="font-size:14px; margin:0; color:#444;">User: ${escapeHtml(params.userDisplayName)}${params.username ? ` (@${escapeHtml(params.username)})` : ""}</p>
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.reviewUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">Review request</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">If the button doesn't work: <span style="color:#667eea;">${escapeHtml(params.reviewUrl)}</span></p>
+    </div>
+    <hr style="border:none; border-top:1px solid #f0f0f0; margin: 18px 0;" />
+    <div dir="rtl" style="font-family: Tahoma, Arial, sans-serif;">
+      <p style="font-size:16px; margin:0 0 8px;"><strong>طلب توثيق جديد</strong></p>
+      <p style="font-size:14px; margin:0; color:#444;">المستخدم: ${escapeHtml(params.userDisplayName)}${params.username ? ` (@${escapeHtml(params.username)})` : ""}</p>
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.reviewUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">مراجعة الطلب</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">إذا لم يعمل الزر: <span style="color:#667eea;">${escapeHtml(params.reviewUrl)}</span></p>
+    </div>
+  `;
+
+  const html = buildEmailShell({
+    title: "New verification request",
+    heading: "Verification request",
+    bodyHtml,
+  });
+
+  await sendEmail({
+    to: params.to,
+    subject: "New verification request - LamatFikr",
+    html,
+  });
+}
+
+export async function sendVerificationRequestApprovedUserEmail(params: {
+  to: string;
+  firstName: string;
+  payUrl: string;
+}): Promise<void> {
+  const bodyHtml = `
+    <div style="margin-bottom: 18px;">
+      <p style="font-size:16px; margin:0 0 8px;">Hi ${escapeHtml(params.firstName)},</p>
+      <p style="font-size:16px; margin:0;">Your verification documents were approved. You can now continue to payment to get your verified badge.</p>
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.payUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">Continue to payment</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">If the button doesn't work: <span style="color:#667eea;">${escapeHtml(params.payUrl)}</span></p>
+    </div>
+    <hr style="border:none; border-top:1px solid #f0f0f0; margin: 18px 0;" />
+    <div dir="rtl" style="font-family: Tahoma, Arial, sans-serif;">
+      <p style="font-size:16px; margin:0 0 8px;">مرحباً ${escapeHtml(params.firstName)}،</p>
+      <p style="font-size:16px; margin:0;">تمت الموافقة على مستندات التوثيق الخاصة بك. يمكنك الآن المتابعة إلى الدفع للحصول على شارة التوثيق.</p>
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.payUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">المتابعة إلى الدفع</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">إذا لم يعمل الزر: <span style="color:#667eea;">${escapeHtml(params.payUrl)}</span></p>
+    </div>
+  `;
+
+  const html = buildEmailShell({
+    title: "Verification approved",
+    heading: "Verification approved",
+    bodyHtml,
+  });
+
+  await sendEmail({
+    to: params.to,
+    subject: "Verification approved - LamatFikr",
+    html,
+  });
+}
+
+export async function sendVerificationRequestRejectedUserEmail(params: {
+  to: string;
+  firstName: string;
+  reason?: string;
+  retryUrl: string;
+}): Promise<void> {
+  const reasonHtml = params.reason
+    ? `<div style="background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:8px; margin:12px 0;"><p style="margin:0; font-size:12px; color:#9a3412;">Reason</p><p style="margin:6px 0 0; font-size:14px;">${escapeHtml(params.reason)}</p></div>`
+    : "";
+
+  const reasonHtmlAr = params.reason
+    ? `<div style="background:#fff7ed; border:1px solid #fed7aa; padding:12px; border-radius:8px; margin:12px 0;" dir="rtl"><p style="margin:0; font-size:12px; color:#9a3412;">سبب الرفض</p><p style="margin:6px 0 0; font-size:14px;">${escapeHtml(params.reason)}</p></div>`
+    : "";
+
+  const bodyHtml = `
+    <div style="margin-bottom: 18px;">
+      <p style="font-size:16px; margin:0 0 8px;">Hi ${escapeHtml(params.firstName)},</p>
+      <p style="font-size:16px; margin:0;">Your verification request was rejected. Please review the notes and submit a new request.</p>
+      ${reasonHtml}
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.retryUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">Submit again</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">If the button doesn't work: <span style="color:#667eea;">${escapeHtml(params.retryUrl)}</span></p>
+    </div>
+    <hr style="border:none; border-top:1px solid #f0f0f0; margin: 18px 0;" />
+    <div dir="rtl" style="font-family: Tahoma, Arial, sans-serif;">
+      <p style="font-size:16px; margin:0 0 8px;">مرحباً ${escapeHtml(params.firstName)}،</p>
+      <p style="font-size:16px; margin:0;">تم رفض طلب التوثيق الخاص بك. يرجى مراجعة الملاحظات وإرسال طلب جديد.</p>
+      ${reasonHtmlAr}
+      <div style="text-align:center; margin: 18px 0 8px;">
+        <a href="${params.retryUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 22px; text-decoration: none; border-radius: 6px; font-weight: 700; display: inline-block;">إرسال مرة أخرى</a>
+      </div>
+      <p style="font-size: 12px; color: #666; margin:0;">إذا لم يعمل الزر: <span style="color:#667eea;">${escapeHtml(params.retryUrl)}</span></p>
+    </div>
+  `;
+
+  const html = buildEmailShell({
+    title: "Verification rejected",
+    heading: "Verification rejected",
+    bodyHtml,
+  });
+
+  await sendEmail({
+    to: params.to,
+    subject: "Verification rejected - LamatFikr",
+    html,
+  });
+}
+
 export async function sendMarketplaceOrderPaidBuyerEmail(params: {
   to: string;
   buyerFirstName: string;

@@ -116,6 +116,36 @@ export const translations = {
     failedToLoad: { ar: "فشل تحميل المستخدمين", en: "Failed to load users" },
   },
 
+  adminVerification: {
+    title: { ar: "طلبات التوثيق", en: "Verification Requests" },
+    statusAll: { ar: "الكل", en: "All" },
+    statusPending: { ar: "قيد الانتظار", en: "Pending" },
+    statusApproved: { ar: "مقبول", en: "Approved" },
+    statusRejected: { ar: "مرفوض", en: "Rejected" },
+
+    colUser: { ar: "المستخدم", en: "User" },
+    colDocumentType: { ar: "نوع المستند", en: "Document type" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colCreatedAt: { ar: "تاريخ الإرسال", en: "Submitted" },
+    colReviewedAt: { ar: "تاريخ المراجعة", en: "Reviewed" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    btnOpenFront: { ar: "فتح الوجه الأمامي", en: "Open front" },
+    btnOpenBack: { ar: "فتح الوجه الخلفي", en: "Open back" },
+    btnOpenSelfie: { ar: "فتح السيلفي", en: "Open selfie" },
+    btnApprove: { ar: "موافقة", en: "Approve" },
+    btnReject: { ar: "رفض", en: "Reject" },
+    notesPromptApprove: { ar: "ملاحظات المشرف (اختياري)", en: "Admin notes (optional)" },
+    notesPromptReject: { ar: "سبب الرفض (اختياري)", en: "Rejection reason (optional)" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل تحميل طلبات التوثيق", en: "Failed to load verification requests" },
+
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+  },
+
   adminRoles: {
     title: { ar: "الأدوار والصلاحيات", en: "Roles & Permissions" },
     subtitle: { ar: "ملخص سريع للأدوار والصلاحيات (للعرض فقط)", en: "Quick summary of roles and permissions (view-only)" },

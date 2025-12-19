@@ -3,8 +3,9 @@ import bcrypt from "bcryptjs";
 import axios from "axios";
 
 import { UserModel } from "../models/user.model";
-import { AuthProvider } from "../models/common";
+import { AuthProvider, VerificationStatus } from "../models/common";
 import { VerifiedTagPaymentModel, VerifiedTagPaymentStatus } from "../models";
+import { VerificationRequestModel } from "../models/verification-request.model";
 import { env } from "../config/env";
 import {
   updateProfileSchema,
@@ -110,9 +111,40 @@ export const initiateVerifiedTagPurchase: RequestHandler = async (req, res, next
       return;
     }
 
-    const user = await UserModel.findById(userId).select("email paidVerifiedUntil");
+    const user = await UserModel.findById(userId).select("email paidVerifiedUntil verified");
     if (!user?.email) {
       res.status(400).json({ message: "User email not found" });
+      return;
+    }
+
+    const nowTs = Date.now();
+    const isAlreadyPaidVerified = !!user.paidVerifiedUntil && user.paidVerifiedUntil.getTime() > nowTs;
+    if (user.verified || isAlreadyPaidVerified) {
+      res.status(400).json({ message: "Your account is already verified" });
+      return;
+    }
+
+    const approvedRequest = await VerificationRequestModel.findOne({
+      userId,
+      status: VerificationStatus.approved,
+    }).sort({ reviewedAt: -1, createdAt: -1 });
+
+    if (!approvedRequest) {
+      const pendingRequest = await VerificationRequestModel.findOne({
+        userId,
+        status: VerificationStatus.pending,
+      });
+
+      if (pendingRequest) {
+        res.status(403).json({
+          message: "Your verification request is pending approval. Please wait for admin review before paying.",
+        });
+        return;
+      }
+
+      res.status(403).json({
+        message: "You must submit your identification documents and get admin approval before paying for the verified badge.",
+      });
       return;
     }
 

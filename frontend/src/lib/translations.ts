@@ -2558,6 +2558,18 @@ export const translations = {
       ar: "قبل طلب صداقتك",
       en: "accepted your friend request",
     },
+    verificationRequestSubmitted: {
+      ar: "أرسل طلب توثيق جديد",
+      en: "submitted a verification request",
+    },
+    verificationRequestApproved: {
+      ar: "تمت الموافقة على طلب توثيقك",
+      en: "your verification request was approved",
+    },
+    verificationRequestRejected: {
+      ar: "تم رفض طلب توثيقك",
+      en: "your verification request was rejected",
+    },
     newNotification: {
       ar: "لديك إشعار جديد",
       en: "You have a new notification",
@@ -2574,6 +2586,45 @@ export const translations = {
       ar: "صفحة",
       en: "Page",
     },
+  },
+
+  verification: {
+    title: { ar: "توثيق الحساب", en: "Account verification" },
+    backToProfile: { ar: "العودة للملف الشخصي", en: "Back to profile" },
+    loginRequired: { ar: "يرجى تسجيل الدخول للمتابعة.", en: "Please log in to continue." },
+
+    howItWorks: {
+      ar: "للحصول على شارة التوثيق: ارفع مستندات الهوية، انتظر موافقة الإدارة، ثم أكمل الدفع.",
+      en: "To get the verified badge: upload your ID documents, wait for admin approval, then complete payment.",
+    },
+
+    statusNone: { ar: "لا يوجد طلب توثيق حالياً. ارفع مستنداتك وأرسل الطلب.", en: "No verification request yet. Upload your documents and submit." },
+    statusPending: { ar: "طلبك قيد المراجعة. سيتم إشعارك عند اتخاذ قرار.", en: "Your request is pending review. You'll be notified when it's reviewed." },
+    statusApproved: { ar: "تمت الموافقة على مستنداتك. يمكنك الآن إكمال الدفع للحصول على الشارة.", en: "Your documents were approved. You can now proceed to payment." },
+    statusRejected: { ar: "تم رفض طلب التوثيق. يمكنك مراجعة الملاحظات وإعادة الإرسال.", en: "Your verification request was rejected. Review the notes and resubmit." },
+    adminNotes: { ar: "ملاحظات الإدارة", en: "Admin notes" },
+
+    refresh: { ar: "تحديث", en: "Refresh" },
+    payNow: { ar: "الدفع الآن", en: "Pay now" },
+    paying: { ar: "جاري التحويل للدفع...", en: "Redirecting..." },
+    paymentLocked: { ar: "الدفع متاح فقط بعد موافقة الإدارة على مستنداتك.", en: "Payment is available only after admin approval." },
+    paymentUrlMissing: { ar: "رابط الدفع غير متاح", en: "Payment URL not available" },
+
+    uploadTitle: { ar: "رفع مستندات الهوية", en: "Upload identification documents" },
+    documentType: { ar: "نوع المستند", en: "Document type" },
+    docPassport: { ar: "جواز سفر", en: "Passport" },
+    docNationalId: { ar: "هوية وطنية", en: "National ID" },
+    docDriversLicense: { ar: "رخصة قيادة", en: "Driver's license" },
+
+    frontLabel: { ar: "الوجه الأمامي (مطلوب)", en: "Front side (required)" },
+    backLabel: { ar: "الوجه الخلفي (اختياري)", en: "Back side (optional)" },
+    selfieLabel: { ar: "صورة سيلفي (اختياري)", en: "Selfie (optional)" },
+
+    submitForReview: { ar: "إرسال للمراجعة", en: "Submit for review" },
+    submitting: { ar: "جاري الإرسال...", en: "Submitting..." },
+    requestSubmitted: { ar: "تم إرسال طلب التوثيق بنجاح", en: "Verification request submitted" },
+    cannotResubmitWhilePending: { ar: "لا يمكنك إعادة الإرسال أثناء كون الطلب قيد المراجعة.", en: "You can't resubmit while your request is pending." },
+    frontRequired: { ar: "يرجى رفع صورة الوجه الأمامي للمستند", en: "Please upload the front side of your document" },
   },
 
   // Posts Page
