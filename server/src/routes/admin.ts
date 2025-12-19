@@ -30,6 +30,30 @@ import {
   listAdminMarketplaceListings,
   listAdminMarketplaceOrders,
 } from "../controllers/admin-marketplace.controller";
+import {
+  adminCancelFeaturedRoom,
+  adminDeleteCommunity,
+  adminDeleteCommunityMessage,
+  adminDeleteRoom,
+  adminDeleteRoomMessage,
+  adminExpireFeaturedRoom,
+  adminRemoveCommunityMember,
+  adminRemoveRoomMember,
+  adminRestoreCommunity,
+  adminRestoreCommunityMessage,
+  adminRestoreRoom,
+  adminRestoreRoomMessage,
+  adminSetCommunityMemberRole,
+  adminSetRoomMemberRole,
+  adminSetRoomMemberStatus,
+  listAdminCommunities,
+  listAdminCommunityMembers,
+  listAdminCommunityMessages,
+  listAdminFeaturedRooms,
+  listAdminRoomMembers,
+  listAdminRoomMessages,
+  listAdminRooms,
+} from "../controllers/admin-community-room.controller";
 
 export const adminRouter = Router();
 
@@ -90,3 +114,77 @@ adminRouter.post(
 
 adminRouter.get("/marketplace/orders", requireAuth, requireAdmin, listAdminMarketplaceOrders);
 adminRouter.patch("/marketplace/orders/:orderId", requireAuth, requireAdmin, adminMarketplaceUpdateOrder);
+
+adminRouter.get("/communities", requireAuth, requireAdmin, listAdminCommunities);
+adminRouter.post("/communities/:communityId/delete", requireAuth, requireAdmin, adminDeleteCommunity);
+adminRouter.post("/communities/:communityId/restore", requireAuth, requireAdmin, adminRestoreCommunity);
+
+adminRouter.get("/communities/:communityId/members", requireAuth, requireAdmin, listAdminCommunityMembers);
+adminRouter.patch(
+  "/communities/:communityId/members/:memberId/role",
+  requireAuth,
+  requireAdmin,
+  adminSetCommunityMemberRole
+);
+adminRouter.post(
+  "/communities/:communityId/members/:memberId/remove",
+  requireAuth,
+  requireAdmin,
+  adminRemoveCommunityMember
+);
+
+adminRouter.get("/communities/:communityId/messages", requireAuth, requireAdmin, listAdminCommunityMessages);
+adminRouter.post(
+  "/communities/:communityId/messages/:messageId/delete",
+  requireAuth,
+  requireAdmin,
+  adminDeleteCommunityMessage
+);
+adminRouter.post(
+  "/communities/:communityId/messages/:messageId/restore",
+  requireAuth,
+  requireAdmin,
+  adminRestoreCommunityMessage
+);
+
+adminRouter.get("/rooms", requireAuth, requireAdmin, listAdminRooms);
+adminRouter.post("/rooms/:roomId/delete", requireAuth, requireAdmin, adminDeleteRoom);
+adminRouter.post("/rooms/:roomId/restore", requireAuth, requireAdmin, adminRestoreRoom);
+
+adminRouter.get("/rooms/:roomId/members", requireAuth, requireAdmin, listAdminRoomMembers);
+adminRouter.patch(
+  "/rooms/:roomId/members/:memberId/role",
+  requireAuth,
+  requireAdmin,
+  adminSetRoomMemberRole
+);
+adminRouter.patch(
+  "/rooms/:roomId/members/:memberId/status",
+  requireAuth,
+  requireAdmin,
+  adminSetRoomMemberStatus
+);
+adminRouter.post(
+  "/rooms/:roomId/members/:memberId/remove",
+  requireAuth,
+  requireAdmin,
+  adminRemoveRoomMember
+);
+
+adminRouter.get("/rooms/:roomId/messages", requireAuth, requireAdmin, listAdminRoomMessages);
+adminRouter.post(
+  "/rooms/:roomId/messages/:messageId/delete",
+  requireAuth,
+  requireAdmin,
+  adminDeleteRoomMessage
+);
+adminRouter.post(
+  "/rooms/:roomId/messages/:messageId/restore",
+  requireAuth,
+  requireAdmin,
+  adminRestoreRoomMessage
+);
+
+adminRouter.get("/featured-rooms", requireAuth, requireAdmin, listAdminFeaturedRooms);
+adminRouter.patch("/featured-rooms/:featuredId/cancel", requireAuth, requireAdmin, adminCancelFeaturedRoom);
+adminRouter.patch("/featured-rooms/:featuredId/expire", requireAuth, requireAdmin, adminExpireFeaturedRoom);

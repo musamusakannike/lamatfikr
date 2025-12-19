@@ -343,6 +343,84 @@ export const translations = {
     page: { ar: "صفحة", en: "Page" },
   },
 
+  adminCommunityRoom: {
+    communitiesTitle: { ar: "المجتمعات", en: "Communities" },
+    roomsTitle: { ar: "غرف الدردشة", en: "Room Chats" },
+    featuredRoomsTitle: { ar: "الغرف المميزة", en: "Featured Rooms" },
+
+    membersTitle: { ar: "الأعضاء", en: "Members" },
+    messagesTitle: { ar: "الرسائل", en: "Messages" },
+
+    searchPlaceholder: { ar: "بحث بالاسم أو الوصف", en: "Search by name or description" },
+    searchPlaceholderMessages: { ar: "بحث في نص الرسالة", en: "Search message text" },
+
+    filterAll: { ar: "الكل", en: "All" },
+    filterDeleted: { ar: "المحذوف", en: "Deleted" },
+    deletedActive: { ar: "نشط", en: "Active" },
+    deletedDeleted: { ar: "محذوف", en: "Deleted" },
+    deletedAll: { ar: "الكل", en: "All" },
+
+    filterRole: { ar: "الدور", en: "Role" },
+    roleOwner: { ar: "مالك", en: "Owner" },
+    roleAdmin: { ar: "مشرف", en: "Admin" },
+    roleMember: { ar: "عضو", en: "Member" },
+
+    filterStatus: { ar: "الحالة", en: "Status" },
+    statusPending: { ar: "قيد الانتظار", en: "Pending" },
+    statusApproved: { ar: "مقبول", en: "Approved" },
+    statusRejected: { ar: "مرفوض", en: "Rejected" },
+    statusAwaitingPayment: { ar: "بانتظار الدفع", en: "Awaiting payment" },
+
+    membershipFree: { ar: "مجاني", en: "Free" },
+    membershipPaid: { ar: "مدفوع", en: "Paid" },
+
+    colId: { ar: "المعرف", en: "ID" },
+    colName: { ar: "الاسم", en: "Name" },
+    colCategory: { ar: "التصنيف", en: "Category" },
+    colOwner: { ar: "المالك", en: "Owner" },
+    colMembers: { ar: "الأعضاء", en: "Members" },
+    colRoomType: { ar: "النوع", en: "Type" },
+    colPrivate: { ar: "خاص", en: "Private" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colDeleted: { ar: "محذوف", en: "Deleted" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+
+    colUser: { ar: "المستخدم", en: "User" },
+    colRole: { ar: "الدور", en: "Role" },
+    colJoinedAt: { ar: "تاريخ الانضمام", en: "Joined" },
+    colMessage: { ar: "الرسالة", en: "Message" },
+    colSender: { ar: "المرسل", en: "Sender" },
+
+    colAmount: { ar: "المبلغ", en: "Amount" },
+    colStart: { ar: "البداية", en: "Start" },
+    colEnd: { ar: "النهاية", en: "End" },
+
+    yes: { ar: "نعم", en: "Yes" },
+    no: { ar: "لا", en: "No" },
+
+    btnDelete: { ar: "حذف", en: "Delete" },
+    btnRestore: { ar: "استعادة", en: "Restore" },
+    btnViewMembers: { ar: "الأعضاء", en: "Members" },
+    btnViewMessages: { ar: "الرسائل", en: "Messages" },
+    btnSetRole: { ar: "تغيير الدور", en: "Set role" },
+    btnSetStatus: { ar: "تغيير الحالة", en: "Set status" },
+    btnRemoveMember: { ar: "إزالة", en: "Remove" },
+
+    btnCancel: { ar: "إلغاء", en: "Cancel" },
+    btnExpire: { ar: "إنهاء", en: "Expire" },
+
+    confirmDelete: { ar: "هل أنت متأكد من الحذف؟", en: "Are you sure you want to delete?" },
+    confirmRestore: { ar: "هل أنت متأكد من الاستعادة؟", en: "Are you sure you want to restore?" },
+    confirmRemove: { ar: "هل أنت متأكد من إزالة العضو؟", en: "Are you sure you want to remove this member?" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    paginationPrev: { ar: "السابق", en: "Prev" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+  },
+
   adminOverview: {
     title: { ar: "نظرة عامة", en: "Overview" },
     totalUsers: { ar: "إجمالي المستخدمين", en: "Total Users" },

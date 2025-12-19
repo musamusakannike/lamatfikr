@@ -94,8 +94,6 @@ export default function AdminSidebar() {
       icon: Building2,
       items: [
         { key: "communitiesList", href: "/dashboard/communities" },
-        { key: "groups", href: "/dashboard/groups" },
-        { key: "pages", href: "/dashboard/pages" },
       ],
     },
     {
