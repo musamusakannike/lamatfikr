@@ -494,6 +494,166 @@ export const getFeed: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const getMediaPosts: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const now = Date.now();
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [friendships, following, blocked, muted] = await Promise.all([
+      FriendshipModel.find({
+        $or: [
+          { requesterId: userId, status: FriendshipStatus.accepted },
+          { addresseeId: userId, status: FriendshipStatus.accepted },
+        ],
+      }).lean(),
+      FollowModel.find({ followerId: userId, status: FollowStatus.accepted }).lean(),
+      BlockModel.find({
+        $or: [{ blockerId: userId }, { blockedId: userId }],
+      }).lean(),
+      MuteModel.find({
+        muterId: userId,
+        $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
+      }).lean(),
+    ]);
+
+    const friendIds = friendships.map((f) =>
+      f.requesterId.toString() === userId ? f.addresseeId.toString() : f.requesterId.toString()
+    );
+    const followingIds = following.map((f) => f.followingId.toString());
+    const blockedIds = blocked.map((b) =>
+      b.blockerId.toString() === userId ? b.blockedId.toString() : b.blockerId.toString()
+    );
+    const mutedIds = muted.map((m) => m.mutedId.toString());
+
+    const excludeIds = [...new Set([...blockedIds, ...mutedIds])];
+
+    // First, get all media posts
+    const mediaPostIds = await PostMediaModel.find({
+      deletedAt: null,
+      type: { $in: ["image", "video"] },
+    })
+      .distinct("postId")
+      .lean();
+
+    const posts = await PostModel.find({
+      _id: { $in: mediaPostIds },
+      deletedAt: null,
+      userId: { $nin: excludeIds.map((id) => new Types.ObjectId(id)) },
+      $or: [
+        { userId },
+        { privacy: PostPrivacy.public },
+        {
+          privacy: { $in: [PostPrivacy.friends, PostPrivacy.friends_only] },
+          userId: { $in: friendIds.map((id) => new Types.ObjectId(id)) },
+        },
+        {
+          privacy: PostPrivacy.followers,
+          userId: { $in: followingIds.map((id) => new Types.ObjectId(id)) },
+        },
+      ],
+    })
+      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const postIds = posts.map((p) => p._id);
+
+    const [allMedia, allPolls, userVotes] = await Promise.all([
+      PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
+      PollModel.find({ postId: { $in: postIds } }).lean(),
+      VoteModel.find({ userId, postId: { $in: postIds } }).lean(),
+    ]);
+
+    const mediaByPost = new Map<string, any[]>();
+    allMedia.forEach((m) => {
+      const key = m.postId.toString();
+      if (!mediaByPost.has(key)) mediaByPost.set(key, []);
+      mediaByPost.get(key)!.push(m);
+    });
+
+    const pollByPost = new Map<string, any>();
+    allPolls.forEach((p) => pollByPost.set(p.postId.toString(), p));
+
+    const voteByPost = new Map<string, string>();
+    userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
+
+    // Fetch user's poll votes
+    const pollIds = allPolls.map((p) => p._id);
+    const userPollVotes = pollIds.length > 0
+      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+      : [];
+    const pollVotesByPoll = new Map<string, string[]>();
+    userPollVotes.forEach((v) => {
+      const key = v.pollId.toString();
+      if (!pollVotesByPoll.has(key)) pollVotesByPoll.set(key, []);
+      pollVotesByPoll.get(key)!.push(v.optionId.toString());
+    });
+
+    const enrichedPosts = posts.map((post) => {
+      const poll = pollByPost.get(post._id.toString());
+
+      const populatedUser: any = post.userId;
+      const paidUntil = populatedUser?.paidVerifiedUntil;
+      const paidUntilMs = paidUntil ? new Date(paidUntil).getTime() : 0;
+      const effectiveVerified = !!populatedUser?.verified || paidUntilMs > now;
+
+      return {
+        ...post,
+        userId:
+          populatedUser && typeof populatedUser === "object"
+            ? { ...populatedUser, verified: effectiveVerified }
+            : post.userId,
+        upvotes: post.upvoteCount,
+        downvotes: post.downvoteCount,
+        media: mediaByPost.get(post._id.toString()) || [],
+        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        userVote: voteByPost.get(post._id.toString()) || null,
+      };
+    });
+
+    const total = await PostModel.countDocuments({
+      _id: { $in: mediaPostIds },
+      deletedAt: null,
+      userId: { $nin: excludeIds.map((id) => new Types.ObjectId(id)) },
+      $or: [
+        { userId },
+        { privacy: PostPrivacy.public },
+        {
+          privacy: { $in: [PostPrivacy.friends, PostPrivacy.friends_only] },
+          userId: { $in: friendIds.map((id) => new Types.ObjectId(id)) },
+        },
+        {
+          privacy: PostPrivacy.followers,
+          userId: { $in: followingIds.map((id) => new Types.ObjectId(id)) },
+        },
+      ],
+    });
+
+    res.json({
+      posts: enrichedPosts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getUserPosts: RequestHandler = async (req, res, next) => {
   try {
     const { userId: targetUserId } = req.params;

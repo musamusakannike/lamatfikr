@@ -80,6 +80,11 @@ export const postsApi = {
             `/posts/feed?page=${page}&limit=${limit}`
         ),
 
+    getMediaPosts: (page = 1, limit = 20) =>
+        apiClient.get<{ posts: Post[]; pagination: { page: number; limit: number; total: number; pages: number } }>(
+            `/posts/media?page=${page}&limit=${limit}`
+        ),
+
     getUserPosts: (userId: string, page = 1, limit = 20) =>
         apiClient.get<{ posts: Post[]; pagination: { page: number; limit: number; total: number; pages: number } }>(
             `/posts/user/${userId}?page=${page}&limit=${limit}`

@@ -10,6 +10,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { PostCard } from "@/components/shared/PostCard";
+import { MediaGrid } from "@/components/home/MediaGrid";
+import { MediaModal } from "@/components/home/MediaModal";
 import { postsApi, type Post } from "@/lib/api/posts";
 import { getErrorMessage } from "@/lib/api";
 
@@ -44,12 +46,16 @@ function FilterButton({
 
 export function PostFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [mediaPosts, setMediaPosts] = useState<Post[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(1);
+  const [mediaPage, setMediaPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [hasMoreMedia, setHasMoreMedia] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<{ post: Post; mediaIndex: number } | null>(null);
 
   const fetchFeed = useCallback(async (pageNum: number, append = false) => {
     try {
@@ -61,13 +67,13 @@ export function PostFeed() {
       setError(null);
 
       const response = await postsApi.getFeed(pageNum, 20);
-      
+
       if (append) {
         setPosts((prev) => [...prev, ...response.posts]);
       } else {
         setPosts(response.posts);
       }
-      
+
       setHasMore(pageNum < response.pagination.pages);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -77,33 +83,78 @@ export function PostFeed() {
     }
   }, []);
 
+  const fetchMediaPosts = useCallback(async (pageNum: number, append = false) => {
+    try {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const response = await postsApi.getMediaPosts(pageNum, 20);
+
+      if (append) {
+        setMediaPosts((prev) => [...prev, ...response.posts]);
+      } else {
+        setMediaPosts(response.posts);
+      }
+
+      setHasMoreMedia(pageNum < response.pagination.pages);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchFeed(1);
-  }, [fetchFeed]);
+    if (filter === "images") {
+      fetchMediaPosts(1);
+      setMediaPage(1);
+    } else {
+      fetchFeed(1);
+      setPage(1);
+    }
+  }, [filter, fetchFeed, fetchMediaPosts]);
 
   const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchFeed(nextPage, true);
+    if (filter === "images") {
+      const nextPage = mediaPage + 1;
+      setMediaPage(nextPage);
+      fetchMediaPosts(nextPage, true);
+    } else {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchFeed(nextPage, true);
+    }
   };
 
-  const filteredPosts = posts.filter((post) => {
-    if (filter === "images") return post.media && post.media.length > 0;
-    if (filter === "announcements") return false; // API doesn't have announcement flag yet
-    return true;
-  });
+  const handleMediaClick = (post: Post, mediaIndex: number) => {
+    setSelectedPost({ post, mediaIndex });
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPost(null);
+  };
+
+  const handleFilterChange = (newFilter: FilterType) => {
+    setFilter(newFilter);
+    setError(null);
+  };
 
   if (loading) {
     return (
       <div className="space-y-4">
         <div className="bg-(--bg-card) rounded-xl border border-(--border) p-2 flex gap-2">
-          <FilterButton active={true} onClick={() => {}} icon={LayoutList}>
+          <FilterButton active={true} onClick={() => { }} icon={LayoutList}>
             All Posts
           </FilterButton>
-          <FilterButton active={false} onClick={() => {}} icon={Grid3X3}>
+          <FilterButton active={false} onClick={() => { }} icon={Grid3X3}>
             Media
           </FilterButton>
-          <FilterButton active={false} onClick={() => {}} icon={Megaphone}>
+          <FilterButton active={false} onClick={() => { }} icon={Megaphone}>
             Announcements
           </FilterButton>
         </div>
@@ -118,19 +169,34 @@ export function PostFeed() {
     return (
       <div className="space-y-4">
         <div className="bg-(--bg-card) rounded-xl border border-(--border) p-2 flex gap-2">
-          <FilterButton active={true} onClick={() => {}} icon={LayoutList}>
+          <FilterButton
+            active={filter === "all"}
+            onClick={() => handleFilterChange("all")}
+            icon={LayoutList}
+          >
             All Posts
           </FilterButton>
-          <FilterButton active={false} onClick={() => {}} icon={Grid3X3}>
+          <FilterButton
+            active={filter === "images"}
+            onClick={() => handleFilterChange("images")}
+            icon={Grid3X3}
+          >
             Media
           </FilterButton>
-          <FilterButton active={false} onClick={() => {}} icon={Megaphone}>
+          <FilterButton
+            active={filter === "announcements"}
+            onClick={() => handleFilterChange("announcements")}
+            icon={Megaphone}
+          >
             Announcements
           </FilterButton>
         </div>
         <div className="bg-(--bg-card) rounded-xl border border-(--border) p-6 text-center">
           <p className="text-(--text-muted) mb-4">{error}</p>
-          <Button variant="outline" onClick={() => fetchFeed(1)}>
+          <Button
+            variant="outline"
+            onClick={() => filter === "images" ? fetchMediaPosts(1) : fetchFeed(1)}
+          >
             Try again
           </Button>
         </div>
@@ -138,27 +204,30 @@ export function PostFeed() {
     );
   }
 
+  const displayPosts = filter === "images" ? mediaPosts : posts;
+  const currentHasMore = filter === "images" ? hasMoreMedia : hasMore;
+
   return (
     <div className="space-y-4">
       {/* Filter tabs */}
       <div className="bg-(--bg-card) rounded-xl border border-(--border) p-2 flex gap-2">
         <FilterButton
           active={filter === "all"}
-          onClick={() => setFilter("all")}
+          onClick={() => handleFilterChange("all")}
           icon={LayoutList}
         >
           All Posts
         </FilterButton>
         <FilterButton
           active={filter === "images"}
-          onClick={() => setFilter("images")}
+          onClick={() => handleFilterChange("images")}
           icon={Grid3X3}
         >
           Media
         </FilterButton>
         <FilterButton
           active={filter === "announcements"}
-          onClick={() => setFilter("announcements")}
+          onClick={() => handleFilterChange("announcements")}
           icon={Megaphone}
         >
           Announcements
@@ -166,24 +235,28 @@ export function PostFeed() {
       </div>
 
       {/* Posts */}
-      <div className="space-y-4">
-        {filteredPosts.length === 0 ? (
-          <div className="bg-(--bg-card) rounded-xl border border-(--border) p-6 text-center">
-            <p className="text-(--text-muted)">No posts to show</p>
-          </div>
-        ) : (
-          filteredPosts.map((post) => (
-            <PostCard key={post._id} post={post} />
-          ))
-        )}
-      </div>
+      {filter === "images" ? (
+        <MediaGrid posts={displayPosts} onMediaClick={handleMediaClick} />
+      ) : (
+        <div className="space-y-4">
+          {displayPosts.length === 0 ? (
+            <div className="bg-(--bg-card) rounded-xl border border-(--border) p-6 text-center">
+              <p className="text-(--text-muted)">No posts to show</p>
+            </div>
+          ) : (
+            displayPosts.map((post) => (
+              <PostCard key={post._id} post={post} />
+            ))
+          )}
+        </div>
+      )}
 
       {/* Load more */}
-      {hasMore && filteredPosts.length > 0 && (
+      {currentHasMore && displayPosts.length > 0 && (
         <div className="flex justify-center py-4">
-          <Button 
-            variant="outline" 
-            className="gap-2" 
+          <Button
+            variant="outline"
+            className="gap-2"
             onClick={handleLoadMore}
             disabled={loadingMore}
           >
@@ -197,6 +270,15 @@ export function PostFeed() {
             )}
           </Button>
         </div>
+      )}
+
+      {/* Media Modal */}
+      {selectedPost && (
+        <MediaModal
+          post={selectedPost.post}
+          initialMediaIndex={selectedPost.mediaIndex}
+          onClose={handleCloseModal}
+        />
       )}
     </div>
   );

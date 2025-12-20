@@ -7,6 +7,7 @@ import {
   updatePost,
   deletePost,
   getFeed,
+  getMediaPosts,
   getUserPosts,
   votePost,
   removeVote,
@@ -34,6 +35,7 @@ export const postsRouter = Router();
 // Post CRUD
 postsRouter.post("/", requireAuth, createPost);
 postsRouter.get("/feed", requireAuth, getFeed);
+postsRouter.get("/media", requireAuth, getMediaPosts);
 postsRouter.get("/saved", requireAuth, getSavedPosts);
 postsRouter.get("/user/:userId", getUserPosts);
 postsRouter.get("/hashtag/:tag", getPostsByHashtag);
