@@ -23,7 +23,7 @@ export function MediaGrid({ posts, onMediaClick }: MediaGridProps) {
     }
 
     return (
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-3 space-y-3">
+        <div className="columns-2 sm:columns-2 lg:columns-3 gap-3 space-y-3">
             {posts.map((post) => {
                 const media = post.media || [];
                 if (media.length === 0) return null;

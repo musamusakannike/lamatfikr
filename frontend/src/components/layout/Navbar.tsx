@@ -137,7 +137,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
             <Link href="/" className="flex items-center gap-2 group">
               <div
                 className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center",
+                  "w-9 h-9 rounded-xl flex items-center justify-center hidden sm:block",
                   "bg-linear-to-br from-primary-500 via-primary-600 to-primary-700",
                   "shadow-lg shadow-primary-500/25 dark:shadow-primary-500/15",
                   "group-hover:shadow-xl group-hover:shadow-primary-500/30",
