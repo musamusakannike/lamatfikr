@@ -371,6 +371,18 @@ export const translations = {
       ar: "الرئيسية",
       en: "Home",
     },
+    rooms: {
+      ar: "دردشات الغرف",
+      en: "Room Chats",
+    },
+    marketplace: {
+      ar: "المتجر",
+      en: "Marketplace",
+    },
+    communities: {
+      ar: "المجتمعات",
+      en: "Communities",
+    },
     stories: {
     },
     settings: {

@@ -108,7 +108,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: Home, label: t("nav", "home"), href: "/" },
     { icon: Mail, label: t("nav", "messages"), href: "/messages" },
     { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: roomsUnreadCount > 0 ? roomsUnreadCount : undefined },
-    { icon: Users, label: isRTL ? "المجتمعات" : "Communities", href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },
+    { icon: Users, label: t("nav", "communities"), href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: UserPlus, label: t("suggestions", "peopleYouMayKnow"), href: "/suggestions" },
     { icon: Wallet, label: t("nav", "wallet"), href: "/wallet" },
