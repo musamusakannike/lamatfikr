@@ -3,7 +3,7 @@ export type Language = "ar" | "en";
 export const translations = {
   common: {
     appName: {
-      ar: "لمت فكر",
+      ar: "لمة فكر",
       en: "LamatFikr",
     },
     and: {

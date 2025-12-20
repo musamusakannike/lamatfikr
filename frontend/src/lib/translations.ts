@@ -4,7 +4,7 @@ export const translations = {
   // Common
   common: {
     appName: {
-      ar: "لمت فكر",
+      ar: "لمة فكر",
       en: "LamatFikr",
     },
     loading: {
@@ -84,7 +84,7 @@ export const translations = {
       en: "Welcome Back",
     },
     signInContinue: {
-      ar: "سجل دخولك لمتابعة رحلتك مع لمت فكر. مجتمعك في انتظارك.",
+      ar: "سجل دخولك لمتابعة رحلتك مع لمة فكر. مجتمعك في انتظارك.",
       en: "Sign in to continue your journey with LamatFikr. Your community awaits.",
     },
     signIn: {
@@ -218,7 +218,7 @@ export const translations = {
 
     // Register
     joinLamatfikr: {
-      ar: "انضم إلى لمت فكر",
+      ar: "انضم إلى لمة فكر",
       en: "Join LamatFikr",
     },
     joinDescription: {
@@ -2407,6 +2407,188 @@ export const translations = {
     completeProfile: {
       ar: "أكمل ملفك الشخصي",
       en: "Complete your profile",
+    },
+
+    // New field labels
+    nationality: {
+      ar: "الجنسية",
+      en: "Nationality",
+    },
+    city: {
+      ar: "المدينة",
+      en: "City",
+    },
+    occupation: {
+      ar: "المهنة",
+      en: "Occupation",
+    },
+    gender: {
+      ar: "الجنس",
+      en: "Gender",
+    },
+    interests: {
+      ar: "الاهتمامات",
+      en: "Interests",
+    },
+    languagesSpoken: {
+      ar: "اللغات المنطوقة",
+      en: "Languages Spoken",
+    },
+    email: {
+      ar: "البريد الإلكتروني",
+      en: "Email",
+    },
+    phone: {
+      ar: "الهاتف",
+      en: "Phone",
+    },
+    birthday: {
+      ar: "تاريخ الميلاد",
+      en: "Birthday",
+    },
+    location: {
+      ar: "الموقع",
+      en: "Location",
+    },
+    relationshipStatus: {
+      ar: "الحالة الاجتماعية",
+      en: "Relationship Status",
+    },
+    workingAt: {
+      ar: "يعمل في",
+      en: "Working At",
+    },
+    school: {
+      ar: "المدرسة/الجامعة",
+      en: "School",
+    },
+    website: {
+      ar: "الموقع الإلكتروني",
+      en: "Website",
+    },
+
+    // Tag inputs
+    addInterest: {
+      ar: "إضافة اهتمام",
+      en: "Add Interest",
+    },
+    removeInterest: {
+      ar: "إزالة",
+      en: "Remove",
+    },
+    addLanguage: {
+      ar: "إضافة لغة",
+      en: "Add Language",
+    },
+    removeLanguage: {
+      ar: "إزالة",
+      en: "Remove",
+    },
+    interestsPlaceholder: {
+      ar: "أدخل اهتماماً...",
+      en: "Enter an interest...",
+    },
+    languagesPlaceholder: {
+      ar: "أدخل لغة...",
+      en: "Enter a language...",
+    },
+
+    // Privacy Settings
+    privacySettings: {
+      ar: "إعدادات الخصوصية",
+      en: "Privacy Settings",
+    },
+    privacySettingsDescription: {
+      ar: "تحكم في من يمكنه رؤية معلومات ملفك الشخصي",
+      en: "Control who can see your profile information",
+    },
+    whoCanSee: {
+      ar: "من يمكنه الرؤية",
+      en: "Who Can See",
+    },
+    everyone: {
+      ar: "الجميع",
+      en: "Everyone",
+    },
+    friends: {
+      ar: "الأصدقاء",
+      en: "Friends",
+    },
+    nobody: {
+      ar: "لا أحد",
+      en: "Nobody",
+    },
+
+    // Privacy categories
+    contactInformation: {
+      ar: "معلومات الاتصال",
+      en: "Contact Information",
+    },
+    personalInformation: {
+      ar: "المعلومات الشخصية",
+      en: "Personal Information",
+    },
+    professionalInformation: {
+      ar: "المعلومات المهنية",
+      en: "Professional Information",
+    },
+    interestsAndLanguages: {
+      ar: "الاهتمامات واللغات",
+      en: "Interests & Languages",
+    },
+    locationInformation: {
+      ar: "معلومات الموقع",
+      en: "Location Information",
+    },
+    socialSettings: {
+      ar: "الإعدادات الاجتماعية",
+      en: "Social Settings",
+    },
+
+    // Privacy field labels
+    followMe: {
+      ar: "متابعتي",
+      en: "Follow Me",
+    },
+    messageMe: {
+      ar: "مراسلتي",
+      en: "Message Me",
+    },
+
+    // Section labels
+    basicInfo: {
+      ar: "المعلومات الأساسية",
+      en: "Basic Info",
+    },
+    personalDetails: {
+      ar: "التفاصيل الشخصية",
+      en: "Personal Details",
+    },
+    professional: {
+      ar: "المعلومات المهنية",
+      en: "Professional",
+    },
+    interestsLanguages: {
+      ar: "الاهتمامات واللغات",
+      en: "Interests & Languages",
+    },
+    photos: {
+      ar: "الصور",
+      en: "Photos",
+    },
+
+    // Messages
+    privacyUpdatedSuccessfully: {
+      ar: "تم تحديث إعدادات الخصوصية بنجاح",
+      en: "Privacy settings updated successfully",
+    },
+    saveChanges: {
+      ar: "حفظ التغييرات",
+      en: "Save Changes",
+    },
+    cancel: {
+      ar: "إلغاء",
+      en: "Cancel",
     },
   },
 
