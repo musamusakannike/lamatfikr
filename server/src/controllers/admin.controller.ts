@@ -256,3 +256,245 @@ export const getAdminAnalytics: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+// Admin Wallet Tracking Endpoints
+
+/**
+ * Get admin's own wallet stats
+ */
+export const getAdminWallet: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user || user.role !== "superadmin") {
+      res.status(403).json({ message: "Forbidden - Admin access required" });
+      return;
+    }
+
+    const wallet = await WalletModel.findOne({ userId }).lean();
+
+    if (!wallet) {
+      res.json({
+        balance: 0,
+        pendingBalance: 0,
+        totalEarned: 0,
+        totalWithdrawn: 0,
+        currency: "SAR",
+      });
+      return;
+    }
+
+    res.json({
+      balance: wallet.balance,
+      pendingBalance: wallet.pendingBalance,
+      totalEarned: wallet.totalEarned,
+      totalWithdrawn: wallet.totalWithdrawn,
+      currency: wallet.currency,
+      lastTransactionAt: wallet.lastTransactionAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get admin's transaction history
+ */
+export const getAdminTransactions: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user || user.role !== "superadmin") {
+      res.status(403).json({ message: "Forbidden - Admin access required" });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const type = req.query.type as string | undefined;
+    const skip = (page - 1) * limit;
+
+    const query: any = { userId };
+    if (type) {
+      query.type = type;
+    }
+
+    const [transactions, total] = await Promise.all([
+      TransactionModel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      TransactionModel.countDocuments(query),
+    ]);
+
+    res.json({
+      transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all user wallets (paginated, searchable)
+ */
+export const getAllWallets: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user || user.role !== "superadmin") {
+      res.status(403).json({ message: "Forbidden - Admin access required" });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const search = req.query.search as string | undefined;
+    const skip = (page - 1) * limit;
+
+    let userQuery: any = {};
+    if (search) {
+      userQuery = {
+        $or: [
+          { username: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { firstName: { $regex: search, $options: "i" } },
+          { lastName: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
+
+    const users = await UserModel.find(userQuery)
+      .select("_id username email firstName lastName avatar")
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const userIds = users.map((u) => u._id);
+    const wallets = await WalletModel.find({ userId: { $in: userIds } }).lean();
+
+    const walletMap = new Map(wallets.map((w) => [w.userId.toString(), w]));
+
+    const walletsWithUser = users.map((u) => {
+      const wallet = walletMap.get(u._id.toString());
+      return {
+        user: {
+          id: u._id,
+          username: u.username,
+          email: u.email,
+          name: `${u.firstName || ""} ${u.lastName || ""}`.trim(),
+          avatar: u.avatar,
+        },
+        wallet: wallet
+          ? {
+            balance: wallet.balance,
+            pendingBalance: wallet.pendingBalance,
+            totalEarned: wallet.totalEarned,
+            totalWithdrawn: wallet.totalWithdrawn,
+            currency: wallet.currency,
+            lastTransactionAt: wallet.lastTransactionAt,
+          }
+          : {
+            balance: 0,
+            pendingBalance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            currency: "SAR",
+            lastTransactionAt: null,
+          },
+      };
+    });
+
+    const total = await UserModel.countDocuments(userQuery);
+
+    res.json({
+      wallets: walletsWithUser,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all platform transactions (with filters)
+ */
+export const getAllTransactions: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId);
+    if (!user || user.role !== "superadmin") {
+      res.status(403).json({ message: "Forbidden - Admin access required" });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const type = req.query.type as string | undefined;
+    const status = req.query.status as string | undefined;
+    const skip = (page - 1) * limit;
+
+    const query: any = {};
+    if (type) {
+      query.type = type;
+    }
+    if (status) {
+      query.status = status;
+    }
+
+    const [transactions, total] = await Promise.all([
+      TransactionModel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("userId", "username email firstName lastName avatar")
+        .lean(),
+      TransactionModel.countDocuments(query),
+    ]);
+
+    res.json({
+      transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -186,8 +186,8 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
         seller: sellerData ? {
           _id: sellerData._id,
           username: sellerData.username,
-          displayName: sellerData.firstName && sellerData.lastName 
-            ? `${sellerData.firstName} ${sellerData.lastName}` 
+          displayName: sellerData.firstName && sellerData.lastName
+            ? `${sellerData.firstName} ${sellerData.lastName}`
             : sellerData.username,
           avatar: sellerData.avatar,
           isVerified: sellerData.verified || false,
@@ -260,8 +260,8 @@ export async function getProduct(req: Request, res: Response, next: NextFunction
         seller: sellerData ? {
           _id: sellerData._id,
           username: sellerData.username,
-          displayName: sellerData.firstName && sellerData.lastName 
-            ? `${sellerData.firstName} ${sellerData.lastName}` 
+          displayName: sellerData.firstName && sellerData.lastName
+            ? `${sellerData.firstName} ${sellerData.lastName}`
             : sellerData.username,
           avatar: sellerData.avatar,
           isVerified: sellerData.verified || false,
@@ -1413,6 +1413,27 @@ export async function updateOrderStatus(req: Request, res: Response, next: NextF
         updates.deliveredAt = new Date();
       } else if (status === OrderStatus.completed) {
         updates.completedAt = new Date();
+
+        // Credit wallets: 85% to seller, 15% to admin
+        try {
+          await WalletService.splitPayment(
+            order.total,
+            order.sellerId as Types.ObjectId,
+            TransactionType.productPurchase,
+            `Marketplace order #${order.orderNumber}`,
+            order._id,
+            "Order",
+            {
+              orderNumber: order.orderNumber,
+              buyerId: order.buyerId.toString(),
+              itemCount: order.items.length,
+            }
+          );
+        } catch (walletError) {
+          console.error("Failed to credit wallets for order completion:", walletError);
+          // Continue with order update even if wallet crediting fails
+          // This prevents order status from being stuck
+        }
       }
     }
 

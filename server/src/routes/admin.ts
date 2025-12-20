@@ -2,7 +2,14 @@ import { Router } from "express";
 
 import { requireAuth } from "../middleware/auth";
 import { requireAdmin } from "../middleware/admin";
-import { getAdminAnalytics, getAdminOverview } from "../controllers/admin.controller";
+import {
+  getAdminAnalytics,
+  getAdminOverview,
+  getAdminWallet,
+  getAdminTransactions,
+  getAllWallets,
+  getAllTransactions,
+} from "../controllers/admin.controller";
 import { batchAdminUsers, listAdminUsers, updateAdminUser } from "../controllers/admin-users.controller";
 import { getAdminRolesSummary } from "../controllers/admin-roles.controller";
 import { getAdminTopFollowed } from "../controllers/admin-social.controller";
@@ -188,3 +195,10 @@ adminRouter.post(
 adminRouter.get("/featured-rooms", requireAuth, requireAdmin, listAdminFeaturedRooms);
 adminRouter.patch("/featured-rooms/:featuredId/cancel", requireAuth, requireAdmin, adminCancelFeaturedRoom);
 adminRouter.patch("/featured-rooms/:featuredId/expire", requireAuth, requireAdmin, adminExpireFeaturedRoom);
+
+// Wallet tracking routes
+adminRouter.get("/wallet", requireAuth, requireAdmin, getAdminWallet);
+adminRouter.get("/wallet/transactions", requireAuth, requireAdmin, getAdminTransactions);
+adminRouter.get("/wallets", requireAuth, requireAdmin, getAllWallets);
+adminRouter.get("/transactions", requireAuth, requireAdmin, getAllTransactions);
+
