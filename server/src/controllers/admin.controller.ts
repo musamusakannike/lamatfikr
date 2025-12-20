@@ -395,7 +395,9 @@ export const getAllWallets: RequestHandler = async (req, res, next) => {
     const userIds = users.map((u) => u._id);
     const wallets = await WalletModel.find({ userId: { $in: userIds } }).lean();
 
-    const walletMap = new Map(wallets.map((w) => [w.userId.toString(), w]));
+    // Filter out company wallet (which has no userId)
+    const userWallets = wallets.filter((w) => w.userId);
+    const walletMap = new Map(userWallets.map((w) => [w.userId!.toString(), w]));
 
     const walletsWithUser = users.map((u) => {
       const wallet = walletMap.get(u._id.toString());
