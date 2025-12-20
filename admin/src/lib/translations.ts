@@ -117,6 +117,83 @@ export const translations = {
     failedToLoad: { ar: "فشل تحميل المستخدمين", en: "Failed to load users" },
   },
 
+  adminUserProfile: {
+    title: { ar: "ملف المستخدم", en: "User Profile" },
+    viewProfile: { ar: "عرض الملف", en: "View Profile" },
+    editProfile: { ar: "تعديل الملف", en: "Edit Profile" },
+    saveChanges: { ar: "حفظ التغييرات", en: "Save Changes" },
+    cancel: { ar: "إلغاء", en: "Cancel" },
+    saving: { ar: "جاري الحفظ...", en: "Saving..." },
+
+    // Tabs
+    viewMode: { ar: "عرض", en: "View" },
+    editMode: { ar: "تعديل", en: "Edit" },
+
+    // Sections
+    basicInfo: { ar: "المعلومات الأساسية", en: "Basic Information" },
+    personalDetails: { ar: "التفاصيل الشخصية", en: "Personal Details" },
+    professional: { ar: "المعلومات المهنية", en: "Professional" },
+    interestsLanguages: { ar: "الاهتمامات واللغات", en: "Interests & Languages" },
+    accountStatus: { ar: "حالة الحساب", en: "Account Status" },
+
+    // Basic Info Fields
+    firstName: { ar: "الاسم الأول", en: "First Name" },
+    lastName: { ar: "الاسم الأخير", en: "Last Name" },
+    username: { ar: "اسم المستخدم", en: "Username" },
+    email: { ar: "البريد الإلكتروني", en: "Email" },
+    phone: { ar: "الهاتف", en: "Phone" },
+    bio: { ar: "النبذة", en: "Bio" },
+    birthday: { ar: "تاريخ الميلاد", en: "Birthday" },
+    location: { ar: "الموقع", en: "Location" },
+
+    // Personal Details Fields
+    gender: { ar: "الجنس", en: "Gender" },
+    nationality: { ar: "الجنسية", en: "Nationality" },
+    city: { ar: "المدينة", en: "City" },
+    relationshipStatus: { ar: "الحالة الاجتماعية", en: "Relationship Status" },
+
+    // Professional Fields
+    occupation: { ar: "المهنة", en: "Occupation" },
+    workingAt: { ar: "يعمل في", en: "Working At" },
+    school: { ar: "المدرسة/الجامعة", en: "School" },
+    website: { ar: "الموقع الإلكتروني", en: "Website" },
+
+    // Interests & Languages
+    interests: { ar: "الاهتمامات", en: "Interests" },
+    languagesSpoken: { ar: "اللغات المنطوقة", en: "Languages Spoken" },
+    addInterest: { ar: "إضافة اهتمام", en: "Add Interest" },
+    addLanguage: { ar: "إضافة لغة", en: "Add Language" },
+    interestsPlaceholder: { ar: "مثال: القراءة، السفر، الرياضة", en: "e.g., Reading, Travel, Sports" },
+    languagesPlaceholder: { ar: "مثال: العربية، الإنجليزية", en: "e.g., Arabic, English" },
+
+    // Account Status
+    role: { ar: "الدور", en: "Role" },
+    banned: { ar: "محظور", en: "Banned" },
+    emailVerified: { ar: "البريد مؤكد", en: "Email Verified" },
+    verified: { ar: "موثق", en: "Verified" },
+    createdAt: { ar: "تاريخ الإنشاء", en: "Created" },
+    lastActive: { ar: "آخر نشاط", en: "Last Active" },
+
+    // Gender Options
+    male: { ar: "ذكر", en: "Male" },
+    female: { ar: "أنثى", en: "Female" },
+    other: { ar: "آخر", en: "Other" },
+    preferNotToSay: { ar: "أفضل عدم الإفصاح", en: "Prefer not to say" },
+
+    // Relationship Status Options
+    single: { ar: "أعزب", en: "Single" },
+    inRelationship: { ar: "في علاقة", en: "In a relationship" },
+    engaged: { ar: "مخطوب", en: "Engaged" },
+    married: { ar: "متزوج", en: "Married" },
+    complicated: { ar: "معقدة", en: "It's complicated" },
+
+    // Messages
+    loadingProfile: { ar: "جاري تحميل الملف...", en: "Loading profile..." },
+    failedToLoad: { ar: "فشل تحميل الملف", en: "Failed to load profile" },
+    profileUpdated: { ar: "تم تحديث الملف بنجاح", en: "Profile updated successfully" },
+    failedToUpdate: { ar: "فشل تحديث الملف", en: "Failed to update profile" },
+  },
+
   adminVerification: {
     title: { ar: "طلبات التوثيق", en: "Verification Requests" },
     statusAll: { ar: "الكل", en: "All" },

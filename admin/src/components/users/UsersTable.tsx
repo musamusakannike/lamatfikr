@@ -6,6 +6,7 @@ import { apiClient, getErrorMessage } from "@/lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import type { AdminUserListItem, AdminUsersListResponse } from "@/types/admin-users";
+import UserProfileModal from "./UserProfileModal";
 
 type Mode = "all" | "banned" | "verified";
 
@@ -41,6 +42,10 @@ export default function UsersTable({ mode }: { mode: Mode }) {
 
   const [batchAction, setBatchAction] = useState<BatchAction>("none");
   const [grantDays, setGrantDays] = useState(30);
+
+  // Profile modal state
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -79,7 +84,7 @@ export default function UsersTable({ mode }: { mode: Mode }) {
     setSelected(next);
   };
 
-  const updateUser = async (userId: string, payload: any) => {
+  const updateUser = async (userId: string, payload: Record<string, unknown>) => {
     await apiClient.patch(`/admin/users/${userId}`, payload);
     await fetchUsers();
   };
@@ -245,6 +250,10 @@ export default function UsersTable({ mode }: { mode: Mode }) {
                 selected={!!selected[u.id]}
                 onSelect={(checked) => setSelected((prev) => ({ ...prev, [u.id]: checked }))}
                 onUpdate={updateUser}
+                onViewProfile={(userId) => {
+                  setSelectedUserId(userId);
+                  setProfileModalOpen(true);
+                }}
               />
             ))}
           </div>
@@ -280,6 +289,10 @@ export default function UsersTable({ mode }: { mode: Mode }) {
                     selected={!!selected[u.id]}
                     onSelect={(checked) => setSelected((prev) => ({ ...prev, [u.id]: checked }))}
                     onUpdate={updateUser}
+                    onViewProfile={(userId) => {
+                      setSelectedUserId(userId);
+                      setProfileModalOpen(true);
+                    }}
                   />
                 ))}
               </tbody>
@@ -312,6 +325,19 @@ export default function UsersTable({ mode }: { mode: Mode }) {
           </button>
         </div>
       ) : null}
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => {
+            setProfileModalOpen(false);
+            setSelectedUserId(null);
+          }}
+          userId={selectedUserId}
+          onProfileUpdate={() => fetchUsers()}
+        />
+      )}
     </div>
   );
 }
@@ -321,11 +347,13 @@ function UserCard({
   selected,
   onSelect,
   onUpdate,
+  onViewProfile,
 }: {
   user: AdminUserListItem;
   selected: boolean;
   onSelect: (checked: boolean) => void;
-  onUpdate: (userId: string, payload: any) => Promise<void>;
+  onUpdate: (userId: string, payload: Record<string, unknown>) => Promise<void>;
+  onViewProfile: (userId: string) => void;
 }) {
   const { t, isRTL } = useLanguage();
 
@@ -484,6 +512,13 @@ function UserCard({
         >
           {t("adminUsers", "actionRevokeVerified")}
         </button>
+
+        <button
+          className="px-2 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/30"
+          onClick={() => onViewProfile(user.id)}
+        >
+          {t("adminUserProfile", "viewProfile")}
+        </button>
       </div>
     </div>
   );
@@ -494,11 +529,13 @@ function UserRow({
   selected,
   onSelect,
   onUpdate,
+  onViewProfile,
 }: {
   user: AdminUserListItem;
   selected: boolean;
   onSelect: (checked: boolean) => void;
-  onUpdate: (userId: string, payload: any) => Promise<void>;
+  onUpdate: (userId: string, payload: Record<string, unknown>) => Promise<void>;
+  onViewProfile: (userId: string) => void;
 }) {
   const { t, isRTL } = useLanguage();
 
@@ -631,6 +668,13 @@ function UserRow({
             onClick={() => onUpdate(user.id, { revokeVerified: true })}
           >
             {t("adminUsers", "actionRevokeVerified")}
+          </button>
+
+          <button
+            className="px-2 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/30"
+            onClick={() => onViewProfile(user.id)}
+          >
+            {t("adminUserProfile", "viewProfile")}
           </button>
         </div>
       </td>

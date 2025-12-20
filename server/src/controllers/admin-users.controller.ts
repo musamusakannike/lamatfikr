@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 import { UserModel } from "../models/user.model";
 import { UserRole } from "../models/common";
+import { updateProfileSchema } from "../validators/profile.validator";
 
 function parseIntParam(value: unknown, fallback: number) {
   const n = typeof value === "string" ? parseInt(value, 10) : NaN;
@@ -202,12 +203,12 @@ export const batchAdminUsers: RequestHandler = async (req, res, next) => {
     const { ids, action, payload } = req.body as {
       ids: string[];
       action:
-        | "ban"
-        | "unban"
-        | "setRole"
-        | "setEmailVerified"
-        | "grantVerifiedDays"
-        | "revokeVerified";
+      | "ban"
+      | "unban"
+      | "setRole"
+      | "setEmailVerified"
+      | "grantVerifiedDays"
+      | "revokeVerified";
       payload?: any;
     };
 
@@ -280,3 +281,154 @@ export const batchAdminUsers: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAdminUserProfile: RequestHandler = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    if (!Types.ObjectId.isValid(userId)) {
+      res.status(400).json({ message: "Invalid userId" });
+      return;
+    }
+
+    const user = await UserModel.findById(userId)
+      .select(
+        "firstName lastName username email phone bio gender birthday relationshipStatus address nationality city occupation workingAt school website interests languagesSpoken avatar coverPhoto role isBanned emailVerified verified paidVerifiedUntil lastActive createdAt"
+      )
+      .lean();
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const now = Date.now();
+    const paidUntilMs = (user as any).paidVerifiedUntil ? new Date((user as any).paidVerifiedUntil).getTime() : 0;
+
+    res.json({
+      profile: {
+        id: (user as any)._id,
+        firstName: (user as any).firstName,
+        lastName: (user as any).lastName,
+        username: (user as any).username,
+        email: (user as any).email,
+        phone: (user as any).phone || "",
+        bio: (user as any).bio || "",
+        gender: (user as any).gender || "",
+        birthday: (user as any).birthday || "",
+        relationshipStatus: (user as any).relationshipStatus || "",
+        address: (user as any).address || "",
+        nationality: (user as any).nationality || "",
+        city: (user as any).city || "",
+        occupation: (user as any).occupation || "",
+        workingAt: (user as any).workingAt || "",
+        school: (user as any).school || "",
+        website: (user as any).website || "",
+        interests: (user as any).interests || [],
+        languagesSpoken: (user as any).languagesSpoken || [],
+        avatar: (user as any).avatar || "",
+        coverPhoto: (user as any).coverPhoto || "",
+        role: (user as any).role,
+        isBanned: !!(user as any).isBanned,
+        emailVerified: !!(user as any).emailVerified,
+        verified: !!(user as any).verified,
+        paidVerifiedUntil: (user as any).paidVerifiedUntil,
+        effectiveVerified: !!(user as any).verified || paidUntilMs > now,
+        lastActive: (user as any).lastActive,
+        createdAt: (user as any).createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAdminUserProfile: RequestHandler = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    if (!Types.ObjectId.isValid(userId)) {
+      res.status(400).json({ message: "Invalid userId" });
+      return;
+    }
+
+    const validation = updateProfileSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const updateData: any = {};
+    const validatedData = validation.data;
+
+    // Only include fields that are present in the request
+    if (validatedData.firstName !== undefined) updateData.firstName = validatedData.firstName;
+    if (validatedData.lastName !== undefined) updateData.lastName = validatedData.lastName;
+    if (validatedData.bio !== undefined) updateData.bio = validatedData.bio;
+    if (validatedData.gender !== undefined) updateData.gender = validatedData.gender;
+    if (validatedData.birthday !== undefined) updateData.birthday = validatedData.birthday;
+    if (validatedData.relationshipStatus !== undefined) updateData.relationshipStatus = validatedData.relationshipStatus;
+    if (validatedData.address !== undefined) updateData.address = validatedData.address;
+    if (validatedData.nationality !== undefined) updateData.nationality = validatedData.nationality;
+    if (validatedData.city !== undefined) updateData.city = validatedData.city;
+    if (validatedData.occupation !== undefined) updateData.occupation = validatedData.occupation;
+    if (validatedData.website !== undefined) updateData.website = validatedData.website;
+    if (validatedData.workingAt !== undefined) updateData.workingAt = validatedData.workingAt;
+    if (validatedData.school !== undefined) updateData.school = validatedData.school;
+    if (validatedData.interests !== undefined) updateData.interests = validatedData.interests;
+    if (validatedData.languagesSpoken !== undefined) updateData.languagesSpoken = validatedData.languagesSpoken;
+    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone;
+
+    const user = await UserModel.findByIdAndUpdate(userId, updateData, { new: true })
+      .select(
+        "firstName lastName username email phone bio gender birthday relationshipStatus address nationality city occupation workingAt school website interests languagesSpoken avatar coverPhoto role isBanned emailVerified verified paidVerifiedUntil lastActive createdAt"
+      )
+      .lean();
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const now = Date.now();
+    const paidUntilMs = (user as any).paidVerifiedUntil ? new Date((user as any).paidVerifiedUntil).getTime() : 0;
+
+    res.json({
+      profile: {
+        id: (user as any)._id,
+        firstName: (user as any).firstName,
+        lastName: (user as any).lastName,
+        username: (user as any).username,
+        email: (user as any).email,
+        phone: (user as any).phone || "",
+        bio: (user as any).bio || "",
+        gender: (user as any).gender || "",
+        birthday: (user as any).birthday || "",
+        relationshipStatus: (user as any).relationshipStatus || "",
+        address: (user as any).address || "",
+        nationality: (user as any).nationality || "",
+        city: (user as any).city || "",
+        occupation: (user as any).occupation || "",
+        workingAt: (user as any).workingAt || "",
+        school: (user as any).school || "",
+        website: (user as any).website || "",
+        interests: (user as any).interests || [],
+        languagesSpoken: (user as any).languagesSpoken || [],
+        avatar: (user as any).avatar || "",
+        coverPhoto: (user as any).coverPhoto || "",
+        role: (user as any).role,
+        isBanned: !!(user as any).isBanned,
+        emailVerified: !!(user as any).emailVerified,
+        verified: !!(user as any).verified,
+        paidVerifiedUntil: (user as any).paidVerifiedUntil,
+        effectiveVerified: !!(user as any).verified || paidUntilMs > now,
+        lastActive: (user as any).lastActive,
+        createdAt: (user as any).createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

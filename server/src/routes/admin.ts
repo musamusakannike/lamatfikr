@@ -10,7 +10,7 @@ import {
   getAllWallets,
   getAllTransactions,
 } from "../controllers/admin.controller";
-import { batchAdminUsers, listAdminUsers, updateAdminUser } from "../controllers/admin-users.controller";
+import { batchAdminUsers, listAdminUsers, updateAdminUser, getAdminUserProfile, updateAdminUserProfile } from "../controllers/admin-users.controller";
 import { getAdminRolesSummary } from "../controllers/admin-roles.controller";
 import { getAdminTopFollowed } from "../controllers/admin-social.controller";
 import {
@@ -70,6 +70,8 @@ adminRouter.get("/analytics", requireAuth, requireAdmin, getAdminAnalytics);
 adminRouter.get("/users", requireAuth, requireAdmin, listAdminUsers);
 adminRouter.patch("/users/:userId", requireAuth, requireAdmin, updateAdminUser);
 adminRouter.post("/users/batch", requireAuth, requireAdmin, batchAdminUsers);
+adminRouter.get("/users/:userId/profile", requireAuth, requireAdmin, getAdminUserProfile);
+adminRouter.patch("/users/:userId/profile", requireAuth, requireAdmin, updateAdminUserProfile);
 
 adminRouter.get("/roles/summary", requireAuth, requireAdmin, getAdminRolesSummary);
 
