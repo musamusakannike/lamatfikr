@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -18,10 +19,13 @@ import {
   MessageCircle,
   CheckCircle,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/contexts/CartContext";
 import { marketplaceApi } from "@/lib/api/marketplace";
+import { messagesApi } from "@/lib/api/messages";
 import toast from "react-hot-toast";
 import { ProductReviews } from "./ProductReviews";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -37,16 +41,19 @@ export function ProductDetailsModal({
   onClose,
   product,
 }: ProductDetailsModalProps) {
+  const router = useRouter();
   const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(product?.isFavorited || false);
   const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [isContactingSeller, setIsContactingSeller] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart, openCart } = useCart();
 
   // Memoize calculations to avoid impure function calls during render
-  const discount = useMemo(() => 
+  const discount = useMemo(() =>
     product?.originalPrice
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : 0, [product]
@@ -64,11 +71,11 @@ export function ProductDetailsModal({
 
   const handleAddToCart = async () => {
     if (!product || isAddingToCart) return;
-    
+
     setIsAddingToCart(true);
     const success = await addToCart(product._id, quantity);
     setIsAddingToCart(false);
-    
+
     if (success) {
       openCart();
     }
@@ -76,7 +83,7 @@ export function ProductDetailsModal({
 
   const handleToggleFavorite = async () => {
     if (!product || isTogglingFavorite) return;
-    
+
     setIsTogglingFavorite(true);
     try {
       const response = await marketplaceApi.toggleFavorite(product._id);
@@ -93,6 +100,21 @@ export function ProductDetailsModal({
     }
   };
 
+  const handleContactSeller = async () => {
+    if (!product?.seller?._id || isContactingSeller) return;
+
+    setIsContactingSeller(true);
+    try {
+      const { conversation } = await messagesApi.getOrCreateConversation(product.seller._id);
+      router.push(`/messages?conversation=${conversation._id}`);
+      onClose();
+    } catch {
+      toast.error(t("marketplace", "failedToContactSeller") || "Failed to contact seller");
+    } finally {
+      setIsContactingSeller(false);
+    }
+  };
+
   if (!product) return null;
 
   return (
@@ -101,27 +123,62 @@ export function ProductDetailsModal({
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image Section */}
           <div className="space-y-4">
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 group">
               <img
-                src={product.images?.[0] || product.image || "https://via.placeholder.com/400"}
+                src={product.images?.[currentImageIndex] || product.image || "https://via.placeholder.com/400"}
                 alt={product.title || t("marketplace", "productImageAlt")}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-opacity duration-300"
               />
               {/* Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2">
+              <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                 {isNew && <Badge variant="primary">{t("marketplace", "new")}</Badge>}
                 {discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
                 {product.isFeatured && <Badge variant="warning">{t("marketplace", "featured")}</Badge>}
               </div>
-              
-              {/* Image Gallery */}
+
+              {/* Navigation Arrows */}
               {product.images && product.images.length > 1 && (
-                <div className="absolute bottom-3 left-3 right-3 flex gap-2">
-                  {product.images.map((img, index) => (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) => (prev === 0 ? product.images!.length - 1 : prev - 1));
+                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex((prev) => (prev === product.images!.length - 1 ? 0 : prev + 1));
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-all transform hover:scale-110"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                </>
+              )}
+
+              {/* Image Gallery Indicators */}
+              {product.images && product.images.length > 1 && (
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+                  {product.images.map((_, index) => (
                     <button
                       key={index}
-                      onClick={() => {}}
-                      className="flex-1 h-2 rounded-full bg-white/50 hover:bg-white transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        index === currentImageIndex
+                          ? "bg-white w-6"
+                          : "bg-white/50 w-1.5 hover:bg-white/80"
+                      )}
+                      aria-label={`Go to image ${index + 1}`}
                     />
                   ))}
                 </div>
@@ -285,8 +342,17 @@ export function ProductDetailsModal({
                 </div>
                 <span className="text-sm text-(--text-muted)">{t("marketplace", "seller")}</span>
               </div>
-              <Button variant="outline" size="sm">
-                <MessageCircle size={16} className="mr-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleContactSeller}
+                disabled={isContactingSeller || !product.seller?._id}
+              >
+                {isContactingSeller ? (
+                  <Loader2 size={16} className="mr-1 animate-spin" />
+                ) : (
+                  <MessageCircle size={16} className="mr-1" />
+                )}
                 {t("marketplace", "contactSeller")}
               </Button>
             </div>
@@ -330,7 +396,7 @@ export function ProductDetailsModal({
             {activeTab === "description" ? (
               <div className="prose dark:prose-invert max-w-none">
                 <p className="text-(--text-muted whitespace-pre-wrap">{product.description}</p>
-                
+
                 {/* Additional Product Details */}
                 <div className="mt-6 grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
