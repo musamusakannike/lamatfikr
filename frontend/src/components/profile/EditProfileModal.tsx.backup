@@ -247,29 +247,6 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
     }
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !formData.interests.includes(newInterest.trim()) && formData.interests.length < 20) {
-      setFormData((prev) => ({ ...prev, interests: [...prev.interests, newInterest.trim()] }));
-      setNewInterest("");
-    }
-  };
-
-  const removeInterest = (interest: string) => {
-    setFormData((prev) => ({ ...prev, interests: prev.interests.filter((i) => i !== interest) }));
-  };
-
-  const addLanguage = () => {
-    if (newLanguage.trim() && !formData.languagesSpoken.includes(newLanguage.trim()) && formData.languagesSpoken.length < 20) {
-      setFormData((prev) => ({ ...prev, languagesSpoken: [...prev.languagesSpoken, newLanguage.trim()] }));
-      setNewLanguage("");
-    }
-  };
-
-  const removeLanguage = (language: string) => {
-    setFormData((prev) => ({ ...prev, languagesSpoken: prev.languagesSpoken.filter((l) => l !== language) }));
-  };
-
-
   const inputClasses = cn(
     "w-full px-3 py-2.5 rounded-lg text-sm",
     "bg-primary-50/80 dark:bg-primary-950/40",

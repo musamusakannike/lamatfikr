@@ -9,6 +9,16 @@ export interface PrivacySettings {
   whoCanSeeMyEmail: typeof PrivacyOption[keyof typeof PrivacyOption];
   whoCanSeeMyPhone: typeof PrivacyOption[keyof typeof PrivacyOption];
   whoCanSeeMyLocation: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyGender: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyNationality: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyCity: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyOccupation: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyRelationshipStatus: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyWorkingAt: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMySchool: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyWebsite: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyInterests: typeof PrivacyOption[keyof typeof PrivacyOption];
+  whoCanSeeMyLanguages: typeof PrivacyOption[keyof typeof PrivacyOption];
 }
 
 export interface User {
@@ -28,9 +38,14 @@ export interface User {
   birthday?: Date;
   relationshipStatus?: string;
   address?: string;
+  nationality?: string;
+  city?: string;
+  occupation?: string;
   website?: string;
   workingAt?: string;
   school?: string;
+  interests?: string[];
+  languagesSpoken?: string[];
   verified: boolean;
   paidVerifiedUntil?: Date;
   paidVerifiedPurchasedAt?: Date;
@@ -78,6 +93,56 @@ const PrivacySettingsSchema = new Schema<PrivacySettings>(
       enum: Object.values(PrivacyOption),
       default: PrivacyOption.friends,
     },
+    whoCanSeeMyGender: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyNationality: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyCity: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyOccupation: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyRelationshipStatus: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.friends,
+    },
+    whoCanSeeMyWorkingAt: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMySchool: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyWebsite: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyInterests: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
+    whoCanSeeMyLanguages: {
+      type: String,
+      enum: Object.values(PrivacyOption),
+      default: PrivacyOption.everyone,
+    },
   },
   { _id: false }
 );
@@ -100,9 +165,14 @@ const UserSchema = new Schema<User>(
     birthday: { type: Date },
     relationshipStatus: { type: String },
     address: { type: String },
+    nationality: { type: String, maxlength: 100 },
+    city: { type: String, maxlength: 100 },
+    occupation: { type: String, maxlength: 100 },
     website: { type: String },
     workingAt: { type: String },
     school: { type: String },
+    interests: { type: [String], default: [] },
+    languagesSpoken: { type: [String], default: [] },
     verified: { type: Boolean, default: false },
     paidVerifiedUntil: { type: Date },
     paidVerifiedPurchasedAt: { type: Date },

@@ -9,9 +9,14 @@ export const updateProfileSchema = z.object({
   birthday: z.string().datetime().optional().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()),
   relationshipStatus: z.string().max(50).optional(),
   address: z.string().max(200).optional(),
+  nationality: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  occupation: z.string().max(100).optional(),
   website: z.string().url().max(200).optional().or(z.literal("")),
   workingAt: z.string().max(100).optional(),
   school: z.string().max(100).optional(),
+  interests: z.array(z.string().max(50)).max(20).optional(),
+  languagesSpoken: z.array(z.string().max(50)).max(20).optional(),
   phone: z.string().max(20).optional(),
 });
 
@@ -30,6 +35,16 @@ export const updatePrivacySettingsSchema = z.object({
   whoCanSeeMyEmail: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
   whoCanSeeMyPhone: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
   whoCanSeeMyLocation: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyGender: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyNationality: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyCity: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyOccupation: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyRelationshipStatus: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyWorkingAt: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMySchool: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyWebsite: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyInterests: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
+  whoCanSeeMyLanguages: z.enum([PrivacyOption.everyone, PrivacyOption.friends, PrivacyOption.nobody]).optional(),
 });
 
 export const changePasswordSchema = z.object({

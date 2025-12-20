@@ -9,9 +9,14 @@ export interface ProfileData {
   birthday?: string;
   relationshipStatus?: string;
   address?: string;
+  nationality?: string;
+  city?: string;
+  occupation?: string;
   website?: string;
   workingAt?: string;
   school?: string;
+  interests?: string[];
+  languagesSpoken?: string[];
 }
 
 export interface VerifiedTagInitiateResponse {
@@ -36,6 +41,16 @@ export interface PrivacySettings {
   whoCanSeeMyEmail?: "everyone" | "friends" | "nobody";
   whoCanSeeMyPhone?: "everyone" | "friends" | "nobody";
   whoCanSeeMyLocation?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyGender?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyNationality?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyCity?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyOccupation?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyRelationshipStatus?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyWorkingAt?: "everyone" | "friends" | "nobody";
+  whoCanSeeMySchool?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyWebsite?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyInterests?: "everyone" | "friends" | "nobody";
+  whoCanSeeMyLanguages?: "everyone" | "friends" | "nobody";
 }
 
 export interface ProfileResponse {
@@ -53,12 +68,18 @@ export interface PublicProfile {
   verified: boolean;
   role: string;
   createdAt: string;
+  gender?: string;
   birthday?: string;
   address?: string;
+  nationality?: string;
+  city?: string;
+  occupation?: string;
   relationshipStatus?: string;
   website?: string;
   workingAt?: string;
   school?: string;
+  interests?: string[];
+  languagesSpoken?: string[];
 }
 
 export const profileApi = {

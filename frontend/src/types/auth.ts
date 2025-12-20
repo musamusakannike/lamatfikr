@@ -35,6 +35,16 @@ export interface PrivacySettings {
   whoCanSeeMyEmail: PrivacyOption;
   whoCanSeeMyPhone: PrivacyOption;
   whoCanSeeMyLocation: PrivacyOption;
+  whoCanSeeMyGender: PrivacyOption;
+  whoCanSeeMyNationality: PrivacyOption;
+  whoCanSeeMyCity: PrivacyOption;
+  whoCanSeeMyOccupation: PrivacyOption;
+  whoCanSeeMyRelationshipStatus: PrivacyOption;
+  whoCanSeeMyWorkingAt: PrivacyOption;
+  whoCanSeeMySchool: PrivacyOption;
+  whoCanSeeMyWebsite: PrivacyOption;
+  whoCanSeeMyInterests: PrivacyOption;
+  whoCanSeeMyLanguages: PrivacyOption;
 }
 
 export interface User {
@@ -52,9 +62,14 @@ export interface User {
   birthday?: string;
   relationshipStatus?: string;
   address?: string;
+  nationality?: string;
+  city?: string;
+  occupation?: string;
   website?: string;
   workingAt?: string;
   school?: string;
+  interests?: string[];
+  languagesSpoken?: string[];
   verified: boolean;
   paidVerifiedUntil?: string;
   role: UserRole;

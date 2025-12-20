@@ -55,7 +55,7 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
     const { username } = req.params;
 
     const user = await UserModel.findOne({ username }).select(
-      "firstName lastName username avatar coverPhoto bio gender birthday relationshipStatus address website workingAt school verified paidVerifiedUntil role privacySettings createdAt"
+      "firstName lastName username avatar coverPhoto bio gender birthday relationshipStatus address nationality city occupation website workingAt school interests languagesSpoken verified paidVerifiedUntil role privacySettings createdAt"
     );
 
     if (!user) {
@@ -78,6 +78,7 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
       createdAt: user.createdAt,
     };
 
+    // Apply privacy settings for each field
     if (user.privacySettings?.whoCanSeeMyBirthday === "everyone") {
       publicProfile.birthday = user.birthday;
     }
@@ -86,10 +87,45 @@ export const getPublicProfile: RequestHandler = async (req, res, next) => {
       publicProfile.address = user.address;
     }
 
-    publicProfile.relationshipStatus = user.relationshipStatus;
-    publicProfile.website = user.website;
-    publicProfile.workingAt = user.workingAt;
-    publicProfile.school = user.school;
+    if (user.privacySettings?.whoCanSeeMyGender === "everyone") {
+      publicProfile.gender = user.gender;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyNationality === "everyone") {
+      publicProfile.nationality = user.nationality;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyCity === "everyone") {
+      publicProfile.city = user.city;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyOccupation === "everyone") {
+      publicProfile.occupation = user.occupation;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyRelationshipStatus === "everyone") {
+      publicProfile.relationshipStatus = user.relationshipStatus;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyWebsite === "everyone") {
+      publicProfile.website = user.website;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyWorkingAt === "everyone") {
+      publicProfile.workingAt = user.workingAt;
+    }
+
+    if (user.privacySettings?.whoCanSeeMySchool === "everyone") {
+      publicProfile.school = user.school;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyInterests === "everyone") {
+      publicProfile.interests = user.interests;
+    }
+
+    if (user.privacySettings?.whoCanSeeMyLanguages === "everyone") {
+      publicProfile.languagesSpoken = user.languagesSpoken;
+    }
 
     res.json({ profile: publicProfile });
   } catch (error) {
