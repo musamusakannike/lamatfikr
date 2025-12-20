@@ -75,7 +75,7 @@ export default function OrderDetailsPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  
+
   // Seller management state
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -142,9 +142,12 @@ export default function OrderDetailsPage() {
 
     setIsUpdatingStatus(true);
     try {
+      // Automatically use order number as tracking number when shipping
+      const trackingValue = newStatus === "shipped" ? order.orderNumber : (trackingNumber || undefined);
+
       await marketplaceApi.updateOrderStatus(order._id, {
         status: newStatus,
-        trackingNumber: trackingNumber || undefined,
+        trackingNumber: trackingValue,
         sellerNotes: sellerNotes || undefined,
       });
       toast.success(`${t("marketplace", "orderDetails")}: ${STATUS_CONFIG[newStatus].label}`);
@@ -162,7 +165,7 @@ export default function OrderDetailsPage() {
 
   const getNextSellerAction = (): { status: OrderStatus; label: string; icon: React.ElementType } | null => {
     if (!order || !isSeller) return null;
-    
+
     switch (order.status) {
       case "paid":
         return { status: "processing", label: t("marketplace", "statusProcessing"), icon: Package };
@@ -336,8 +339,8 @@ export default function OrderDetailsPage() {
                               timelineStatus === "completed"
                                 ? "bg-primary-500 text-white"
                                 : timelineStatus === "current"
-                                ? "bg-primary-100 dark:bg-primary-900/50 text-primary-600 ring-2 ring-primary-500"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                                  ? "bg-primary-100 dark:bg-primary-900/50 text-primary-600 ring-2 ring-primary-500"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-400"
                             )}
                           >
                             <Icon size={18} />
@@ -704,19 +707,19 @@ export default function OrderDetailsPage() {
               {t("marketplace", "status")}: {STATUS_CONFIG[getNextSellerAction()!.status].label}
             </p>
 
-            {/* Tracking Number (for shipping) */}
+
+            {/* Tracking Number Info (for shipping) */}
             {getNextSellerAction()?.status === "shipped" && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-(--text) mb-1.5">
+              <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
                   {t("marketplace", "trackingNumber")}
-                </label>
-                <input
-                  type="text"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder={t("marketplace", "trackingNumberPlaceholder")}
-                  className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                </p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  {order?.orderNumber}
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {t("marketplace", "trackingNumberAutoSet")}
+                </p>
               </div>
             )}
 
