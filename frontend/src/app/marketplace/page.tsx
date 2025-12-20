@@ -27,6 +27,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ProductFormData as AddProductFormData } from "@/components/marketplace/AddProductModal";
 
 const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Garden", "Sports", "Books", "Beauty", "Toys", "Automotive", "Food & Beverages", "Other"];
 
@@ -93,15 +94,7 @@ export default function MarketplacePage() {
     setShowProductDetails(true);
   };
 
-  const handleAddProduct = async (formData: {
-    title: string;
-    description: string;
-    price: string;
-    originalPrice: string;
-    category: string;
-    images: string[];
-    inStock: boolean;
-  }) => {
+  const handleAddProduct = async (formData: AddProductFormData) => {
     try {
       await marketplaceApi.createProduct({
         title: formData.title,
@@ -110,7 +103,7 @@ export default function MarketplacePage() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         images: formData.images,
         category: formData.category,
-        quantity: formData.inStock ? 1 : 0,
+        quantity: formData.quantity,
       });
       toast.success("Product created successfully");
       fetchProducts();

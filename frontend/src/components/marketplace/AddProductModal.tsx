@@ -20,7 +20,8 @@ export interface ProductFormData {
   originalPrice: string;
   category: string;
   images: string[];
-  inStock: boolean;
+  quantity: number;
+  currency: "SAR" | "USD" | "OMR";
 }
 
 const categories = [
@@ -45,7 +46,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     originalPrice: "",
     category: "",
     images: [],
-    inStock: true,
+    quantity: 1,
+    currency: "SAR",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
@@ -116,6 +118,12 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     if (formData.images.length === 0) {
       newErrors.images = t("marketplace", "atLeastOneImageRequired");
     }
+    if (!Number.isFinite(formData.quantity) || formData.quantity < 0) {
+      newErrors.quantity = t("marketplace", "validQuantityRequired");
+    }
+    if (!formData.currency) {
+      newErrors.currency = t("marketplace", "currencyRequired");
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -142,7 +150,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       originalPrice: "",
       category: "",
       images: [],
-      inStock: true,
+      quantity: 1,
+      currency: "SAR",
     });
     
     onClose();
@@ -260,6 +269,9 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                 )}
               />
             </div>
+            <p className="mt-2 text-xs text-(--text-muted)">
+              {t("marketplace", "payoutWarning")}
+            </p>
             {errors.price && (
               <p className="text-red-500 text-sm mt-1">{errors.price}</p>
             )}
@@ -283,6 +295,28 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
               />
             </div>
           </div>
+        </div>
+
+        {/* Currency */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            {t("marketplace", "currency")}
+          </label>
+          <select
+            name="currency"
+            value={formData.currency}
+            onChange={handleInputChange}
+            className={cn(
+              "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text)",
+              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+              errors.currency ? "border-red-500" : "border-(--border)"
+            )}
+          >
+            <option value="SAR">{t("marketplace", "currencySAR")}</option>
+            <option value="USD">{t("marketplace", "currencyUSD")}</option>
+            <option value="OMR">{t("marketplace", "currencyOMR")}</option>
+          </select>
+          {errors.currency && <p className="text-red-500 text-sm mt-1">{errors.currency}</p>}
         </div>
 
         {/* Category */}
@@ -313,18 +347,31 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           )}
         </div>
 
-        {/* Stock Status */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="inStock"
-            checked={formData.inStock}
-            onChange={(e) => setFormData((prev) => ({ ...prev, inStock: e.target.checked }))}
-            className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-          />
-          <label htmlFor="inStock" className="text-sm font-medium text-(--text)">
-            {t("marketplace", "productIsInStock")}
+        {/* Quantity */}
+        <div>
+          <label className="block text-sm font-medium text-(--text) mb-2">
+            <Package size={16} className="inline mr-2" />
+            {t("marketplace", "quantityInStock")}
           </label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={String(formData.quantity)}
+            onChange={(e) => {
+              const next = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+              setFormData((prev) => ({ ...prev, quantity: Number.isFinite(next) ? next : 0 }));
+              if (errors.quantity) {
+                setErrors((prev) => ({ ...prev, quantity: "" }));
+              }
+            }}
+            className={cn(
+              "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
+              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+              errors.quantity ? "border-red-500" : "border-(--border)"
+            )}
+          />
+          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
         </div>
 
         {/* Submit Buttons */}

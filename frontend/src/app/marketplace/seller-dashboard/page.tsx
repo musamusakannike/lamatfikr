@@ -95,7 +95,7 @@ export default function SellerDashboardPage() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         images: formData.images,
         category: formData.category,
-        quantity: formData.inStock ? 1 : 0,
+        quantity: formData.quantity,
       });
       toast.success(t("marketplace", "productCreatedSuccessfully"));
       fetchStats();

@@ -30,7 +30,7 @@ type ProductFormData = {
   originalPrice: string;
   category: string;
   images: string[];
-  inStock: boolean;
+  quantity: number;
 };
 
 const categories = [
@@ -71,7 +71,7 @@ export default function EditProductPage() {
     originalPrice: "",
     category: "",
     images: [],
-    inStock: true,
+    quantity: 1,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
@@ -103,7 +103,7 @@ export default function EditProductPage() {
         originalPrice: response.product.originalPrice?.toString() || "",
         category: response.product.category || "",
         images: response.product.images || [],
-        inStock: (response.product.quantity || 0) > 0,
+        quantity: response.product.quantity ?? 0,
       });
     } catch (error) {
       console.error("Failed to load product:", error);
@@ -175,6 +175,9 @@ export default function EditProductPage() {
     }
     if (!formData.category) newErrors.category = t("editProduct", "categoryRequired");
     if (formData.images.length === 0) newErrors.images = t("editProduct", "imageRequired");
+    if (!Number.isFinite(formData.quantity) || formData.quantity < 0) {
+      newErrors.quantity = t("marketplace", "validQuantityRequired");
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -195,7 +198,7 @@ export default function EditProductPage() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         category: formData.category,
         images: formData.images,
-        quantity: formData.inStock ? 1 : 0,
+        quantity: formData.quantity,
       });
 
       toast.success(t("editProduct", "productUpdated"));
@@ -411,17 +414,30 @@ export default function EditProductPage() {
                   {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="inStock"
-                    checked={formData.inStock}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, inStock: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <label htmlFor="inStock" className="text-sm font-medium text-(--text)">
-                    {t("editProduct", "productInStock")}
+                <div>
+                  <label className="block text-sm font-medium text-(--text) mb-2">
+                    <Package size={16} className={cn("inline", isRTL ? "ml-2" : "mr-2")} />
+                    {t("marketplace", "quantityInStock")}
                   </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={String(formData.quantity)}
+                    onChange={(e) => {
+                      const next = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+                      setFormData((prev) => ({ ...prev, quantity: Number.isFinite(next) ? next : 0 }));
+                      if (errors.quantity) {
+                        setErrors((prev) => ({ ...prev, quantity: "" }));
+                      }
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
+                      "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+                      errors.quantity ? "border-red-500" : "border-(--border)"
+                    )}
+                  />
+                  {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
                 </div>
 
                 <div className="flex gap-3 pt-4 border-t border-(--border)">

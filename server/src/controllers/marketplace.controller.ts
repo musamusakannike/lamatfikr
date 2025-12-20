@@ -71,7 +71,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
       status: ProductStatus.active,
       sellerId: userId,
       location,
-      quantity: quantity || 1,
+      quantity: quantity ?? 1,
       isNegotiable: isNegotiable || false,
       tags,
     });
@@ -304,6 +304,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       "description",
       "price",
       "originalPrice",
+      "currency",
       "images",
       "category",
       "condition",

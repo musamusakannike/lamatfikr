@@ -156,7 +156,7 @@ export default function MyListingsPage() {
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         images: formData.images,
         category: formData.category,
-        quantity: formData.inStock ? 1 : 0,
+        quantity: formData.quantity,
       });
       toast.success(t("myListings", "productCreated"));
       fetchProducts();

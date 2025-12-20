@@ -372,20 +372,6 @@ export const translations = {
       en: "Home",
     },
     stories: {
-      ar: "القصص",
-      en: "Stories",
-    },
-    rooms: {
-      ar: "الغرف",
-      en: "Rooms",
-    },
-    marketplace: {
-      ar: "السوق",
-      en: "Marketplace",
-    },
-    profile: {
-      ar: "الملف الشخصي",
-      en: "Profile",
     },
     settings: {
       ar: "الإعدادات",
@@ -1962,6 +1948,10 @@ export const translations = {
       ar: "تقدم الطلب",
       en: "Order Progress",
     },
+    orderProgressSubtitle: {
+      ar: "تابع طلبك أثناء معالجته وشحنه وتسليمه.",
+      en: "Follow your order as it moves through processing, shipping, and delivery.",
+    },
     orderItems: {
       ar: "عناصر الطلب",
       en: "Order Items",
@@ -1973,6 +1963,10 @@ export const translations = {
     unitPrice: {
       ar: "سعر الوحدة",
       en: "Unit Price",
+    },
+    payoutWarning: {
+      ar: "تنبيه: ستحصل على ‎85‎٪ فقط بعد خصم عمولة المنصة البالغة ‎15‎٪.",
+      en: "Heads up: you'll only receive 85% after the 15% platform fee.",
     },
     notes: {
       ar: "ملاحظات",

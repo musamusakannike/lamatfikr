@@ -47,14 +47,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: R
   disputed: { label: "Disputed", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: AlertCircle },
 };
 
-const ORDER_TIMELINE: OrderStatus[] = [
-  "pending",
-  "paid",
-  "processing",
-  "shipped",
-  "delivered",
-  "completed",
-];
+const ORDER_PROGRESS_STEPS: OrderStatus[] = ["processing", "shipped", "delivered"];
 
 export default function OrderDetailsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -204,18 +197,44 @@ export default function OrderDetailsPage() {
 
   const canCancel = order && ["pending", "awaiting_payment", "paid"].includes(order.status) && isBuyer;
 
+  const progressIndex = (() => {
+    if (!order) return -1;
+    if (order.status === "completed" || order.status === "delivered") {
+      return ORDER_PROGRESS_STEPS.length - 1;
+    }
+    const idx = ORDER_PROGRESS_STEPS.indexOf(order.status);
+    return idx;
+  })();
+
   const getTimelineStatus = (status: OrderStatus) => {
     if (!order) return "pending";
-    const currentIndex = ORDER_TIMELINE.indexOf(order.status);
-    const statusIndex = ORDER_TIMELINE.indexOf(status);
-
-    if (order.status === "cancelled" || order.status === "refunded" || order.status === "disputed") {
+    if (["cancelled", "refunded", "disputed"].includes(order.status)) {
       return "cancelled";
     }
-
-    if (statusIndex < currentIndex) return "completed";
-    if (statusIndex === currentIndex) return "current";
+    const stepIndex = ORDER_PROGRESS_STEPS.indexOf(status);
+    if (progressIndex === -1) {
+      return "pending";
+    }
+    if (stepIndex < progressIndex) return "completed";
+    if (stepIndex === progressIndex) return "current";
     return "pending";
+  };
+
+  const showProgressTimeline =
+    order &&
+    ["paid", "processing", "shipped", "delivered", "completed"].includes(order.status);
+
+  const contactEmail = isBuyer ? order?.sellerId?.email : order?.buyerId?.email;
+
+  const handleContact = () => {
+    if (!contactEmail) {
+      toast.error(t("marketplace", "contactUnavailable"));
+      return;
+    }
+    const subject = encodeURIComponent(
+      `${t("marketplace", "orderNumber")} ${order?.orderNumber}`
+    );
+    window.location.href = `mailto:${contactEmail}?subject=${subject}`;
   };
 
   if (isAuthLoading || isLoading) {
@@ -287,11 +306,14 @@ export default function OrderDetailsPage() {
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
               {/* Order Timeline */}
-              {!["cancelled", "refunded", "disputed"].includes(order.status) && (
+              {showProgressTimeline && (
                 <Card className="p-6">
-                  <h2 className="text-lg font-semibold text-(--text) mb-6">{t("marketplace", "orderProgress")}</h2>
+                  <h2 className="text-lg font-semibold text-(--text) mb-2">{t("marketplace", "orderProgress")}</h2>
+                  <p className="text-sm text-(--text-muted) mb-6">
+                    {t("marketplace", "orderProgressSubtitle")}
+                  </p>
                   <div className="flex items-center justify-between">
-                    {ORDER_TIMELINE.slice(0, 5).map((status, index) => {
+                    {ORDER_PROGRESS_STEPS.map((status, index) => {
                       const config = STATUS_CONFIG[status];
                       const Icon = config.icon;
                       const timelineStatus = getTimelineStatus(status);
@@ -478,7 +500,12 @@ export default function OrderDetailsPage() {
                     </Button>
                   )}
 
-                  <Button variant="outline" className="w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleContact}
+                    disabled={!contactEmail}
+                  >
                     <MessageCircle size={18} className="mr-2" />
                     {t("marketplace", "contact")} {isBuyer ? t("marketplace", "seller") : t("marketplace", "buyer")}
                   </Button>
