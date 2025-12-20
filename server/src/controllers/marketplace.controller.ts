@@ -862,6 +862,11 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
     const userId = getUserId(req);
     const { productId, quantity = 1, shippingAddress, paymentMethod = PaymentMethod.tap, buyerNotes } = req.body;
 
+    if (paymentMethod === PaymentMethod.cash) {
+      res.status(400).json({ message: "Cash on delivery is not available" });
+      return;
+    }
+
     if (!Types.ObjectId.isValid(productId)) {
       res.status(400).json({ message: "Invalid product ID" });
       return;
@@ -890,8 +895,8 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
 
     const subtotal = product.price * quantity;
     const shippingFee = 0; // Free shipping for now
-    const serviceFee = Math.round(subtotal * 0.05 * 100) / 100; // 5% service fee
-    const total = subtotal + shippingFee + serviceFee;
+    const serviceFee = 0;
+    const total = subtotal + shippingFee;
 
     const order = await OrderModel.create({
       orderNumber: generateOrderNumber(),
@@ -911,7 +916,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       serviceFee,
       total,
       currency: product.currency,
-      status: paymentMethod === PaymentMethod.cash ? OrderStatus.pending : OrderStatus.awaitingPayment,
+      status: OrderStatus.awaitingPayment,
       paymentMethod,
       shippingAddress,
       buyerNotes,
@@ -930,6 +935,11 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
   try {
     const userId = getUserId(req);
     const { shippingAddress, paymentMethod = PaymentMethod.tap, buyerNotes } = req.body;
+
+    if (paymentMethod === PaymentMethod.cash) {
+      res.status(400).json({ message: "Cash on delivery is not available" });
+      return;
+    }
 
     const cart = await CartModel.findOne({ userId }).populate({
       path: "items.productId",
@@ -982,8 +992,8 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
     for (const [sellerId, items] of itemsBySeller) {
       const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
       const shippingFee = 0;
-      const serviceFee = Math.round(subtotal * 0.05 * 100) / 100;
-      const total = subtotal + shippingFee + serviceFee;
+      const serviceFee = 0;
+      const total = subtotal + shippingFee;
 
       const order = await OrderModel.create({
         orderNumber: generateOrderNumber(),
@@ -1001,7 +1011,7 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
         serviceFee,
         total,
         currency: items[0].product.currency,
-        status: paymentMethod === PaymentMethod.cash ? OrderStatus.pending : OrderStatus.awaitingPayment,
+        status: OrderStatus.awaitingPayment,
         paymentMethod,
         shippingAddress,
         buyerNotes,

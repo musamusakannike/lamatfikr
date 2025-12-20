@@ -10,6 +10,14 @@ export interface Seller {
   bio?: string;
 }
 
+export interface Buyer {
+  _id: string;
+  username: string;
+  displayName?: string;
+  avatar?: string;
+  email?: string;
+}
+
 export interface Product {
   _id: string;
   title: string;
@@ -118,20 +126,8 @@ export interface OrderItem {
 export interface Order {
   _id: string;
   orderNumber: string;
-  buyerId: {
-    _id: string;
-    username: string;
-    displayName?: string;
-    avatar?: string;
-    email?: string;
-  };
-  sellerId: {
-    _id: string;
-    username: string;
-    displayName?: string;
-    avatar?: string;
-    email?: string;
-  };
+  buyerId: Buyer;
+  sellerId: Buyer;
   items: OrderItem[];
   subtotal: number;
   shippingFee: number;
@@ -356,7 +352,7 @@ export const marketplaceApi = {
     productId: string;
     quantity?: number;
     shippingAddress?: ShippingAddress;
-    paymentMethod?: "tap" | "cash";
+    paymentMethod?: "tap";
     buyerNotes?: string;
   }) => {
     return apiClient.post<{ message: string; order: Order }>("/marketplace/orders", data);
@@ -364,7 +360,7 @@ export const marketplaceApi = {
 
   createOrderFromCart: (data: {
     shippingAddress?: ShippingAddress;
-    paymentMethod?: "tap" | "cash";
+    paymentMethod?: "tap";
     buyerNotes?: string;
   }) => {
     return apiClient.post<{ message: string; orders: Order[] }>("/marketplace/orders/from-cart", data);

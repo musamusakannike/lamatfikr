@@ -13,7 +13,6 @@ import toast from "react-hot-toast";
 import {
   ArrowLeft,
   CreditCard,
-  Banknote,
   MapPin,
   Package,
   Loader2,
@@ -25,7 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-type PaymentMethod = "tap" | "cash";
+type PaymentMethod = "tap";
 
 export default function CheckoutPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -59,9 +58,8 @@ export default function CheckoutPage() {
   }, [fetchCart]);
 
   const subtotal = cart?.subtotal || 0;
-  const serviceFee = subtotal * 0.05;
   const shippingFee = 0;
-  const total = subtotal + serviceFee + shippingFee;
+  const total = subtotal + shippingFee;
 
   const handleInputChange = (field: keyof ShippingAddress, value: string) => {
     setShippingAddress((prev) => ({ ...prev, [field]: value }));
@@ -367,50 +365,6 @@ export default function CheckoutPage() {
                       )}
                     </div>
                   </button>
-
-                  <button
-                    onClick={() => setPaymentMethod("cash")}
-                    className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all",
-                      paymentMethod === "cash"
-                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                        : "border-(--border) hover:border-primary-300"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "p-2 rounded-lg",
-                          paymentMethod === "cash"
-                            ? "bg-primary-100 dark:bg-primary-900/50"
-                            : "bg-gray-100 dark:bg-gray-800"
-                        )}
-                      >
-                        <Banknote
-                          size={24}
-                          className={
-                            paymentMethod === "cash"
-                              ? "text-primary-600"
-                              : "text-gray-500"
-                          }
-                        />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-(--text)">
-                          {t("marketplace", "cashOnDelivery")}
-                        </p>
-                        <p className="text-sm text-(--text-muted)">
-                          {t("marketplace", "payWhenYouReceive")}
-                        </p>
-                      </div>
-                      {paymentMethod === "cash" && (
-                        <CheckCircle
-                          size={20}
-                          className="ml-auto text-primary-600"
-                        />
-                      )}
-                    </div>
-                  </button>
                 </div>
               </Card>
 
@@ -487,10 +441,6 @@ export default function CheckoutPage() {
                     <span className="text-(--text-muted)">{t("marketplace", "shipping")}</span>
                     <span className="text-green-600 font-medium">{t("marketplace", "free")}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">{t("marketplace", "serviceFee")} (5%)</span>
-                    <span className="text-(--text)">${serviceFee.toFixed(2)}</span>
-                  </div>
                 </div>
 
                 <div className="flex justify-between py-4 border-t border-(--border)">
@@ -513,15 +463,10 @@ export default function CheckoutPage() {
                       <Loader2 size={20} className="mr-2 animate-spin" />
                       {t("marketplace", "processing")}
                     </>
-                  ) : paymentMethod === "tap" ? (
+                  ) : (
                     <>
                       <CreditCard size={20} className="mr-2" />
                       {t("marketplace", "pay")} ${total.toFixed(2)}
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={20} className="mr-2" />
-                      {t("marketplace", "placeOrder")}
                     </>
                   )}
                 </Button>

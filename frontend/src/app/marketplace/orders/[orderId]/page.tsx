@@ -395,10 +395,12 @@ export default function OrderDetailsPage() {
                       )}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-(--text-muted)">{t("marketplace", "serviceFee")}</span>
-                    <span className="text-(--text)">${order.serviceFee.toFixed(2)}</span>
-                  </div>
+                  {order.serviceFee > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-(--text-muted)">{t("marketplace", "serviceFee")}</span>
+                      <span className="text-(--text)">${order.serviceFee.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-2 border-t border-(--border)">
                     <span className="font-semibold text-(--text)">{t("marketplace", "total")}</span>
                     <span className="font-bold text-xl text-primary-600">
