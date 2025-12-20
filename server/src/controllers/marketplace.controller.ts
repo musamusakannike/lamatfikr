@@ -1283,6 +1283,26 @@ export async function verifyOrderPayment(req: Request, res: Response, next: Next
       url: orderUrl,
     });
 
+    // Credit wallets: 85% to seller, 15% to admin
+    try {
+      await WalletService.splitPayment(
+        order.total,
+        order.sellerId as Types.ObjectId,
+        TransactionType.productPurchase,
+        `Marketplace order #${order.orderNumber}`,
+        order._id,
+        "Order",
+        {
+          orderNumber: order.orderNumber,
+          buyerId: order.buyerId.toString(),
+          itemCount: order.items.length,
+        }
+      );
+    } catch (walletError) {
+      console.error("Failed to credit wallets for order payment:", walletError);
+      // Continue even if wallet crediting fails
+    }
+
     // Update product quantities
     for (const item of order.items) {
       await ProductModel.updateOne(
@@ -1434,27 +1454,7 @@ export async function updateOrderStatus(req: Request, res: Response, next: NextF
         updates.deliveredAt = new Date();
       } else if (status === OrderStatus.completed) {
         updates.completedAt = new Date();
-
-        // Credit wallets: 85% to seller, 15% to admin
-        try {
-          await WalletService.splitPayment(
-            order.total,
-            order.sellerId as Types.ObjectId,
-            TransactionType.productPurchase,
-            `Marketplace order #${order.orderNumber}`,
-            order._id,
-            "Order",
-            {
-              orderNumber: order.orderNumber,
-              buyerId: order.buyerId.toString(),
-              itemCount: order.items.length,
-            }
-          );
-        } catch (walletError) {
-          console.error("Failed to credit wallets for order completion:", walletError);
-          // Continue with order update even if wallet crediting fails
-          // This prevents order status from being stuck
-        }
+        // Wallet crediting is done at payment verification time, not completion
       }
     }
 

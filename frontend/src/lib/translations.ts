@@ -2198,7 +2198,7 @@ export const translations = {
       ar: "فشل تحديث المفضلة",
       en: "Failed to update favorites",
     },
-    
+
     reviewsLabel: {
       ar: "تقييمات",
       en: "reviews",
@@ -2591,6 +2591,14 @@ export const translations = {
     page: {
       ar: "صفحة",
       en: "Page",
+    },
+    orderPaymentConfirmed: {
+      ar: "تم تأكيد دفع طلبك",
+      en: "Your order payment was confirmed",
+    },
+    newPaidOrder: {
+      ar: "لديك طلب مدفوع جديد",
+      en: "You have a new paid order",
     },
   },
 
