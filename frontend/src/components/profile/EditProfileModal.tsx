@@ -281,7 +281,7 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
 
   if (isLoading) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Edit Profile">
+      <Modal isOpen={isOpen} onClose={onClose} size="lg" title={t("profile", "editProfile")}>
         <div className="p-8 flex items-center justify-center">
           <Loader2 size={32} className="animate-spin text-primary-500" />
         </div>
@@ -290,85 +290,62 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" title="Edit Profile">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" title={t("profile", "editProfile")}>
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           {/* Section tabs */}
-          <div className="flex border-b border-(--border) mb-6">
-            <button
-              type="button"
-              onClick={() => setActiveSection("basic")}
-              className={cn(
-                "flex-1 py-3 text-sm font-medium transition-colors relative",
-                activeSection === "basic"
-                  ? "text-primary-600 dark:text-primary-400"
-                  : "text-(--text-muted) hover:text-(--text)"
-              )}
-            >
-              Basic Info
-              {activeSection === "basic" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSection("details")}
-              className={cn(
-                "flex-1 py-3 text-sm font-medium transition-colors relative",
-                activeSection === "details"
-                  ? "text-primary-600 dark:text-primary-400"
-                  : "text-(--text-muted) hover:text-(--text)"
-              )}
-            >
-              Details
-              {activeSection === "details" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSection("photos")}
-              className={cn(
-                "flex-1 py-3 text-sm font-medium transition-colors relative",
-                activeSection === "photos"
-                  ? "text-primary-600 dark:text-primary-400"
-                  : "text-(--text-muted) hover:text-(--text)"
-              )}
-            >
-              Photos
-              {activeSection === "photos" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-              )}
-            </button>
+          <div className="flex border-b border-(--border) mb-6 overflow-x-auto no-scrollbar">
+            {[
+              { id: "basic", label: "basicInfo" },
+              { id: "personal", label: "personalDetails" },
+              { id: "professional", label: "professional" },
+              { id: "interests", label: "interestsLanguages" },
+              { id: "photos", label: "photos" },
+            ].map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => setActiveSection(section.id as any)}
+                className={cn(
+                  "flex-1 py-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap",
+                  activeSection === section.id
+                    ? "text-primary-600 dark:text-primary-400"
+                    : "text-(--text-muted) hover:text-(--text)"
+                )}
+              >
+                {t("profile", section.label)}
+                {activeSection === section.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Basic Info Section */}
           {activeSection === "basic" && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="First Name" icon={User}>
+                <FormField label={t("auth", "firstName")} icon={User}>
                   <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
                     className={inputClasses}
-                    placeholder="Enter first name"
                   />
                 </FormField>
-                <FormField label="Last Name" icon={User}>
+                <FormField label={t("auth", "lastName")} icon={User}>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
                     className={inputClasses}
-                    placeholder="Enter last name"
                   />
                 </FormField>
               </div>
 
-              <FormField label="Username" icon={User}>
+              <FormField label={t("auth", "username")} icon={User}>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)">
                     @
@@ -379,84 +356,158 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
                     value={formData.username}
                     onChange={handleChange}
                     className={cn(inputClasses, "pl-8")}
-                    placeholder="username"
                   />
                 </div>
               </FormField>
 
-              <FormField label="Bio" icon={FileText}>
+              <FormField label={t("auth", "bio")} icon={FileText}>
                 <textarea
                   name="bio"
                   value={formData.bio}
                   onChange={handleChange}
                   rows={4}
                   className={cn(inputClasses, "resize-none")}
-                  placeholder="Tell others about yourself..."
+                  placeholder={t("auth", "tellUsAboutYourself")}
                 />
               </FormField>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Email" icon={Mail}>
+                <FormField label={t("profile", "email")} icon={Mail}>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     className={inputClasses}
-                    placeholder="email@example.com"
+                    readOnly
                   />
                 </FormField>
-                <FormField label="Phone" icon={Phone}>
+                <FormField label={t("profile", "phone")} icon={Phone}>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     className={inputClasses}
-                    placeholder="+1 234 567 8900"
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t("profile", "birthday")} icon={Calendar}>
+                  <input
+                    type="date"
+                    name="birthday"
+                    value={formData.birthday}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </FormField>
+                <FormField label={t("profile", "location")} icon={MapPin}>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className={inputClasses}
+                    placeholder="City, Country"
                   />
                 </FormField>
               </div>
             </div>
           )}
 
-          {/* Details Section */}
-          {activeSection === "details" && (
+          {/* Personal Details Section */}
+          {activeSection === "personal" && (
             <div className="space-y-4">
-              <FormField label="Location" icon={MapPin}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t("profile", "gender")} icon={User}>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  >
+                    {genderOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+                <FormField label={t("profile", "relationshipStatus")} icon={Heart}>
+                  <select
+                    name="relationshipStatus"
+                    value={formData.relationshipStatus}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  >
+                    {relationshipOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option || t("profile", "relationshipStatus")}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t("profile", "nationality")} icon={Globe}>
+                  <input
+                    type="text"
+                    name="nationality"
+                    value={formData.nationality}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </FormField>
+                <FormField label={t("profile", "city")} icon={MapPin}>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className={inputClasses}
+                  />
+                </FormField>
+              </div>
+            </div>
+          )}
+
+          {/* Professional Section */}
+          {activeSection === "professional" && (
+            <div className="space-y-4">
+              <FormField label={t("profile", "occupation")} icon={Briefcase}>
                 <input
                   type="text"
-                  name="location"
-                  value={formData.location}
+                  name="occupation"
+                  value={formData.occupation}
                   onChange={handleChange}
                   className={inputClasses}
-                  placeholder="City, Country"
                 />
               </FormField>
 
-              <FormField label="Works at" icon={Briefcase}>
+              <FormField label={t("profile", "workingAt")} icon={Briefcase}>
                 <input
                   type="text"
                   name="workingAt"
                   value={formData.workingAt}
                   onChange={handleChange}
                   className={inputClasses}
-                  placeholder="Company name"
                 />
               </FormField>
 
-              <FormField label="Education" icon={GraduationCap}>
+              <FormField label={t("profile", "school")} icon={GraduationCap}>
                 <input
                   type="text"
                   name="school"
                   value={formData.school}
                   onChange={handleChange}
                   className={inputClasses}
-                  placeholder="School or University"
                 />
               </FormField>
 
-              <FormField label="Website" icon={LinkIcon}>
+              <FormField label={t("profile", "website")} icon={LinkIcon}>
                 <input
                   type="url"
                   name="website"
@@ -466,31 +517,70 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
                   placeholder="https://yourwebsite.com"
                 />
               </FormField>
+            </div>
+          )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Birthday" icon={Calendar}>
+          {/* Interests & Languages Section */}
+          {activeSection === "interests" && (
+            <div className="space-y-6">
+              {/* Interests */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium flex items-center gap-2 text-(--text-muted)">
+                  <Tag size={16} className="text-primary-500" />
+                  {t("profile", "interests")}
+                </label>
+                <div className="flex gap-2">
                   <input
-                    type="date"
-                    name="birthday"
-                    value={formData.birthday}
-                    onChange={handleChange}
+                    value={newInterest}
+                    onChange={(e) => setNewInterest(e.target.value)}
+                    placeholder={t("profile", "interestsPlaceholder")}
                     className={inputClasses}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
                   />
-                </FormField>
-                <FormField label="Relationship Status" icon={Heart}>
-                  <select
-                    name="relationshipStatus"
-                    value={formData.relationshipStatus}
-                    onChange={handleChange}
+                  <Button type="button" onClick={addInterest} disabled={!newInterest.trim()}>
+                    <Plus size={16} />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.interests.map((interest) => (
+                    <div key={interest} className="bg-primary-100 dark:bg-primary-900 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                      <span>{interest}</span>
+                      <button type="button" onClick={() => removeInterest(interest)} className="hover:text-red-500 ml-1">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Languages */}
+              <div className="space-y-3 pt-4 border-t border-(--border)">
+                <label className="text-sm font-medium flex items-center gap-2 text-(--text-muted)">
+                  <LanguagesIcon size={16} className="text-primary-500" />
+                  {t("profile", "languagesSpoken")}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={newLanguage}
+                    onChange={(e) => setNewLanguage(e.target.value)}
+                    placeholder={t("profile", "languagesPlaceholder")}
                     className={inputClasses}
-                  >
-                    {relationshipOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLanguage())}
+                  />
+                  <Button type="button" onClick={addLanguage} disabled={!newLanguage.trim()}>
+                    <Plus size={16} />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.languagesSpoken.map((lang) => (
+                    <div key={lang} className="bg-primary-100 dark:bg-primary-900 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                      <span>{lang}</span>
+                      <button type="button" onClick={() => removeLanguage(lang)} className="hover:text-red-500 ml-1">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -616,7 +706,7 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
         <div className="flex items-center justify-end gap-3 p-4 border-t border-(--border)">
           <Button type="button" variant="ghost" onClick={onClose}>
             <X size={16} className="mr-2" />
-            Cancel
+            {t("profile", "cancel")}
           </Button>
           <Button type="submit" variant="primary" disabled={isSaving}>
             {isSaving ? (
@@ -624,7 +714,7 @@ export function EditProfileModal({ isOpen, onClose, onProfileUpdate }: EditProfi
             ) : (
               <Save size={16} className="mr-2" />
             )}
-            Save Changes
+            {t("profile", "saveChanges")}
           </Button>
         </div>
       </form>
