@@ -2,6 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 import { apiClient } from "@/lib/api";
 import type { AdminAnalyticsResponse, AdminOverviewResponse } from "@/types/admin";
@@ -39,55 +48,60 @@ function StatCard({
   );
 }
 
-function LineChart({
+function DashboardChart({
   title,
   subtitle,
-  values,
+  data,
+  dataKey = "value",
 }: {
   title: string;
   subtitle?: string;
-  values: number[];
+  data: any[];
+  dataKey?: string;
 }) {
-  const width = 640;
-  const height = 140;
-  const padding = 12;
-
-  const max = Math.max(1, ...values);
-  const min = Math.min(0, ...values);
-  const range = Math.max(1, max - min);
-  const innerW = width - padding * 2;
-  const innerH = height - padding * 2;
-
-  const points = values.map((v, i) => {
-    const x = padding + (values.length <= 1 ? 0 : (i / (values.length - 1)) * innerW);
-    const y = padding + innerH - ((v - min) / range) * innerH;
-    return { x, y };
-  });
-
-  const d = points
-    .map((p, idx) => `${idx === 0 ? "M" : "L"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
-    .join(" ");
-
   return (
-    <div className="bg-(--bg-card) border border-(--border) rounded-xl p-4 shadow-sm">
-      <div className="flex items-baseline justify-between gap-4">
-        <div>
-          <div className="text-sm font-semibold text-(--text)">{title}</div>
-          {subtitle ? (
-            <div className="text-xs text-(--text-muted) mt-0.5">{subtitle}</div>
-          ) : null}
-        </div>
-        <div className="text-xs text-(--text-muted)">max: {max}</div>
+    <div className="bg-(--bg-card) border border-(--border) rounded-xl p-4 shadow-sm h-[300px] flex flex-col">
+      <div className="mb-4">
+        <div className="text-sm font-semibold text-(--text)">{title}</div>
+        {subtitle ? (
+          <div className="text-xs text-(--text-muted) mt-0.5">{subtitle}</div>
+        ) : null}
       </div>
-      <div className="mt-3 overflow-x-auto">
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-          <path d={d} fill="none" stroke="var(--color-primary-500)" strokeWidth={2} />
-          <path
-            d={`${d} L ${padding + innerW} ${padding + innerH} L ${padding} ${padding + innerH} Z`}
-            fill="rgba(124, 58, 237, 0.12)"
-            stroke="none"
-          />
-        </svg>
+      <div className="flex-1 w-full min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" opacity={0.5} />
+            <XAxis
+              dataKey="name"
+              stroke="var(--text-muted)"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="var(--text-muted)"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--bg-card)",
+                borderColor: "var(--border)",
+                borderRadius: "8px",
+                color: "var(--text)",
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey={dataKey}
+              stroke="var(--color-primary-500)"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -283,10 +297,22 @@ export default function DashboardPage() {
     ];
   }, [data, t]);
 
-  const chartValues = useMemo(() => {
-    const users = analytics?.users?.map((p) => p.count) ?? [];
-    const txCounts = analytics?.transactions?.map((p) => p.count) ?? [];
-    const txGross = analytics?.transactions?.map((p) => Math.round(p.grossAmount)) ?? [];
+  const chartData = useMemo(() => {
+    const users =
+      analytics?.users?.map((p, i) => ({
+        name: i + 1,
+        value: p.count,
+      })) ?? [];
+    const txCounts =
+      analytics?.transactions?.map((p, i) => ({
+        name: i + 1,
+        value: p.count,
+      })) ?? [];
+    const txGross =
+      analytics?.transactions?.map((p, i) => ({
+        name: i + 1,
+        value: Math.round(p.grossAmount),
+      })) ?? [];
     return { users, txCounts, txGross };
   }, [analytics]);
 
@@ -337,18 +363,18 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <LineChart
+            <DashboardChart
               title={t("adminCharts", "userGrowth")}
-              values={chartValues.users}
+              data={chartData.users}
             />
-            <LineChart
+            <DashboardChart
               title={t("adminCharts", "transactionsTrend")}
-              values={chartValues.txCounts}
+              data={chartData.txCounts}
             />
             <div className="lg:col-span-2">
-              <LineChart
+              <DashboardChart
                 title={t("adminCharts", "transactionVolumeTrend")}
-                values={chartValues.txGross}
+                data={chartData.txGross}
               />
             </div>
           </div>
