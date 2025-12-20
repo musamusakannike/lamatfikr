@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
 import { uploadBufferToR2 } from "../services/s3";
+import { optimizeImageBuffer } from "../utils/image";
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -48,13 +49,15 @@ export const uploadImage: RequestHandler = async (req, res, next) => {
     }
 
     const folder = (req.query.folder as string) || "images";
-    const ext = path.extname(file.originalname) || `.${file.mimetype.split("/")[1]}`;
-    const key = `${folder}/${userId}/${uuidv4()}${ext}`;
+
+    const optimized = await optimizeImageBuffer(file);
+    const extensionFromMime = optimized.extension || path.extname(file.originalname) || `.${(optimized.contentType || file.mimetype).split("/")[1]}`;
+    const key = `${folder}/${userId}/${uuidv4()}${extensionFromMime}`;
 
     const result = await uploadBufferToR2({
       key,
-      contentType: file.mimetype,
-      buffer: file.buffer,
+      contentType: optimized.contentType || file.mimetype,
+      buffer: optimized.buffer,
     });
 
     if (!result.url) {
@@ -97,13 +100,21 @@ export const uploadMedia: RequestHandler = async (req, res, next) => {
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.mimetype);
     const isAudio = ALLOWED_AUDIO_TYPES.includes(file.mimetype);
     const folder = (req.query.folder as string) || (isVideo ? "videos" : isAudio ? "audio" : "images");
-    const ext = path.extname(file.originalname) || `.${file.mimetype.split("/")[1]}`;
-    const key = `${folder}/${userId}/${uuidv4()}${ext}`;
+
+    const optimized =
+      !isVideo && !isAudio && ALLOWED_IMAGE_TYPES.includes(file.mimetype)
+        ? await optimizeImageBuffer(file)
+        : { buffer: file.buffer };
+
+    const effectiveMime = optimized.contentType || file.mimetype;
+    const extensionFromMime =
+      optimized.extension || path.extname(file.originalname) || `.${effectiveMime.split("/")[1]}`;
+    const key = `${folder}/${userId}/${uuidv4()}${extensionFromMime}`;
 
     const result = await uploadBufferToR2({
       key,
-      contentType: file.mimetype,
-      buffer: file.buffer,
+      contentType: effectiveMime,
+      buffer: optimized.buffer,
     });
 
     if (!result.url) {
