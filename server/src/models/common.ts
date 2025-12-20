@@ -75,6 +75,8 @@ export const NotificationType = {
   verification_request_submitted: "verification_request_submitted",
   verification_request_approved: "verification_request_approved",
   verification_request_rejected: "verification_request_rejected",
+  marketplace_order_paid_buyer: "marketplace_order_paid_buyer",
+  marketplace_order_paid_seller: "marketplace_order_paid_seller",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

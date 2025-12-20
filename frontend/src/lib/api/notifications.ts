@@ -14,15 +14,17 @@ export interface Notification {
   userId: string;
   actorId?: NotificationActor | string;
   type:
-    | "like"
-    | "comment"
-    | "follow"
-    | "mention"
-    | "friend_request"
-    | "friend_accept"
-    | "verification_request_submitted"
-    | "verification_request_approved"
-    | "verification_request_rejected";
+  | "like"
+  | "comment"
+  | "follow"
+  | "mention"
+  | "friend_request"
+  | "friend_accept"
+  | "verification_request_submitted"
+  | "verification_request_approved"
+  | "verification_request_rejected"
+  | "marketplace_order_paid_buyer"
+  | "marketplace_order_paid_seller";
   targetId?: string;
   url: string;
   isRead: boolean;

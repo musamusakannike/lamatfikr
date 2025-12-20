@@ -21,6 +21,8 @@ import {
 } from "../services/email";
 import { WalletService } from "../services/wallet.service";
 import { TransactionType } from "../models/transaction.model";
+import { createNotification } from "../services/notification";
+import { NotificationType } from "../models/common";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
@@ -1261,6 +1263,25 @@ export async function verifyOrderPayment(req: Request, res: Response, next: Next
         );
       }
     }
+
+    // Create in-app notifications
+    const orderUrl = `${env.FRONTEND_URL}/marketplace/orders/${order._id.toString()}`;
+
+    // Notify buyer
+    await createNotification({
+      userId: order.buyerId.toString(),
+      type: NotificationType.marketplace_order_paid_buyer,
+      targetId: order._id.toString(),
+      url: orderUrl,
+    });
+
+    // Notify seller
+    await createNotification({
+      userId: order.sellerId.toString(),
+      type: NotificationType.marketplace_order_paid_seller,
+      targetId: order._id.toString(),
+      url: orderUrl,
+    });
 
     // Update product quantities
     for (const item of order.items) {
