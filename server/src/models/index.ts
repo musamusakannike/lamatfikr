@@ -68,3 +68,6 @@ export * from "./product-favorite.model";
 export * from "./product-review.model";
 export * from "./order.model";
 export * from "./cart.model";
+
+export * from "./announcement.model";
+export * from "./announcement-read.model";

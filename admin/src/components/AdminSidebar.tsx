@@ -25,6 +25,7 @@ import {
   Activity,
   CreditCard,
   ChevronDown,
+  Megaphone,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -93,6 +94,12 @@ export default function AdminSidebar({
         { key: "stories", href: "/dashboard/content/stories" },
         { key: "uploadsMedia", href: "/dashboard/content/media" },
       ],
+    },
+    {
+      type: "link",
+      key: "announcements",
+      href: "/dashboard/announcements",
+      icon: Megaphone,
     },
     {
       type: "group",
