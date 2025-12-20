@@ -27,7 +27,8 @@ import type {
   MessageResponse,
 } from "@/types/auth";
 
-const ADMIN_ROLE = "admin";
+const ALLOWED_ROLES = ["admin", "superadmin"];
+
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await apiClient.get<{ user: User }>("/auth/me");
       const userData = response.user;
 
-      if (userData.role !== ADMIN_ROLE) {
+      if (!ALLOWED_ROLES.includes(userData.role)) {
         logoutAndRedirect();
         return;
       }
@@ -111,7 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     async (data: LoginInput) => {
       const response = await apiClient.post<AuthResponse>("/auth/login", data);
 
-      if (response.user.role !== ADMIN_ROLE) {
+      if (!ALLOWED_ROLES.includes(response.user.role)) {
         logoutAndRedirect();
         throw new Error("Admin access only");
       }
@@ -139,7 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
 
       if (!response.requiresProfileCompletion && response.accessToken && response.user) {
-        if (response.user.role !== ADMIN_ROLE) {
+        if (!ALLOWED_ROLES.includes(response.user.role)) {
           logoutAndRedirect();
           throw new Error("Admin access only");
         }
@@ -161,7 +162,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         data
       );
 
-      if (response.user.role !== ADMIN_ROLE) {
+      if (!ALLOWED_ROLES.includes(response.user.role)) {
         logoutAndRedirect();
         throw new Error("Admin access only");
       }
