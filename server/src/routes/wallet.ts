@@ -16,4 +16,9 @@ router.patch("/withdrawals/:withdrawalId/cancel", walletController.cancelWithdra
 router.get("/admin/withdrawals", walletController.getAllWithdrawals);
 router.patch("/admin/withdrawals/:withdrawalId/process", walletController.processWithdrawal);
 
+// Company wallet routes (admin only)
+router.get("/admin/company", walletController.getCompanyWallet);
+router.get("/admin/company/transactions", walletController.getCompanyTransactions);
+
+
 export default router;

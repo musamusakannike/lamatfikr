@@ -206,7 +206,7 @@ export const walletController = {
     try {
       const userId = getUserId(req);
       const user = await UserModel.findById(userId);
-      
+
       if (!user || (user.role !== UserRole.superadmin && user.role !== UserRole.admin)) {
         return res.status(403).json({
           success: false,
@@ -255,7 +255,7 @@ export const walletController = {
     try {
       const userId = getUserId(req);
       const user = await UserModel.findById(userId);
-      
+
       if (!user || (user.role !== UserRole.superadmin && user.role !== UserRole.admin)) {
         return res.status(403).json({
           success: false,
@@ -338,4 +338,74 @@ export const walletController = {
       });
     }
   },
+
+  async getCompanyWallet(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const user = await UserModel.findById(userId);
+
+      if (!user || (user.role !== UserRole.superadmin && user.role !== UserRole.admin)) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized - Admin access required",
+        });
+      }
+
+      const companyWallet = await WalletService.getOrCreateCompanyWallet();
+
+      res.json({
+        success: true,
+        wallet: {
+          balance: companyWallet.balance,
+          pendingBalance: companyWallet.pendingBalance,
+          totalEarned: companyWallet.totalEarned,
+          totalWithdrawn: companyWallet.totalWithdrawn,
+          currency: companyWallet.currency,
+          lastTransactionAt: companyWallet.lastTransactionAt,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch company wallet",
+      });
+    }
+  },
+
+  async getCompanyTransactions(req: Request, res: Response) {
+    try {
+      const userId = getUserId(req);
+      const user = await UserModel.findById(userId);
+
+      if (!user || (user.role !== UserRole.superadmin && user.role !== UserRole.admin)) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized - Admin access required",
+        });
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const type = req.query.type as TransactionType | undefined;
+
+      const companyWallet = await WalletService.getOrCreateCompanyWallet();
+      const result = await WalletService.getTransactions(
+        companyWallet._id as Types.ObjectId,
+        page,
+        limit,
+        type
+      );
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to fetch company transactions",
+      });
+    }
+  },
 };
+

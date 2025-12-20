@@ -11,7 +11,7 @@ const SELLER_PERCENTAGE = 0.85;
 export class WalletService {
   static async getOrCreateWallet(userId: ObjectId) {
     let wallet = await WalletModel.findOne({ userId });
-    
+
     if (!wallet) {
       wallet = await WalletModel.create({
         userId,
@@ -22,13 +22,25 @@ export class WalletService {
         totalWithdrawn: 0,
       });
     }
-    
+
     return wallet;
   }
 
-  static async getSuperAdminId(): Promise<ObjectId | null> {
-    const superAdmin = await UserModel.findOne({ role: UserRole.superadmin });
-    return superAdmin?._id || null;
+  static async getOrCreateCompanyWallet() {
+    let wallet = await WalletModel.findOne({ isCompanyWallet: true });
+
+    if (!wallet) {
+      wallet = await WalletModel.create({
+        isCompanyWallet: true,
+        balance: 0,
+        currency: "SAR",
+        pendingBalance: 0,
+        totalEarned: 0,
+        totalWithdrawn: 0,
+      });
+    }
+
+    return wallet;
   }
 
   static async splitPayment(
@@ -47,14 +59,9 @@ export class WalletService {
       const platformFee = Math.round(amount * PLATFORM_FEE_PERCENTAGE * 100) / 100;
       const sellerAmount = Math.round(amount * SELLER_PERCENTAGE * 100) / 100;
 
-      const superAdminId = await this.getSuperAdminId();
-      if (!superAdminId) {
-        throw new Error("Super admin not found");
-      }
-
-      const [sellerWallet, platformWallet] = await Promise.all([
+      const [sellerWallet, companyWallet] = await Promise.all([
         this.getOrCreateWallet(sellerId),
-        this.getOrCreateWallet(superAdminId),
+        this.getOrCreateCompanyWallet(),
       ]);
 
       sellerWallet.balance += sellerAmount;
@@ -62,10 +69,10 @@ export class WalletService {
       sellerWallet.lastTransactionAt = new Date();
       await sellerWallet.save({ session });
 
-      platformWallet.balance += platformFee;
-      platformWallet.totalEarned += platformFee;
-      platformWallet.lastTransactionAt = new Date();
-      await platformWallet.save({ session });
+      companyWallet.balance += platformFee;
+      companyWallet.totalEarned += platformFee;
+      companyWallet.lastTransactionAt = new Date();
+      await companyWallet.save({ session });
 
       const [sellerTransaction, platformTransaction] = await TransactionModel.create(
         [
@@ -82,7 +89,7 @@ export class WalletService {
             completedAt: new Date(),
           },
           {
-            userId: superAdminId,
+            userId: companyWallet._id,
             type: TransactionType.platformFee,
             amount: platformFee,
             currency: "SAR",
@@ -90,7 +97,7 @@ export class WalletService {
             description: `${description} (15% platform fee)`,
             referenceId,
             referenceType,
-            metadata: { ...metadata, split: "platform", originalAmount: amount },
+            metadata: { ...metadata, split: "platform", originalAmount: amount, isCompanyTransaction: true },
             completedAt: new Date(),
           },
         ],
@@ -122,32 +129,32 @@ export class WalletService {
 
   static async releasePendingBalance(userId: ObjectId, amount: number) {
     const wallet = await this.getOrCreateWallet(userId);
-    
+
     if (wallet.pendingBalance < amount) {
       throw new Error("Insufficient pending balance");
     }
-    
+
     wallet.pendingBalance -= amount;
     wallet.balance += amount;
     wallet.totalEarned += amount;
     wallet.lastTransactionAt = new Date();
     await wallet.save();
-    
+
     return wallet;
   }
 
   static async deductBalance(userId: ObjectId, amount: number) {
     const wallet = await this.getOrCreateWallet(userId);
-    
+
     if (wallet.balance < amount) {
       throw new Error("Insufficient balance");
     }
-    
+
     wallet.balance -= amount;
     wallet.totalWithdrawn += amount;
     wallet.lastTransactionAt = new Date();
     await wallet.save();
-    
+
     return wallet;
   }
 
@@ -194,7 +201,7 @@ export class WalletService {
   ) {
     const skip = (page - 1) * limit;
     const query: any = { userId };
-    
+
     if (type) {
       query.type = type;
     }
