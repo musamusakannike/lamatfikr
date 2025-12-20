@@ -101,7 +101,7 @@ export class WalletService {
             completedAt: new Date(),
           },
         ],
-        { session }
+        { session, ordered: true }
       );
 
       await session.commitTransaction();
