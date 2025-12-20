@@ -12,12 +12,10 @@ import {
   Mail,
   Calendar,
   BadgeCheck,
-  CreditCard,
   User as UserIcon,
   Loader2,
   ChevronLeft,
-  ChevronRight,
-  MoreHorizontal
+  ChevronRight
 } from "lucide-react";
 
 import { apiClient, getErrorMessage } from "@/lib/api";
@@ -492,7 +490,7 @@ function UserRow({
   onViewProfile: (userId: string) => void;
   onGrantVerified: (userId: string) => void;
 }) {
-  const { t, isRTL } = useLanguage();
+  const { isRTL } = useLanguage();
 
   return (
     <tr className={cn(
@@ -513,6 +511,7 @@ function UserRow({
           <div className="relative shrink-0">
             <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center overflow-hidden border border-(--border)">
               {user.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
               ) : (
                 <UserIcon className="text-primary-600 dark:text-primary-400" size={18} />
@@ -629,10 +628,10 @@ function ActionMenu({
   onViewProfile,
   onGrantVerified
 }: {
-  user: AdminUserListItem,
-  onUpdate: any,
-  onViewProfile: any,
-  onGrantVerified: any
+  user: AdminUserListItem;
+  onUpdate: (userId: string, payload: Record<string, unknown>) => Promise<void>;
+  onViewProfile: () => void;
+  onGrantVerified: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -735,7 +734,7 @@ function UserCard({
   onViewProfile: (userId: string) => void;
   onGrantVerified: (userId: string) => void;
 }) {
-  const { t, isRTL } = useLanguage();
+
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -758,6 +757,7 @@ function UserCard({
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 overflow-hidden border border-(--border)">
                 {user.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
