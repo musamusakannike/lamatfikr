@@ -48,6 +48,7 @@ export const translations = {
 
     wallet: { ar: "المحفظة", en: "Wallet" },
     walletOverview: { ar: "نظرة عامة", en: "Overview" },
+    companyWallet: { ar: "محفظة الشركة", en: "Company Wallet" },
     transactions: { ar: "المعاملات", en: "Transactions" },
     withdrawals: { ar: "السحوبات", en: "Withdrawals" },
     adminWithdrawals: { ar: "سحوبات (إدارة)", en: "Withdrawals (Admin)" },
@@ -278,6 +279,40 @@ export const translations = {
     paginationPrev: { ar: "السابق", en: "Prev" },
     paginationNext: { ar: "التالي", en: "Next" },
     page: { ar: "صفحة", en: "Page" },
+  },
+
+  companyWallet: {
+    title: { ar: "محفظة الشركة", en: "Company Wallet" },
+    subtitle: { ar: "أرباح المنصة وسجل المعاملات", en: "Platform revenue and transaction history" },
+    balance: { ar: "الرصيد", en: "Balance" },
+    pendingBalance: { ar: "رصيد معلّق", en: "Pending balance" },
+    totalEarned: { ar: "إجمالي الأرباح", en: "Total earned" },
+    totalWithdrawn: { ar: "إجمالي المسحوب", en: "Total withdrawn" },
+    lastTransactionAt: { ar: "آخر معاملة", en: "Last transaction" },
+    platformTransactions: { ar: "معاملات رسوم المنصة", en: "Platform Fee Transactions" },
+
+    typeRoomPayment: { ar: "دفع غرفة", en: "Room payment" },
+    typeProductPurchase: { ar: "شراء منتج", en: "Product purchase" },
+    typePlatformFee: { ar: "رسوم المنصة", en: "Platform fee" },
+    typeWithdrawal: { ar: "سحب", en: "Withdrawal" },
+    typeRefund: { ar: "استرجاع", en: "Refund" },
+
+    colId: { ar: "المعرف", en: "ID" },
+    colType: { ar: "النوع", en: "Type" },
+    colAmount: { ar: "المبلغ", en: "Amount" },
+    colDescription: { ar: "الوصف", en: "Description" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    loadingTransactions: { ar: "جاري تحميل المعاملات...", en: "Loading transactions..." },
+    failedToLoad: { ar: "فشل التحميل", en: "Failed to load" },
+    noTransactions: { ar: "لا توجد معاملات", en: "No transactions" },
+
+    showingPage: { ar: "عرض الصفحة", en: "Showing page" },
+    of: { ar: "من", en: "of" },
+    previous: { ar: "السابق", en: "Previous" },
+    next: { ar: "التالي", en: "Next" },
   },
 
   adminSocial: {

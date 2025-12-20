@@ -65,3 +65,17 @@ export interface ProcessWithdrawalResponse {
   message: string;
   withdrawal: WalletWithdrawal;
 }
+
+// Company Wallet Types
+export interface CompanyWalletResponse {
+  success: boolean;
+  wallet: WalletStats;
+}
+
+export interface CompanyTransactionsResponse {
+  success: boolean;
+  transactions: WalletTransaction[];
+  total: number;
+  page: number;
+  totalPages: number;
+}

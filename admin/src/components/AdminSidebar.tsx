@@ -32,17 +32,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 type NavItem =
   | {
-      type: "link";
-      key: string;
-      href: string;
-      icon: React.ComponentType<{ size?: number; className?: string }>;
-    }
+    type: "link";
+    key: string;
+    href: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+  }
   | {
-      type: "group";
-      key: string;
-      icon: React.ComponentType<{ size?: number; className?: string }>;
-      items: Array<{ key: string; href: string }>;
-    };
+    type: "group";
+    key: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+    items: Array<{ key: string; href: string }>;
+  };
 
 export default function AdminSidebar({
   open,
@@ -135,6 +135,7 @@ export default function AdminSidebar({
       icon: Wallet,
       items: [
         { key: "walletOverview", href: "/dashboard/wallet" },
+        { key: "companyWallet", href: "/dashboard/wallet/company" },
         { key: "transactions", href: "/dashboard/wallet/transactions" },
         { key: "withdrawals", href: "/dashboard/wallet/withdrawals" },
         { key: "adminWithdrawals", href: "/dashboard/wallet/admin-withdrawals" },
@@ -178,6 +179,7 @@ export default function AdminSidebar({
     listings: Store,
     orders: Store,
     walletOverview: Wallet,
+    companyWallet: Building2,
     transactions: CreditCard,
     withdrawals: Wallet,
     adminWithdrawals: Wallet,
