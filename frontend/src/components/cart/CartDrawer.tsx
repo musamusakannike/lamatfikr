@@ -16,6 +16,7 @@ import {
   Package,
 } from "lucide-react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export function CartDrawer() {
   const {
@@ -195,7 +196,7 @@ export function CartDrawer() {
                           </p>
                         )}
                         <p className="text-primary-600 font-semibold">
-                          ${item.price.toFixed(2)}
+                          {formatCurrency(item.price, item.currency)}
                         </p>
                       </div>
 
@@ -256,7 +257,7 @@ export function CartDrawer() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-(--text-muted)">Subtotal</span>
-                <span className="text-(--text)">${subtotal.toFixed(2)}</span>
+                <span className="text-(--text)">{formatCurrency(subtotal, cart.items[0]?.currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-(--text-muted)">Shipping</span>
@@ -265,14 +266,14 @@ export function CartDrawer() {
               <div className="flex justify-between text-sm">
                 <span className="text-(--text-muted)">Service Fee (5%)</span>
                 <span className="text-(--text)">
-                  ${(subtotal * 0.05).toFixed(2)}
+                  {formatCurrency(subtotal * 0.05, cart.items[0]?.currency)}
                 </span>
               </div>
               <div className="h-px bg-(--border) my-2" />
               <div className="flex justify-between">
                 <span className="font-semibold text-(--text)">Total</span>
                 <span className="font-bold text-lg text-primary-600">
-                  ${(subtotal + subtotal * 0.05).toFixed(2)}
+                  {formatCurrency(subtotal + subtotal * 0.05, cart.items[0]?.currency)}
                 </span>
               </div>
             </div>

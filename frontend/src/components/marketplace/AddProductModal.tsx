@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatCurrency, getCurrencySymbol } from "@/lib/utils/formatCurrency";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = false;
-    
+
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -78,7 +79,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           alert(t("marketplace", "maxImagesAllowed"));
           return;
         }
-        
+
         // Create file reader to convert image to data URL
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -88,7 +89,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
         reader.readAsDataURL(file);
       }
     };
-    
+
     // Trigger file picker
     input.click();
   };
@@ -131,17 +132,17 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
+
     onSubmit(formData);
     setIsSubmitting(false);
-    
+
     // Reset form
     setFormData({
       title: "",
@@ -153,7 +154,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       quantity: 1,
       currency: "SAR",
     });
-    
+
     onClose();
   };
 
@@ -253,7 +254,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
               {t("rooms", "price")}
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">{getCurrencySymbol(formData.currency)}</span>
               <input
                 type="number"
                 name="price"
@@ -282,7 +283,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
               {t("marketplace", "originalPriceOptional")}
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)">{getCurrencySymbol(formData.currency)}</span>
               <input
                 type="number"
                 name="originalPrice"

@@ -29,6 +29,7 @@ import { messagesApi } from "@/lib/api/messages";
 import toast from "react-hot-toast";
 import { ProductReviews } from "./ProductReviews";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -221,17 +222,17 @@ export function ProductDetailsModal({
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-bold text-primary-600">
-                ${product.price.toFixed(2)}
+                {formatCurrency(product.price, product.currency)}
               </span>
               {product.originalPrice && (
                 <span className="text-lg text-(--text-muted) line-through">
-                  ${product.originalPrice.toFixed(2)}
+                  {formatCurrency(product.originalPrice, product.currency)}
                 </span>
               )}
               {discount > 0 && (
                 <Badge variant="success">
                   {t("marketplace", "saveAmount")
-                    .replace("{amount}", `$${(product.originalPrice! - product.price).toFixed(2)}`)}
+                    .replace("{amount}", formatCurrency(product.originalPrice! - product.price, product.currency))}
                 </Badge>
               )}
             </div>

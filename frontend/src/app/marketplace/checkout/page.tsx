@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 type PaymentMethod = "tap";
 
@@ -424,7 +425,7 @@ export default function CheckoutPage() {
                           {t("marketplace", "qtyShort")}: {item.quantity}
                         </p>
                         <p className="text-sm font-semibold text-primary-600">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatCurrency(item.price * item.quantity, item.currency)}
                         </p>
                       </div>
                     </div>
@@ -435,7 +436,7 @@ export default function CheckoutPage() {
                 <div className="space-y-2 py-4 border-t border-(--border)">
                   <div className="flex justify-between text-sm">
                     <span className="text-(--text-muted)">{t("marketplace", "subtotal")}</span>
-                    <span className="text-(--text)">${subtotal.toFixed(2)}</span>
+                    <span className="text-(--text)">{formatCurrency(subtotal, cart.items[0]?.currency)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-(--text-muted)">{t("marketplace", "shipping")}</span>
@@ -446,7 +447,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between py-4 border-t border-(--border)">
                   <span className="font-semibold text-(--text)">{t("marketplace", "total")}</span>
                   <span className="font-bold text-xl text-primary-600">
-                    ${total.toFixed(2)}
+                    {formatCurrency(total, cart.items[0]?.currency)}
                   </span>
                 </div>
 
@@ -466,7 +467,7 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <CreditCard size={20} className="mr-2" />
-                      {t("marketplace", "pay")} ${total.toFixed(2)}
+                      {t("marketplace", "pay")} {formatCurrency(total, cart.items[0]?.currency)}
                     </>
                   )}
                 </Button>

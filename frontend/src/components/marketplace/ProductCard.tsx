@@ -8,6 +8,7 @@ import { useState } from "react";
 import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
 import { useCart } from "@/contexts/CartContext";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export interface Product {
   _id: string;
@@ -114,7 +115,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        
+
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isNew && (
@@ -171,7 +172,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
         </span>
 
         {/* Title */}
-        <h3 
+        <h3
           className="font-semibold text-(--text) line-clamp-2 cursor-pointer hover:text-primary-600 transition-colors"
           onClick={() => onViewDetails(product)}
         >
@@ -201,11 +202,11 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
         {/* Price */}
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-primary-600">
-            ${product.price.toFixed(2)}
+            {formatCurrency(product.price, product.currency)}
           </span>
           {product.originalPrice && (
             <span className="text-sm text-(--text-muted) line-through">
-              ${product.originalPrice.toFixed(2)}
+              {formatCurrency(product.originalPrice, product.currency)}
             </span>
           )}
         </div>

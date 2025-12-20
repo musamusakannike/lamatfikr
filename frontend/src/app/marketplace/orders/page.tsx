@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 type OrderType = "bought" | "sold";
 
@@ -347,11 +348,11 @@ export default function OrdersPage() {
                                 {item.title}
                               </p>
                               <p className="text-sm text-(--text-muted)">
-                                {t("marketplace", "qtyShort")}: {item.quantity} × ${item.price.toFixed(2)}
+                                {t("marketplace", "qtyShort")}: {item.quantity} × {formatCurrency(item.price, order.currency)}
                               </p>
                             </div>
                             <p className="font-semibold text-(--text)">
-                              ${(item.quantity * item.price).toFixed(2)}
+                              {formatCurrency(item.quantity * item.price, order.currency)}
                             </p>
                           </div>
                         ))}
@@ -381,7 +382,7 @@ export default function OrdersPage() {
                           <div className="text-right">
                             <p className="text-sm text-(--text-muted)">{t("marketplace", "total")}</p>
                             <p className="font-bold text-lg text-primary-600">
-                              ${order.total.toFixed(2)}
+                              {formatCurrency(order.total, order.currency)}
                             </p>
                           </div>
                           <Link href={`/marketplace/orders/${order._id}`}>
