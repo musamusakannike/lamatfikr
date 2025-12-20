@@ -32,6 +32,10 @@ function getNotificationText(n: Notification, t: (section: string, key: string) 
       return t("notifications", "verificationRequestApproved");
     case "verification_request_rejected":
       return t("notifications", "verificationRequestRejected");
+    case "marketplace_order_paid_buyer":
+      return t("notifications", "orderPaymentConfirmed");
+    case "marketplace_order_paid_seller":
+      return t("notifications", "newPaidOrder");
     default:
       return t("notifications", "newNotification");
   }
