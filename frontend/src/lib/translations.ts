@@ -1593,8 +1593,8 @@ export const translations = {
       en: "Phone Number",
     },
     phonePlaceholder: {
-      ar: "+966 5xxxxxxxx",
-      en: "+1 234 567 8900",
+      ar: "+968 xxxxxxxxx",
+      en: "+968 xxxxxxxxx",
     },
     country: {
       ar: "الدولة",
