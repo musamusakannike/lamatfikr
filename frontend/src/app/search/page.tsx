@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { searchApi, type SearchResponse } from "@/lib/api/search";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,6 +19,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
+  const debouncedQuery = useDebounce(query, 350);
 
   useEffect(() => {
     setQuery(qParam);
@@ -26,7 +28,7 @@ export default function SearchPage() {
   useEffect(() => {
     let active = true;
     const run = async () => {
-      const q = (qParam || "").trim();
+      const q = (debouncedQuery || "").trim();
       if (q.length < 2) {
         setData({ users: [], posts: [] });
         return;
@@ -45,7 +47,7 @@ export default function SearchPage() {
     return () => {
       active = false;
     };
-  }, [qParam]);
+  }, [debouncedQuery]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
