@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, Button } from "@/components/ui";
 import {
@@ -29,6 +29,12 @@ import toast from "react-hot-toast";
 import { useSocket } from "@/contexts/socket-context";
 import { useChat } from "@/contexts/chat-context";
 import { LocationPickerModal, type PickedLocation } from "@/components/shared/LocationPickerModal";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import L from "leaflet";
+
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 interface ChatViewProps {
     conversationId: string;
@@ -65,6 +71,8 @@ export function ChatView({
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
 
+    const [leafletMounted, setLeafletMounted] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +101,26 @@ export function ChatView({
             });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        setLeafletMounted(true);
+    }, []);
+
+    const leafletMarkerIcon = useMemo(() => {
+        const retina = (markerIcon2x as unknown as { src?: string })?.src ?? (markerIcon2x as unknown as string);
+        const icon = (markerIcon as unknown as { src?: string })?.src ?? (markerIcon as unknown as string);
+        const shadow = (markerShadow as unknown as { src?: string })?.src ?? (markerShadow as unknown as string);
+        if (!icon) return undefined;
+        return new L.Icon({
+            iconRetinaUrl: retina || undefined,
+            iconUrl: icon,
+            shadowUrl: shadow || undefined,
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41],
+        });
     }, []);
 
     const getMessageId = (msg: Message) => (msg?._id ? String(msg._id) : "");
@@ -580,21 +608,53 @@ export function ChatView({
 
                                     {/* Location */}
                                     {message.location && (
-                                        <div className={cn("mb-2 rounded-lg border p-2", isOwnMessage ? "border-white/30" : "border-(--border)")}> 
-                                            <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}> 
-                                                {message.location.label || "Location"}
-                                            </p>
-                                            <a
-                                                href={`https://www.google.com/maps?q=${message.location.lat},${message.location.lng}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className={cn(
-                                                    "text-xs underline",
-                                                    isOwnMessage ? "text-white/80" : "text-primary-600"
+                                        <div
+                                            className={cn(
+                                                "mb-2 rounded-lg border overflow-hidden",
+                                                isOwnMessage ? "border-white/30" : "border-(--border)"
+                                            )}
+                                        >
+                                            <div className="h-36 w-full bg-(--bg)">
+                                                {leafletMounted ? (
+                                                    <MapContainer
+                                                        center={[message.location.lat, message.location.lng]}
+                                                        zoom={15}
+                                                        scrollWheelZoom={false}
+                                                        dragging={false}
+                                                        doubleClickZoom={false}
+                                                        zoomControl={false}
+                                                        attributionControl={false}
+                                                        className="h-full w-full"
+                                                    >
+                                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                                        <Marker
+                                                            position={[message.location.lat, message.location.lng]}
+                                                            icon={leafletMarkerIcon}
+                                                        />
+                                                    </MapContainer>
+                                                ) : (
+                                                    <div className="h-full w-full" />
                                                 )}
-                                            >
-                                                Open in Maps
-                                            </a>
+                                            </div>
+                                            <div className="p-2">
+                                                <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}> 
+                                                    {message.location.label || "Location"}
+                                                </p>
+                                                <p className={cn("text-xs", isOwnMessage ? "text-white/80" : "text-(--text-muted)")}> 
+                                                    {message.location.lat.toFixed(6)}, {message.location.lng.toFixed(6)}
+                                                </p>
+                                                <a
+                                                    href={`https://www.google.com/maps?q=${message.location.lat},${message.location.lng}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className={cn(
+                                                        "text-xs underline",
+                                                        isOwnMessage ? "text-white/80" : "text-primary-600"
+                                                    )}
+                                                >
+                                                    Open in Maps
+                                                </a>
+                                            </div>
                                         </div>
                                     )}
 
