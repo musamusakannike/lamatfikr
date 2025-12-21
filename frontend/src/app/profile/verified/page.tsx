@@ -68,6 +68,43 @@ export default function ProfileVerifiedPage() {
   const canPay = latestStatus === "approved";
   const isPending = latestStatus === "pending";
 
+  const validateFileSize = (file: File, maxSize: number = 50 * 1024 * 1024): boolean => {
+    if (file.size > maxSize) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(0);
+      toast.error(`File "${file.name}" is too large (${sizeMB}MB). Maximum size is ${maxSizeMB}MB.`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleFrontFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && !validateFileSize(file)) {
+      e.target.value = "";
+      return;
+    }
+    setFrontFile(file || null);
+  };
+
+  const handleBackFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && !validateFileSize(file)) {
+      e.target.value = "";
+      return;
+    }
+    setBackFile(file || null);
+  };
+
+  const handleSelfieFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && !validateFileSize(file)) {
+      e.target.value = "";
+      return;
+    }
+    setSelfieFile(file || null);
+  };
+
   const submit = async () => {
     if (!frontFile) {
       toast.error(t("verification", "frontRequired"));
@@ -225,7 +262,7 @@ export default function ProfileVerifiedPage() {
                       ref={frontRef}
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setFrontFile(e.target.files?.[0] || null)}
+                      onChange={handleFrontFileChange}
                       className="w-full"
                       disabled={!canSubmitNew || submitting || isPending}
                     />
@@ -237,7 +274,7 @@ export default function ProfileVerifiedPage() {
                       ref={backRef}
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setBackFile(e.target.files?.[0] || null)}
+                      onChange={handleBackFileChange}
                       className="w-full"
                       disabled={!canSubmitNew || submitting || isPending}
                     />
@@ -249,7 +286,7 @@ export default function ProfileVerifiedPage() {
                       ref={selfieRef}
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                      onChange={handleSelfieFileChange}
                       className="w-full"
                       disabled={!canSubmitNew || submitting || isPending}
                     />
