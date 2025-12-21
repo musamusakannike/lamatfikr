@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { notificationsApi } from "@/lib/api/notifications";
 import { searchApi, type SearchResponse, type SearchUser, type SearchPost } from "@/lib/api/search";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -50,6 +51,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 350);
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -80,7 +82,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   }, [mobileSearchOpen]);
 
   useEffect(() => {
-    const q = searchQuery.trim();
+    const q = debouncedQuery.trim();
     if (q.length < 2) {
       setSearchResults(null);
       setShowSearchDropdown(false);
@@ -88,7 +90,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
     }
     let active = true;
     setSearchLoading(true);
-    const timer = setTimeout(async () => {
+    (async () => {
       try {
         const res = await searchApi.searchAll(q, 5);
         if (active) {
@@ -100,12 +102,11 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
       } finally {
         if (active) setSearchLoading(false);
       }
-    }, 300);
+    })();
     return () => {
       active = false;
-      clearTimeout(timer);
     };
-  }, [searchQuery]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
