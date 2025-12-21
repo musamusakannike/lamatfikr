@@ -5,19 +5,18 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
 import {
   LayoutList,
-  Grid3X3,
   Megaphone,
   Loader2,
+  Grid3X3
 } from "lucide-react";
 import { PostCard } from "@/components/shared/PostCard";
-import { MediaGrid } from "@/components/home/MediaGrid";
-import { MediaModal } from "@/components/home/MediaModal";
 import { AnnouncementCard } from "@/components/home/AnnouncementCard";
 import { postsApi, type Post } from "@/lib/api/posts";
 import { announcementsApi, type Announcement } from "@/lib/api/announcements";
 import { getErrorMessage } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
-type FilterType = "all" | "images" | "announcements";
+type FilterType = "all" | "reels" | "announcements" | "images";
 
 function FilterButton({
   active,
@@ -54,20 +53,17 @@ function FilterButton({
 }
 
 export function PostFeed() {
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [mediaPosts, setMediaPosts] = useState<Post[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(1);
-  const [mediaPage, setMediaPage] = useState(1);
   const [announcementPage, setAnnouncementPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [hasMoreMedia, setHasMoreMedia] = useState(true);
   const [hasMoreAnnouncements, setHasMoreAnnouncements] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPost, setSelectedPost] = useState<{ post: Post; mediaIndex: number } | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchFeed = useCallback(async (pageNum: number, append = false) => {
@@ -96,31 +92,6 @@ export function PostFeed() {
     }
   }, []);
 
-  const fetchMediaPosts = useCallback(async (pageNum: number, append = false) => {
-    try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-
-      const response = await postsApi.getMediaPosts(pageNum, 20);
-
-      if (append) {
-        setMediaPosts((prev) => [...prev, ...response.posts]);
-      } else {
-        setMediaPosts(response.posts);
-      }
-
-      setHasMoreMedia(pageNum < response.pagination.pages);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, []);
 
   const fetchAnnouncements = useCallback(async (pageNum: number, append = false) => {
     try {
@@ -165,9 +136,8 @@ export function PostFeed() {
   }, []);
 
   useEffect(() => {
-    if (filter === "images") {
-      fetchMediaPosts(1);
-      setMediaPage(1);
+    if (filter === "reels") {
+      router.push("/reels");
     } else if (filter === "announcements") {
       fetchAnnouncements(1);
       setAnnouncementPage(1);
@@ -175,14 +145,10 @@ export function PostFeed() {
       fetchFeed(1);
       setPage(1);
     }
-  }, [filter, fetchFeed, fetchMediaPosts, fetchAnnouncements]);
+  }, [filter, fetchFeed, fetchAnnouncements, router]);
 
   const handleLoadMore = () => {
-    if (filter === "images") {
-      const nextPage = mediaPage + 1;
-      setMediaPage(nextPage);
-      fetchMediaPosts(nextPage, true);
-    } else if (filter === "announcements") {
+    if (filter === "announcements") {
       const nextPage = announcementPage + 1;
       setAnnouncementPage(nextPage);
       fetchAnnouncements(nextPage, true);
@@ -191,14 +157,6 @@ export function PostFeed() {
       setPage(nextPage);
       fetchFeed(nextPage, true);
     }
-  };
-
-  const handleMediaClick = (post: Post, mediaIndex: number) => {
-    setSelectedPost({ post, mediaIndex });
-  };
-
-  const handleCloseModal = () => {
-    setSelectedPost(null);
   };
 
   const handleFilterChange = (newFilter: FilterType) => {
@@ -258,7 +216,7 @@ export function PostFeed() {
           <p className="text-(--text-muted) mb-4">{error}</p>
           <Button
             variant="outline"
-            onClick={() => filter === "images" ? fetchMediaPosts(1) : fetchFeed(1)}
+            onClick={() => fetchFeed(1)}
           >
             Try again
           </Button>
@@ -267,8 +225,8 @@ export function PostFeed() {
     );
   }
 
-  const displayPosts = filter === "images" ? mediaPosts : filter === "announcements" ? [] : posts;
-  const currentHasMore = filter === "images" ? hasMoreMedia : filter === "announcements" ? hasMoreAnnouncements : hasMore;
+  const displayPosts = filter === "announcements" ? [] : posts;
+  const currentHasMore = filter === "announcements" ? hasMoreAnnouncements : hasMore;
 
   return (
     <div className="space-y-4">
@@ -299,9 +257,7 @@ export function PostFeed() {
       </div>
 
       {/* Posts */}
-      {filter === "images" ? (
-        <MediaGrid posts={displayPosts} onMediaClick={handleMediaClick} />
-      ) : filter === "announcements" ? (
+      {filter === "announcements" ? (
         <div className="space-y-4">
           {announcements.length === 0 ? (
             <div className="bg-(--bg-card) rounded-xl border border-(--border) p-6 text-center">
@@ -348,14 +304,6 @@ export function PostFeed() {
         </div>
       )}
 
-      {/* Media Modal */}
-      {selectedPost && (
-        <MediaModal
-          post={selectedPost.post}
-          initialMediaIndex={selectedPost.mediaIndex}
-          onClose={handleCloseModal}
-        />
-      )}
     </div>
   );
 }

@@ -23,6 +23,7 @@ import {
   Bell,
   Settings,
   ChevronRight,
+  Film
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
@@ -107,6 +108,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navItems: NavItem[] = [
     { icon: Home, label: t("nav", "home"), href: "/" },
+    { icon: Film, label: isRTL ? "ريلز" : "Reels", href: "/reels" },
     { icon: Mail, label: t("nav", "messages"), href: "/messages" },
     { icon: MessageSquare, label: t("nav", "rooms"), href: "/rooms", badge: roomsUnreadCount > 0 ? roomsUnreadCount : undefined },
     { icon: Users, label: t("nav", "communities"), href: "/communities", badge: communitiesUnreadCount > 0 ? communitiesUnreadCount : undefined },

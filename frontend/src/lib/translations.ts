@@ -3955,6 +3955,90 @@ export const translations = {
       en: "Load More",
     },
   },
+
+  // Reels
+  reels: {
+    title: {
+      ar: "الريلز",
+      en: "Reels",
+    },
+    noReelsAvailable: {
+      ar: "لا توجد ريلز متاحة",
+      en: "No reels available",
+    },
+    views: {
+      ar: "مشاهدة",
+      en: "views",
+    },
+    comments: {
+      ar: "تعليقات",
+      en: "comments",
+    },
+    likes: {
+      ar: "إعجابات",
+      en: "likes",
+    },
+    share: {
+      ar: "مشاركة",
+      en: "Share",
+    },
+    save: {
+      ar: "حفظ",
+      en: "Save",
+    },
+    mute: {
+      ar: "كتم الصوت",
+      en: "Mute",
+    },
+    unmute: {
+      ar: "إلغاء كتم الصوت",
+      en: "Unmute",
+    },
+    play: {
+      ar: "تشغيل",
+      en: "Play",
+    },
+    pause: {
+      ar: "إيقاف مؤقت",
+      en: "Pause",
+    },
+    previous: {
+      ar: "السابق",
+      en: "Previous",
+    },
+    next: {
+      ar: "التالي",
+      en: "Next",
+    },
+    loading: {
+      ar: "جاري التحميل...",
+      en: "Loading...",
+    },
+    tryAgain: {
+      ar: "حاول مرة أخرى",
+      en: "Try again",
+    },
+    errorLoading: {
+      ar: "حدث خطأ أثناء تحميل الريلز",
+      en: "Error loading reels",
+    },
+    backToHome: {
+      ar: "العودة للرئيسية",
+      en: "Back to Home",
+    },
+    allReels: {
+      ar: "كل الريلز",
+      en: "All Reels",
+    },
+    exploreReels: {
+      ar: "استكشف الريلز",
+      en: "Explore Reels",
+    },
+    watchMore: {
+      ar: "شاهد المزيد",
+      en: "Watch More",
+    },
+  },
 };
 
 export type TranslationKey = keyof typeof translations;
