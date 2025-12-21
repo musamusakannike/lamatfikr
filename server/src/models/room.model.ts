@@ -49,7 +49,7 @@ const RoomSchema = new Schema<Room>(
       required: true,
     },
     price: { type: Number, min: 0 },
-    currency: { type: String, default: "SAR", enum: ["SAR", "OMR", "USD"] },
+    currency: { type: String, default: "OMR", enum: ["SAR", "OMR", "USD"] },
     isPrivate: { type: Boolean, default: false },
     ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     memberCount: { type: Number, default: 0, min: 0 },

@@ -66,7 +66,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
       description,
       price,
       originalPrice,
-      currency: currency || "SAR",
+      currency: currency || "OMR",
       images,
       category,
       condition: condition || ProductCondition.new,

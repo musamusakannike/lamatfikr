@@ -171,7 +171,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
   const [category, setCategory] = useState("");
   const [membershipType, setMembershipType] = useState<MembershipType>("free");
   const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState("SAR");
+  const [currency, setCurrency] = useState("OMR");
   const [isPrivate, setIsPrivate] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -226,7 +226,7 @@ function CreateRoomModal({ isOpen, onClose, onRoomCreated }: CreateRoomModalProp
     setCategory("");
     setMembershipType("free");
     setPrice("");
-    setCurrency("SAR");
+    setCurrency("OMR");
     setIsPrivate(false);
     setImageFile(null);
     setImagePreview(null);

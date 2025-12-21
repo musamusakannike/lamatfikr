@@ -28,7 +28,7 @@ const VerifiedTagPaymentSchema = new Schema<VerifiedTagPayment>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     amount: { type: Number, required: true },
-    currency: { type: String, required: true, default: "SAR", enum: ["SAR", "OMR", "USD"] },
+    currency: { type: String, required: true, default: "OMR", enum: ["SAR", "OMR", "USD"] },
     tapChargeId: { type: String, required: true, unique: true },
     status: {
       type: String,

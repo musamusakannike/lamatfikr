@@ -8,7 +8,7 @@
  * @param currency - The currency code (SAR, USD, OMR)
  * @returns Formatted price string with currency symbol
  */
-export function formatCurrency(amount: number, currency: string = 'SAR'): string {
+export function formatCurrency(amount: number, currency: string = 'OMR'): string {
     const currencySymbols: Record<string, string> = {
         SAR: 'ر.س',
         USD: '$',
@@ -24,7 +24,7 @@ export function formatCurrency(amount: number, currency: string = 'SAR'): string
  * @param currency - The currency code (SAR, USD, OMR)
  * @returns Currency symbol
  */
-export function getCurrencySymbol(currency: string = 'SAR'): string {
+export function getCurrencySymbol(currency: string = 'OMR'): string {
     const currencySymbols: Record<string, string> = {
         SAR: 'ر.س',
         USD: '$',

@@ -20,7 +20,7 @@ const SALT_ROUNDS = 12;
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 const VERIFIED_TAG_DURATION_DAYS = 30;
 const VERIFIED_TAG_PRICE = 30;
-const VERIFIED_TAG_CURRENCY = "SAR";
+const VERIFIED_TAG_CURRENCY = "OMR";
 
 export const getProfile: RequestHandler = async (req, res, next) => {
   try {

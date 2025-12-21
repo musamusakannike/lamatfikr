@@ -48,7 +48,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     category: "",
     images: [],
     quantity: 1,
-    currency: "SAR",
+    currency: "OMR",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
@@ -152,7 +152,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       category: "",
       images: [],
       quantity: 1,
-      currency: "SAR",
+      currency: "OMR",
     });
 
     onClose();

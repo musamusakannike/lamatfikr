@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Modal, Button, Card, Badge } from "@/components/ui";
 import { featuredRoomsApi, FeaturedRoomStatusResponse } from "@/lib/api/featured-rooms";
 import { getErrorMessage } from "@/lib/api";
@@ -37,13 +37,7 @@ export function FeatureRoomModal({
   const [days, setDays] = useState(7);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadStatus();
-    }
-  }, [isOpen, roomId]);
-
-  const loadStatus = async () => {
+  const loadStatus = useCallback(async () => {
     try {
       setStatusLoading(true);
       setError("");
@@ -54,7 +48,13 @@ export function FeatureRoomModal({
     } finally {
       setStatusLoading(false);
     }
-  };
+  }, [roomId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadStatus();
+    }
+  }, [isOpen, loadStatus]);
 
   const handleFeatureRoom = async () => {
     try {
@@ -63,7 +63,7 @@ export function FeatureRoomModal({
 
       const response = await featuredRoomsApi.initiateFeaturedPayment(roomId, {
         days,
-        currency: "SAR",
+        currency: "OMR",
       });
 
       window.location.href = response.redirectUrl;

@@ -53,7 +53,7 @@ function RoomCard({ room }: { room: FeaturedRoomData }) {
               </span>
               {roomData.membershipType === "paid" && roomData.price && (
                 <span className="flex items-center gap-1 text-primary-600 dark:text-primary-400 font-semibold">
-                  {roomData.currency || "SAR"} {roomData.price}
+                  {roomData.currency || "OMR"} {roomData.price}
                 </span>
               )}
             </div>

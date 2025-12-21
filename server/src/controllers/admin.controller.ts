@@ -284,7 +284,7 @@ export const getAdminWallet: RequestHandler = async (req, res, next) => {
         pendingBalance: 0,
         totalEarned: 0,
         totalWithdrawn: 0,
-        currency: "SAR",
+        currency: "OMR",
       });
       return;
     }
@@ -423,7 +423,7 @@ export const getAllWallets: RequestHandler = async (req, res, next) => {
             pendingBalance: 0,
             totalEarned: 0,
             totalWithdrawn: 0,
-            currency: "SAR",
+            currency: "OMR",
             lastTransactionAt: null,
           },
       };

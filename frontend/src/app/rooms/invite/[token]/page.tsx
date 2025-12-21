@@ -188,7 +188,7 @@ export default function JoinViaInviteLinkPage() {
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-(--text-muted)">{t("roomInvite", "membershipFee")}</span>
                         <span className="font-semibold text-(--text)">
-                          ${room.price} {room.currency || "SAR"}
+                          ${room.price} {room.currency || "OMR"}
                         </span>
                       </div>
                     )}

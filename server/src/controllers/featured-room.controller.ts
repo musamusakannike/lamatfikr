@@ -32,7 +32,7 @@ export async function initiateFeaturedRoomPayment(
   try {
     const userId = getUserId(req);
     const { roomId } = req.params;
-    const { days, currency = "SAR" } = req.body;
+    const { days, currency = "OMR" } = req.body;
 
     if (!Types.ObjectId.isValid(roomId)) {
       res.status(400).json({ message: "Invalid room ID" });
