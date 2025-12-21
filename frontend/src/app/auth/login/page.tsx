@@ -208,7 +208,7 @@ export default function LoginPage() {
                     {t("auth", "password")}
                   </label>
                   <Link
-                    href="#"
+                    href="/auth/forgot-password"
                     className="text-sm text-primary-600 hover:text-primary-700"
                   >
                     {t("auth", "forgotPassword")}

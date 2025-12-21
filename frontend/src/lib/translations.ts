@@ -363,6 +363,116 @@ export const translations = {
       ar: "العودة لتسجيل الدخول",
       en: "Back to Login",
     },
+
+    // Forgot Password
+    forgotPasswordTitle: {
+      ar: "نسيت كلمة المرور؟",
+      en: "Forgot Password?",
+    },
+    forgotPasswordSubtitle: {
+      ar: "لا تقلق، سنرسل لك تعليمات إعادة تعيين كلمة المرور.",
+      en: "Don't worry, we'll send you reset instructions.",
+    },
+    enterEmailForReset: {
+      ar: "أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور",
+      en: "Enter your email to reset your password",
+    },
+    sendResetLink: {
+      ar: "إرسال رابط إعادة التعيين",
+      en: "Send Reset Link",
+    },
+    sendingResetLink: {
+      ar: "جاري الإرسال...",
+      en: "Sending...",
+    },
+    resetLinkSent: {
+      ar: "تم الإرسال!",
+      en: "Link Sent!",
+    },
+    checkEmailForReset: {
+      ar: "تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور. قد يستغرق الأمر بضع دقائق.",
+      en: "Check your email for a password reset link. It may take a few minutes to arrive.",
+    },
+    didntReceiveEmail: {
+      ar: "لم تستلم البريد الإلكتروني؟",
+      en: "Didn't receive the email?",
+    },
+    resendResetLink: {
+      ar: "إعادة إرسال الرابط",
+      en: "Resend link",
+    },
+    rememberPassword: {
+      ar: "تذكرت كلمة المرور؟",
+      en: "Remember your password?",
+    },
+
+    // Reset Password
+    resetPasswordTitle: {
+      ar: "إعادة تعيين كلمة المرور",
+      en: "Reset Password",
+    },
+    resetPasswordSubtitle: {
+      ar: "أدخل كلمة المرور الجديدة لحسابك.",
+      en: "Enter your new password for your account.",
+    },
+    newPassword: {
+      ar: "كلمة المرور الجديدة",
+      en: "New Password",
+    },
+    confirmPassword: {
+      ar: "تأكيد كلمة المرور",
+      en: "Confirm Password",
+    },
+    confirmPasswordPlaceholder: {
+      ar: "أعد إدخال كلمة المرور",
+      en: "Re-enter your password",
+    },
+    resetPassword: {
+      ar: "إعادة تعيين كلمة المرور",
+      en: "Reset Password",
+    },
+    resettingPassword: {
+      ar: "جاري إعادة التعيين...",
+      en: "Resetting...",
+    },
+    passwordResetSuccess: {
+      ar: "تم إعادة تعيين كلمة المرور بنجاح!",
+      en: "Password Reset Successfully!",
+    },
+    passwordResetSuccessMessage: {
+      ar: "تم تحديث كلمة المرور الخاصة بك. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+      en: "Your password has been updated. You can now log in with your new password.",
+    },
+    passwordsDoNotMatch: {
+      ar: "كلمات المرور غير متطابقة",
+      en: "Passwords do not match",
+    },
+    invalidResetToken: {
+      ar: "رمز إعادة التعيين غير صالح أو منتهي الصلاحية",
+      en: "Invalid or expired reset token",
+    },
+    passwordRequirements: {
+      ar: "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، وحرف كبير، وحرف صغير، ورقم",
+      en: "Password must be at least 8 characters with uppercase, lowercase, and number",
+    },
+
+    // Resend Verification
+    resendVerificationTitle: {
+      ar: "إعادة إرسال رابط التحقق",
+      en: "Resend Verification Link",
+    },
+    resendVerificationSubtitle: {
+      ar: "أدخل بريدك الإلكتروني لإعادة إرسال رابط التحقق.",
+      en: "Enter your email to resend the verification link.",
+    },
+    verificationLinkSent: {
+      ar: "تم إرسال رابط التحقق!",
+      en: "Verification Link Sent!",
+    },
+    checkEmailForVerification: {
+      ar: "تحقق من بريدك الإلكتروني للحصول على رابط التحقق. تأكد من التحقق من مجلد الرسائل غير المرغوب فيها.",
+      en: "Check your email for the verification link. Make sure to check your spam folder.",
+    },
   },
 
   // Navigation

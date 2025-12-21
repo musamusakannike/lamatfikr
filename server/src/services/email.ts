@@ -81,7 +81,7 @@ export async function sendVerificationEmail(email: string, token: string, firstN
 }
 
 export async function sendPasswordResetEmail(email: string, token: string, firstName: string): Promise<void> {
-  const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+  const resetUrl = `${env.FRONTEND_URL}/auth/reset-password?token=${token}`;
 
   const html = `
     <!DOCTYPE html>
