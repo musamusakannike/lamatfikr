@@ -27,6 +27,19 @@ interface ChatContextType {
   clearChat: (chatId: string) => void;
 }
 
+function getMessageId(msg: unknown) {
+  if (!msg || typeof msg !== "object") return "";
+  const record = msg as Record<string, unknown>;
+  const id = record["id"] ?? record["_id"];
+  return id ? String(id) : "";
+}
+
+function normalizeMessage(msg: unknown): Message {
+  const id = getMessageId(msg);
+  const base = msg && typeof msg === "object" ? (msg as object) : {};
+  return Object.assign({}, base, { id }) as Message;
+}
+
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -41,15 +54,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const chatId = data.conversationId || data.communityId || data.roomId;
       if (!chatId) return;
 
+      const incomingId = getMessageId(data.message);
+      if (!incomingId) return;
+
       setMessages((prev) => {
         const existingMessages = prev[chatId] || [];
         // Check if message already exists by ID to prevent duplicates
-        if (existingMessages.some((msg) => msg.id === data.message.id)) {
+        if (existingMessages.some((msg) => getMessageId(msg) === incomingId)) {
           return prev;
         }
         return {
           ...prev,
-          [chatId]: [...existingMessages, data.message],
+          [chatId]: [...existingMessages, normalizeMessage(data.message)],
         };
       });
     };
@@ -126,14 +142,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [socket]);
 
   const addMessage = (chatId: string, message: Message) => {
+    const incomingId = getMessageId(message);
+    if (!incomingId) return;
+
     setMessages((prev) => {
       const existingMessages = prev[chatId] || [];
-      if (existingMessages.some((msg) => msg.id === message.id)) {
+      if (existingMessages.some((msg) => getMessageId(msg) === incomingId)) {
         return prev;
       }
       return {
         ...prev,
-        [chatId]: [...existingMessages, message],
+        [chatId]: [...existingMessages, normalizeMessage(message)],
       };
     });
   };
@@ -141,8 +160,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const addMessages = (chatId: string, newMessages: Message[]) => {
     setMessages((prev) => {
       const existingMessages = prev[chatId] || [];
-      const existingIds = new Set(existingMessages.map(msg => msg.id));
-      const uniqueNewMessages = newMessages.filter(msg => !existingIds.has(msg.id));
+      const existingIds = new Set(existingMessages.map((msg) => getMessageId(msg)).filter(Boolean));
+      const uniqueNewMessages = newMessages
+        .map((m) => normalizeMessage(m))
+        .filter((m) => m.id && !existingIds.has(m.id));
       if (uniqueNewMessages.length === 0) {
         return prev;
       }

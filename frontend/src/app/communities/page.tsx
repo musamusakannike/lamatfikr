@@ -699,13 +699,28 @@ function ChatView({ community, onBack }: ChatViewProps) {
   const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
+  const getMessageId = useCallback((msg: unknown) => {
+    if (!msg || typeof msg !== "object") return "";
+    const record = msg as Record<string, unknown>;
+    const id = record["id"] ?? record["_id"];
+    return id ? String(id) : "";
+  }, []);
+
+  const normalizeMessage = useCallback(
+    (msg: CommunityMessage) => {
+      const id = getMessageId(msg);
+      return Object.assign({}, msg, { id }) as CommunityMessage;
+    },
+    [getMessageId]
+  );
+
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadMessages = useCallback(async () => {
     try {
       const response = await communitiesApi.getMessages(community.id, { limit: 50 });
-      setMessages(response.messages);
+      setMessages(response.messages.map((m) => normalizeMessage(m)));
       // Mark community as read when messages are loaded
       await communitiesApi.markAsRead(community.id).catch(() => {
         // Silently ignore errors for mark as read
@@ -715,7 +730,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [community.id]);
+  }, [community.id, normalizeMessage]);
 
   const loadMembers = useCallback(async () => {
     try {
@@ -745,12 +760,13 @@ function ChatView({ community, onBack }: ChatViewProps) {
 
     const handleNewMessage = (data: { type: string; communityId?: string; message: CommunityMessage }) => {
       if (data.communityId === community.id) {
+        const incomingId = getMessageId(data.message);
         setMessages((prev) => {
-          // Check if message already exists to prevent duplicates
-          if (prev.some(msg => msg.id === data.message.id)) {
+          if (!incomingId) return prev;
+          if (prev.some((msg) => getMessageId(msg) === incomingId)) {
             return prev;
           }
-          return [...prev, data.message];
+          return [...prev, Object.assign({}, data.message, { id: incomingId }) as CommunityMessage];
         });
       }
     };
@@ -760,7 +776,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
     return () => {
       socket.off("message:new", handleNewMessage);
     };
-  }, [socket, community.id]);
+  }, [socket, community.id, getMessageId]);
 
   // Handle typing indicator
   useEffect(() => {
@@ -801,7 +817,14 @@ function ChatView({ community, onBack }: ChatViewProps) {
         content: savedMessage.trim() || undefined,
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
       });
-      setMessages((prev) => [...prev, response.data]);
+      const sentId = getMessageId(response.data);
+      setMessages((prev) => {
+        if (!sentId) return prev;
+        if (prev.some((msg) => getMessageId(msg) === sentId)) {
+          return prev;
+        }
+        return [...prev, Object.assign({}, response.data, { id: sentId }) as CommunityMessage];
+      });
 
       // Cleanup previews
       savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
@@ -907,7 +930,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
               </div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className="flex gap-3">
+                <div key={getMessageId(msg) || msg.createdAt} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg) shrink-0">
                     {msg.sender.avatar ? (
                       <Image src={msg.sender.avatar} alt={msg.sender.username} width={32} height={32} className="w-full h-full object-cover" />

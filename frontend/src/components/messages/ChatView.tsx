@@ -57,6 +57,20 @@ export function ChatView({
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const getMessageId = (msg: Message) => (msg?._id ? String(msg._id) : "");
+
+    const dedupeMessages = (list: Message[]) => {
+        const map = new Map<string, Message>();
+        for (const m of list) {
+            const id = getMessageId(m);
+            if (!id) continue;
+            map.set(id, m);
+        }
+        return Array.from(map.values()).sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+    };
+
     const otherParticipant = conversation?.participants.find(
         (p) => p._id !== currentUserId
     );
@@ -72,7 +86,7 @@ export function ChatView({
                 ]);
 
                 setConversation(convRes.conversation);
-                setMessages(msgRes.messages);
+                setMessages(dedupeMessages(msgRes.messages));
                 addMessages(conversationId, msgRes.messages.map(msg => ({
                     id: msg._id,
                     sender: {
@@ -152,7 +166,7 @@ export function ChatView({
                 50
             );
 
-            setMessages((prev) => [...olderMessages, ...prev]);
+            setMessages((prev) => dedupeMessages([...olderMessages, ...prev]));
             setPage(nextPage);
             setHasMore(pagination.page < pagination.pages);
         } catch (error) {
@@ -209,7 +223,7 @@ export function ChatView({
 
             // Replace temp message with real one
             setMessages((prev) =>
-                prev.map((m) => (m._id === tempId ? newMessage : m))
+                dedupeMessages(prev.map((m) => (m._id === tempId ? newMessage : m)))
             );
             
             // Add to chat context for real-time sync
@@ -407,7 +421,7 @@ export function ChatView({
                     const showDateSeparator = shouldShowDateSeparator(message, prevMessage);
 
                     return (
-                        <div key={message._id}>
+                        <div key={message._id || message.createdAt}>
                             {/* Date Separator */}
                             {showDateSeparator && (
                                 <div className="flex items-center justify-center my-4">

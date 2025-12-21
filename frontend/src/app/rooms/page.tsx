@@ -926,13 +926,28 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPendingRequests, setShowPendingRequests] = useState(false);
 
+  const getMessageId = useCallback((msg: unknown) => {
+    if (!msg || typeof msg !== "object") return "";
+    const record = msg as Record<string, unknown>;
+    const id = record["id"] ?? record["_id"];
+    return id ? String(id) : "";
+  }, []);
+
+  const normalizeMessage = useCallback(
+    (msg: RoomMessage) => {
+      const id = getMessageId(msg);
+      return Object.assign({}, msg, { id }) as RoomMessage;
+    },
+    [getMessageId]
+  );
+
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadMessages = useCallback(async () => {
     try {
       const response = await roomsApi.getMessages(room.id, { limit: 50 });
-      setMessages(response.messages);
+      setMessages(response.messages.map((m) => normalizeMessage(m)));
       // Mark room as read when messages are loaded
       await roomsApi.markAsRead(room.id).catch(() => {
         // Silently ignore errors for mark as read
@@ -942,7 +957,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [room.id]);
+  }, [room.id, normalizeMessage]);
 
   const loadMembers = useCallback(async () => {
     try {
@@ -972,12 +987,13 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
     const handleNewMessage = (data: { type: string; roomId?: string; message: RoomMessage }) => {
       if (data.roomId === room.id) {
+        const incomingId = getMessageId(data.message);
         setMessages((prev) => {
-          // Check if message already exists to prevent duplicates
-          if (prev.some(msg => msg.id === data.message.id)) {
+          if (!incomingId) return prev;
+          if (prev.some((msg) => getMessageId(msg) === incomingId)) {
             return prev;
           }
-          return [...prev, data.message];
+          return [...prev, Object.assign({}, data.message, { id: incomingId }) as RoomMessage];
         });
       }
     };
@@ -987,7 +1003,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
     return () => {
       socket.off("message:new", handleNewMessage);
     };
-  }, [socket, room.id]);
+  }, [socket, room.id, getMessageId]);
 
   // Handle typing indicator
   useEffect(() => {
@@ -1028,7 +1044,14 @@ function ChatView({ room, onBack }: ChatViewProps) {
         content: savedMessage.trim() || undefined,
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
       });
-      setMessages((prev) => [...prev, response.data]);
+      const sentId = getMessageId(response.data);
+      setMessages((prev) => {
+        if (!sentId) return prev;
+        if (prev.some((msg) => getMessageId(msg) === sentId)) {
+          return prev;
+        }
+        return [...prev, Object.assign({}, response.data, { id: sentId }) as RoomMessage];
+      });
 
       // Cleanup previews
       savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
@@ -1152,7 +1175,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
               </div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className="flex gap-3">
+                <div key={getMessageId(msg) || msg.createdAt} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg) shrink-0">
                     {msg.sender.avatar ? (
                       <Image src={msg.sender.avatar} alt={msg.sender.username} width={32} height={32} className="w-full h-full object-cover" />
