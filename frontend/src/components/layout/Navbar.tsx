@@ -507,16 +507,6 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                       router.push("/profile");
                     }}
                   />
-                  <DropdownItem
-                    icon={Settings}
-                    label={t("nav", "settings")}
-                    onClick={() => {}}
-                  />
-                  <DropdownItem
-                    icon={HelpCircle}
-                    label={isRTL ? "المساعدة والدعم" : "Help & Support"}
-                    onClick={() => {}}
-                  />
                 </div>
                 <div className="border-t border-(--border) pt-1">
                   <DropdownItem

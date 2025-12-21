@@ -567,6 +567,10 @@ export const translations = {
       ar: "المحفظة",
       en: "Wallet",
     },
+    profile: {
+      ar: "الملف الشخصي",
+      en: "Profile",
+    },
   },
 
   // Home Page
