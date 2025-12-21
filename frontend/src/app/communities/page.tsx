@@ -6,7 +6,6 @@ import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSocket } from "@/contexts/socket-context";
-import { useChat } from "@/contexts/chat-context";
 import { communitiesApi, Community, CommunityMessage, CommunityMember } from "@/lib/api/communities";
 import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
@@ -689,8 +688,7 @@ interface ChatViewProps {
 }
 
 function ChatView({ community, onBack }: ChatViewProps) {
-  const { joinCommunity, leaveCommunity, sendTyping } = useSocket();
-  const { messages: socketMessages, addMessages } = useChat();
+  const { socket, joinCommunity, leaveCommunity, sendTyping } = useSocket();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -741,15 +739,28 @@ function ChatView({ community, onBack }: ChatViewProps) {
     };
   }, [community.id, joinCommunity, leaveCommunity]);
 
-  // Listen for real-time messages
+  // Listen for real-time messages via socket
   useEffect(() => {
-    const chatMessages = socketMessages[community.id] || [];
-    if (chatMessages.length > messages.length) {
-      // New messages received via socket
-      const newMessages = chatMessages.slice(messages.length);
-      setMessages((prev) => [...prev, ...newMessages as CommunityMessage[]]);
-    }
-  }, [socketMessages, community.id, messages.length]);
+    if (!socket) return;
+
+    const handleNewMessage = (data: { type: string; communityId?: string; message: CommunityMessage }) => {
+      if (data.communityId === community.id) {
+        setMessages((prev) => {
+          // Check if message already exists to prevent duplicates
+          if (prev.some(msg => msg.id === data.message.id)) {
+            return prev;
+          }
+          return [...prev, data.message];
+        });
+      }
+    };
+
+    socket.on("message:new", handleNewMessage);
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+    };
+  }, [socket, community.id]);
 
   // Handle typing indicator
   useEffect(() => {
@@ -791,9 +802,6 @@ function ChatView({ community, onBack }: ChatViewProps) {
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
       });
       setMessages((prev) => [...prev, response.data]);
-      
-      // Add to chat context for real-time sync
-      addMessages(community.id, [response.data]);
 
       // Cleanup previews
       savedImages.forEach((img) => URL.revokeObjectURL(img.preview));

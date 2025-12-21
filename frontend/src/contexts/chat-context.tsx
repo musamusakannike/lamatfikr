@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { Socket } from "socket.io-client";
 import { useSocket } from "./socket-context";
 
 interface Message {
@@ -55,9 +54,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
-    const handleTyping = (data: { userId: string; isTyping: boolean }) => {
-      // This will be handled by components that know which chat is active
-    };
+    // const handleTyping = (data: { userId: string; isTyping: boolean }) => {
+    //   // This will be handled by components that know which chat is active
+    // };
 
     const handleConversationTyping = (data: { userId: string; isTyping: boolean; conversationId: string }) => {
       setTypingUsers((prev) => {
@@ -127,17 +126,31 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [socket]);
 
   const addMessage = (chatId: string, message: Message) => {
-    setMessages((prev) => ({
-      ...prev,
-      [chatId]: [...(prev[chatId] || []), message],
-    }));
+    setMessages((prev) => {
+      const existingMessages = prev[chatId] || [];
+      if (existingMessages.some((msg) => msg.id === message.id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [chatId]: [...existingMessages, message],
+      };
+    });
   };
 
   const addMessages = (chatId: string, newMessages: Message[]) => {
-    setMessages((prev) => ({
-      ...prev,
-      [chatId]: [...(prev[chatId] || []), ...newMessages],
-    }));
+    setMessages((prev) => {
+      const existingMessages = prev[chatId] || [];
+      const existingIds = new Set(existingMessages.map(msg => msg.id));
+      const uniqueNewMessages = newMessages.filter(msg => !existingIds.has(msg.id));
+      if (uniqueNewMessages.length === 0) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [chatId]: [...existingMessages, ...uniqueNewMessages],
+      };
+    });
   };
 
   const setTyping = (chatId: string, userId: string, isTyping: boolean) => {

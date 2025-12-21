@@ -9,7 +9,6 @@ import { FeatureRoomModal } from "@/components/rooms/FeatureRoomModal";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSocket } from "@/contexts/socket-context";
-import { useChat } from "@/contexts/chat-context";
 import { roomsApi, Room, RoomMessage, RoomMember } from "@/lib/api/rooms";
 import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
@@ -914,8 +913,7 @@ interface ChatViewProps {
 }
 
 function ChatView({ room, onBack }: ChatViewProps) {
-  const { joinRoom, leaveRoom, sendTyping } = useSocket();
-  const { messages: socketMessages, addMessages } = useChat();
+  const { socket, joinRoom, leaveRoom, sendTyping } = useSocket();
   const [messages, setMessages] = useState<RoomMessage[]>([]);
   const [members, setMembers] = useState<RoomMember[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -968,15 +966,28 @@ function ChatView({ room, onBack }: ChatViewProps) {
     };
   }, [room.id, joinRoom, leaveRoom]);
 
-  // Listen for real-time messages
+  // Listen for real-time messages via socket
   useEffect(() => {
-    const chatMessages = socketMessages[room.id] || [];
-    if (chatMessages.length > messages.length) {
-      // New messages received via socket
-      const newMessages = chatMessages.slice(messages.length);
-      setMessages((prev) => [...prev, ...newMessages as RoomMessage[]]);
-    }
-  }, [socketMessages, room.id, messages.length]);
+    if (!socket) return;
+
+    const handleNewMessage = (data: { type: string; roomId?: string; message: RoomMessage }) => {
+      if (data.roomId === room.id) {
+        setMessages((prev) => {
+          // Check if message already exists to prevent duplicates
+          if (prev.some(msg => msg.id === data.message.id)) {
+            return prev;
+          }
+          return [...prev, data.message];
+        });
+      }
+    };
+
+    socket.on("message:new", handleNewMessage);
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+    };
+  }, [socket, room.id]);
 
   // Handle typing indicator
   useEffect(() => {
@@ -1018,9 +1029,6 @@ function ChatView({ room, onBack }: ChatViewProps) {
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
       });
       setMessages((prev) => [...prev, response.data]);
-      
-      // Add to chat context for real-time sync
-      addMessages(room.id, [response.data]);
 
       // Cleanup previews
       savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
