@@ -250,11 +250,11 @@ export default function ResetPasswordPage() {
           {/* Terms */}
           <p className="text-center text-xs text-(--text-muted) mt-6">
             {t("auth", "termsAgreement")}{" "}
-            <Link href="#" className="text-primary-600 hover:underline">
+            <Link href="/terms-of-service" className="text-primary-600 hover:underline">
               {t("auth", "termsOfService")}
             </Link>{" "}
             {t("common", "and")}{" "}
-            <Link href="#" className="text-primary-600 hover:underline">
+            <Link href="/privacy-policy" className="text-primary-600 hover:underline">
               {t("auth", "privacyPolicy")}
             </Link>
           </p>
