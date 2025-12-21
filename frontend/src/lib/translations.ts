@@ -3962,6 +3962,106 @@ export const translations = {
       ar: "الريلز",
       en: "Reels",
     },
+    createReel: {
+      ar: "إنشاء ريل",
+      en: "Create Reel",
+    },
+    uploadVideo: {
+      ar: "رفع فيديو",
+      en: "Upload Video",
+    },
+    selectVideo: {
+      ar: "اختر فيديو",
+      en: "Select Video",
+    },
+    dragDropVideo: {
+      ar: "اسحب وأفلت الفيديو هنا",
+      en: "Drag and drop your video here",
+    },
+    orClickToSelect: {
+      ar: "أو انقر لاختيار ملف",
+      en: "or click to select a file",
+    },
+    videoRequirements: {
+      ar: "MP4، MOV، أو WEBM (حتى 100 ميجابايت، 60 ثانية كحد أقصى)",
+      en: "MP4, MOV, or WEBM (up to 100MB, max 60 seconds)",
+    },
+    addCaption: {
+      ar: "أضف وصفاً...",
+      en: "Add a caption...",
+    },
+    caption: {
+      ar: "الوصف",
+      en: "Caption",
+    },
+    location: {
+      ar: "الموقع",
+      en: "Location",
+    },
+    addLocation: {
+      ar: "أضف موقعاً",
+      en: "Add location",
+    },
+    feeling: {
+      ar: "الشعور",
+      en: "Feeling",
+    },
+    addFeeling: {
+      ar: "أضف شعوراً",
+      en: "Add feeling",
+    },
+    privacy: {
+      ar: "الخصوصية",
+      en: "Privacy",
+    },
+    public: {
+      ar: "عام",
+      en: "Public",
+    },
+    followers: {
+      ar: "المتابعون",
+      en: "Followers",
+    },
+    private: {
+      ar: "خاص",
+      en: "Private",
+    },
+    posting: {
+      ar: "جاري النشر...",
+      en: "Posting...",
+    },
+    postReel: {
+      ar: "نشر الريل",
+      en: "Post Reel",
+    },
+    changeVideo: {
+      ar: "تغيير الفيديو",
+      en: "Change Video",
+    },
+    processingVideo: {
+      ar: "جاري معالجة الفيديو...",
+      en: "Processing video...",
+    },
+    uploadingVideo: {
+      ar: "جاري رفع الفيديو...",
+      en: "Uploading video...",
+    },
+    videoTooLarge: {
+      ar: "حجم الفيديو كبير جداً. الحد الأقصى 100 ميجابايت",
+      en: "Video is too large. Maximum size is 100MB",
+    },
+    videoTooLong: {
+      ar: "الفيديو طويل جداً. الحد الأقصى 60 ثانية",
+      en: "Video is too long. Maximum duration is 60 seconds",
+    },
+    invalidVideoFormat: {
+      ar: "صيغة الفيديو غير صالحة. استخدم MP4 أو MOV أو WEBM",
+      en: "Invalid video format. Use MP4, MOV, or WEBM",
+    },
+    reelPostedSuccess: {
+      ar: "تم نشر الريل بنجاح!",
+      en: "Reel posted successfully!",
+    },
     noReelsAvailable: {
       ar: "لا توجد ريلز متاحة",
       en: "No reels available",
