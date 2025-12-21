@@ -22,6 +22,8 @@ import { messagesApi, type Message, type Conversation } from "@/lib/api/messages
 import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
+import { useSocket } from "@/contexts/socket-context";
+import { useChat } from "@/contexts/chat-context";
 
 interface ChatViewProps {
     conversationId: string;
@@ -36,6 +38,8 @@ export function ChatView({
     onBack,
     onConversationUpdate,
 }: ChatViewProps) {
+    const { joinConversation, leaveConversation, sendTyping } = useSocket();
+    const { addMessages } = useChat();
     const [conversation, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +73,19 @@ export function ChatView({
 
                 setConversation(convRes.conversation);
                 setMessages(msgRes.messages);
+                addMessages(conversationId, msgRes.messages.map(msg => ({
+                    id: msg._id,
+                    sender: {
+                        _id: msg.senderId._id,
+                        firstName: msg.senderId.firstName,
+                        lastName: msg.senderId.lastName,
+                        username: msg.senderId.username,
+                        avatar: msg.senderId.avatar
+                    },
+                    content: msg.content,
+                    media: msg.media,
+                    createdAt: msg.createdAt
+                })));
                 setPage(1);
                 setHasMore(msgRes.pagination.page < msgRes.pagination.pages);
 
@@ -83,7 +100,7 @@ export function ChatView({
         };
 
         fetchData();
-    }, [conversationId]);
+    }, [conversationId, addMessages]);
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -96,6 +113,32 @@ export function ChatView({
     useEffect(() => {
         inputRef.current?.focus();
     }, [conversationId]);
+
+    // Join conversation room for real-time updates
+    useEffect(() => {
+        joinConversation(conversationId);
+        return () => {
+            leaveConversation(conversationId);
+        };
+    }, [conversationId, joinConversation, leaveConversation]);
+
+    // Listen for real-time messages
+    useEffect(() => {
+        // Handled by chat context
+    }, []);
+
+    // Handle typing indicator
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (messageText.trim()) {
+                sendTyping("conversation", conversationId, true);
+            } else {
+                sendTyping("conversation", conversationId, false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [messageText, conversationId, sendTyping]);
 
     const loadMoreMessages = async () => {
         if (isLoadingMore || !hasMore) return;
@@ -149,7 +192,7 @@ export function ChatView({
 
         try {
             // Upload images first
-            let uploadedMediaUrls: string[] = [];
+            const uploadedMediaUrls: string[] = [];
             if (savedImages.length > 0) {
                 setIsUploading(true);
                 for (const img of savedImages) {
@@ -168,6 +211,21 @@ export function ChatView({
             setMessages((prev) =>
                 prev.map((m) => (m._id === tempId ? newMessage : m))
             );
+            
+            // Add to chat context for real-time sync
+            addMessages(conversationId, [{
+                id: newMessage._id,
+                sender: {
+                    _id: newMessage.senderId._id,
+                    firstName: newMessage.senderId.firstName,
+                    lastName: newMessage.senderId.lastName,
+                    username: newMessage.senderId.username,
+                    avatar: newMessage.senderId.avatar
+                },
+                content: newMessage.content,
+                media: newMessage.media,
+                createdAt: newMessage.createdAt
+            }]);
 
             // Update conversation in parent
             if (conversation) {

@@ -7,6 +7,7 @@ import { MessageReadModel } from "../models/message-read.model";
 import { UserModel } from "../models/user.model";
 import { BlockModel } from "../models/block.model";
 import { ConversationType } from "../models/common";
+import { io } from "../realtime/socket";
 import {
   createConversationSchema,
   sendMessageSchema,
@@ -275,6 +276,20 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       .populate("senderId", "firstName lastName username avatar verified")
       .lean();
 
+    // Emit real-time event to conversation participants (excluding sender)
+    const conversationParticipants = await ConversationModel.findById(conversationId).select("participants").lean();
+    if (conversationParticipants) {
+      conversationParticipants.participants.forEach((participantId) => {
+        if (participantId.toString() !== userId) {
+          io.to(`user:${participantId}`).emit("message:new", {
+            type: "conversation",
+            conversationId,
+            message: populatedMessage,
+          });
+        }
+      });
+    }
+
     res.status(201).json({
       message: "Message sent",
       data: populatedMessage,
@@ -411,6 +426,13 @@ export const deleteMessage: RequestHandler = async (req, res, next) => {
       { _id: messageId },
       { deletedAt: new Date() }
     );
+
+    // Emit message deleted event
+    io.to(`conversation:${conversationId}`).emit("message:deleted", {
+      type: "conversation",
+      conversationId,
+      messageId,
+    });
 
     res.json({ message: "Message deleted" });
   } catch (error) {

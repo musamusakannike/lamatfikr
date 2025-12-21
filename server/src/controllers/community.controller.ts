@@ -7,6 +7,7 @@ import {
   CommunityMemberRole,
   CommunityMessageModel,
 } from "../models";
+import { io } from "../realtime/socket";
 
 // Helper to get authenticated user ID
 function getUserId(req: Request): Types.ObjectId {
@@ -515,6 +516,20 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
     const populatedMessage = await CommunityMessageModel.findById(message._id)
       .populate("senderId", "username displayName avatar")
       .lean();
+
+    // Emit real-time event to community members
+    io.to(`community:${communityId}`).emit("message:new", {
+      type: "community",
+      communityId,
+      message: {
+        id: populatedMessage?._id,
+        communityId: populatedMessage?.communityId,
+        sender: populatedMessage?.senderId,
+        content: populatedMessage?.content,
+        media: populatedMessage?.media,
+        createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
+      },
+    });
 
     res.status(201).json({
       message: "Message sent",

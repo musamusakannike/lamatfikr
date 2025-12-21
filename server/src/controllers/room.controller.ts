@@ -21,6 +21,7 @@ import {
 } from "../services/email";
 import { WalletService } from "../services/wallet.service";
 import { TransactionType } from "../models/transaction.model";
+import { io } from "../realtime/socket";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
@@ -989,6 +990,20 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
     const populatedMessage = await RoomMessageModel.findById(message._id)
       .populate("senderId", "username displayName avatar")
       .lean();
+
+    // Emit real-time event to room members
+    io.to(`room:${roomId}`).emit("message:new", {
+      type: "room",
+      roomId,
+      message: {
+        id: populatedMessage?._id,
+        roomId: populatedMessage?.roomId,
+        sender: populatedMessage?.senderId,
+        content: populatedMessage?.content,
+        media: populatedMessage?.media,
+        createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
+      },
+    });
 
     res.status(201).json({
       message: "Message sent",

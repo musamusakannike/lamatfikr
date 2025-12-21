@@ -5,6 +5,8 @@ import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSocket } from "@/contexts/socket-context";
+import { useChat } from "@/contexts/chat-context";
 import { communitiesApi, Community, CommunityMessage, CommunityMember } from "@/lib/api/communities";
 import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
@@ -687,6 +689,8 @@ interface ChatViewProps {
 }
 
 function ChatView({ community, onBack }: ChatViewProps) {
+  const { joinCommunity, leaveCommunity, sendTyping } = useSocket();
+  const { messages: socketMessages, addMessages } = useChat();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -729,6 +733,37 @@ function ChatView({ community, onBack }: ChatViewProps) {
     loadMembers();
   }, [loadMessages, loadMembers]);
 
+  // Join community room for real-time updates
+  useEffect(() => {
+    joinCommunity(community.id);
+    return () => {
+      leaveCommunity(community.id);
+    };
+  }, [community.id, joinCommunity, leaveCommunity]);
+
+  // Listen for real-time messages
+  useEffect(() => {
+    const chatMessages = socketMessages[community.id] || [];
+    if (chatMessages.length > messages.length) {
+      // New messages received via socket
+      const newMessages = chatMessages.slice(messages.length);
+      setMessages((prev) => [...prev, ...newMessages as CommunityMessage[]]);
+    }
+  }, [socketMessages, community.id, messages.length]);
+
+  // Handle typing indicator
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (newMessage.trim()) {
+        sendTyping("community", community.id, true);
+      } else {
+        sendTyping("community", community.id, false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [newMessage, community.id, sendTyping]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!newMessage.trim() && selectedImages.length === 0) || isSending) return;
@@ -756,6 +791,9 @@ function ChatView({ community, onBack }: ChatViewProps) {
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
       });
       setMessages((prev) => [...prev, response.data]);
+      
+      // Add to chat context for real-time sync
+      addMessages(community.id, [response.data]);
 
       // Cleanup previews
       savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
