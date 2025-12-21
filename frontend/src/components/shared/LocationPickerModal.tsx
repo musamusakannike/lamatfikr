@@ -46,18 +46,51 @@ function LocationPickerBody({
   initialLocation?: PickedLocation;
   className?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [picked, setPicked] = useState<PickedLocation | null>(initialLocation || null);
   const [label, setLabel] = useState(initialLocation?.label || "");
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     // Fix Leaflet default marker icons for bundlers
     delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: markerIcon2x.src,
-      iconUrl: markerIcon.src,
-      shadowUrl: markerShadow.src,
+    const retina =
+      (markerIcon2x as unknown as { src?: string })?.src ?? (markerIcon2x as unknown as string);
+    const icon = (markerIcon as unknown as { src?: string })?.src ?? (markerIcon as unknown as string);
+    const shadow =
+      (markerShadow as unknown as { src?: string })?.src ?? (markerShadow as unknown as string);
+
+    if (retina && icon && shadow) {
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: retina,
+        iconUrl: icon,
+        shadowUrl: shadow,
+      });
+    }
+  }, []);
+
+  const markerIconResolved = useMemo(() => {
+    const retina =
+      (markerIcon2x as unknown as { src?: string })?.src ?? (markerIcon2x as unknown as string);
+    const icon = (markerIcon as unknown as { src?: string })?.src ?? (markerIcon as unknown as string);
+    const shadow =
+      (markerShadow as unknown as { src?: string })?.src ?? (markerShadow as unknown as string);
+
+    if (!icon) return undefined;
+
+    return new L.Icon({
+      iconRetinaUrl: retina || undefined,
+      iconUrl: icon,
+      shadowUrl: shadow || undefined,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
     });
   }, []);
 
@@ -99,6 +132,10 @@ function LocationPickerBody({
     onClose();
   };
 
+  if (!mounted) {
+    return <div className={cn("p-4", className)} />;
+  }
+
   return (
     <div className={cn("p-4 space-y-3", className)}>
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
@@ -138,7 +175,7 @@ function LocationPickerBody({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ClickToPick onPick={({ lat, lng }) => setPicked({ lat, lng, label: label.trim() || undefined })} />
-          {picked && <Marker position={[picked.lat, picked.lng]} />}
+          {picked && <Marker position={[picked.lat, picked.lng]} icon={markerIconResolved} />}
         </MapContainer>
       </div>
 
