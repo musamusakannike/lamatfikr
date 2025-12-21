@@ -1035,6 +1035,9 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
     const { roomId, messageId } = req.params;
     const { emoji } = req.body as { emoji?: string };
 
+    const userObjectId = new Types.ObjectId(String(userId));
+    const userIdStr = userObjectId.toString();
+
     if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(messageId)) {
       res.status(400).json({ message: "Invalid room or message ID" });
       return;
@@ -1065,19 +1068,19 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
 
     const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
       ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
-          (r) => r.emoji === emoji && r.userId.toString() === userId
+          (r) => r.emoji === emoji && r.userId.toString() === userIdStr
         )
       : false;
 
     if (hasReaction) {
       await RoomMessageModel.updateOne(
         { _id: messageId, roomId },
-        { $pull: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+        { $pull: { reactions: { emoji, userId: userObjectId } } }
       );
     } else {
       await RoomMessageModel.updateOne(
         { _id: messageId, roomId },
-        { $push: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+        { $push: { reactions: { emoji, userId: userObjectId } } }
       );
     }
 

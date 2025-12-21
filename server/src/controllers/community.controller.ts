@@ -561,6 +561,9 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
     const { communityId, messageId } = req.params;
     const { emoji } = req.body as { emoji?: string };
 
+    const userObjectId = new Types.ObjectId(String(userId));
+    const userIdStr = userObjectId.toString();
+
     if (!Types.ObjectId.isValid(communityId) || !Types.ObjectId.isValid(messageId)) {
       res.status(400).json({ message: "Invalid community or message ID" });
       return;
@@ -590,19 +593,19 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
 
     const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
       ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
-          (r) => r.emoji === emoji && r.userId.toString() === userId
+          (r) => r.emoji === emoji && r.userId.toString() === userIdStr
         )
       : false;
 
     if (hasReaction) {
       await CommunityMessageModel.updateOne(
         { _id: messageId, communityId },
-        { $pull: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+        { $pull: { reactions: { emoji, userId: userObjectId } } }
       );
     } else {
       await CommunityMessageModel.updateOne(
         { _id: messageId, communityId },
-        { $push: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+        { $push: { reactions: { emoji, userId: userObjectId } } }
       );
     }
 
