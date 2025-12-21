@@ -77,6 +77,58 @@ export const translations = {
     },
   },
 
+  // Legal
+  legal: {
+    privacyPolicyTitle: {
+      ar: "سياسة الخصوصية",
+      en: "Privacy Policy",
+    },
+    termsTitle: {
+      ar: "شروط الخدمة",
+      en: "Terms of Service",
+    },
+    privacyPolicyNav: {
+      ar: "الخصوصية",
+      en: "Privacy",
+    },
+    termsNav: {
+      ar: "الشروط",
+      en: "Terms",
+    },
+    viewTerms: {
+      ar: "عرض شروط الخدمة",
+      en: "View Terms",
+    },
+    viewPrivacy: {
+      ar: "عرض سياسة الخصوصية",
+      en: "View Privacy",
+    },
+    lastUpdated: {
+      ar: "آخر تحديث: 21 ديسمبر 2025",
+      en: "Last updated: December 21, 2025",
+    },
+    privacyPolicyIntro: {
+      ar: "توضح سياسة الخصوصية هذه كيفية جمعنا لمعلوماتك واستخدامها ومشاركتها عند استخدام تطبيق لمة فكر.",
+      en: "This Privacy Policy explains how we collect, use, and share your information when you use the LamatFikr app.",
+    },
+    privacyPolicyBody: {
+      ar: "المعلومات التي نجمعها: قد نجمع معلومات تقدمها لنا (مثل الاسم واسم المستخدم والبريد الإلكتروني والصورة الشخصية) ومعلومات يتم إنشاؤها أثناء استخدامك للخدمة.\n\nكيف نستخدم المعلومات: نستخدم المعلومات لتقديم الخدمة وتحسينها، وتأمين الحسابات، ومنع الاحتيال، والتواصل معك بشأن التحديثات.\n\nمشاركة المعلومات: قد نشارك معلوماتك مع مزودي خدمات موثوقين لمعالجة البيانات وتشغيل الخدمة، أو إذا طُلب منا ذلك قانونياً.\n\nالاحتفاظ بالبيانات: نحتفظ ببياناتك طالما كان ذلك ضرورياً لتقديم الخدمة والامتثال للالتزامات القانونية.\n\nحقوقك: يمكنك طلب الوصول إلى بياناتك أو تصحيحها أو حذفها وفقاً للقوانين المعمول بها.",
+      en: "Information we collect: We may collect information you provide (such as name, username, email, and profile picture) and information generated through your use of the service.\n\nHow we use information: We use information to provide and improve the service, secure accounts, prevent fraud, and communicate updates.\n\nSharing information: We may share your information with trusted service providers to process data and operate the service, or when legally required.\n\nData retention: We retain your data as long as needed to provide the service and comply with legal obligations.\n\nYour rights: You may request access, correction, or deletion of your data, subject to applicable laws.",
+    },
+    termsIntro: {
+      ar: "باستخدامك لتطبيق لمة فكر، فإنك توافق على الالتزام بشروط الخدمة هذه. إذا كنت لا توافق، فيرجى عدم استخدام الخدمة.",
+      en: "By using the LamatFikr app, you agree to these Terms of Service. If you do not agree, please do not use the service.",
+    },
+    termsBody: {
+      ar: "الحسابات: أنت مسؤول عن الحفاظ على سرية بيانات تسجيل الدخول وعن أي نشاط يحدث في حسابك.\n\nالمحتوى: أنت تحتفظ بحقوق ملكية المحتوى الذي تنشره، ولكنك تمنحنا ترخيصاً لتشغيل الخدمة وعرض المحتوى ضمنها.\n\nالسلوك المحظور: لا يجوز استخدام الخدمة لأي نشاط غير قانوني، أو إساءة، أو مضايقة، أو نشر محتوى ينتهك حقوق الآخرين.\n\nإنهاء الخدمة: قد نعلق أو ننهي حسابك إذا خالفت هذه الشروط أو لأسباب أمنية.\n\nإخلاء المسؤولية: تُقدم الخدمة \"كما هي\" دون أي ضمانات صريحة أو ضمنية بالقدر الذي يسمح به القانون.",
+      en: "Accounts: You are responsible for keeping your login credentials secure and for all activity on your account.\n\nContent: You retain ownership of the content you post, but you grant us a license to operate the service and display your content within it.\n\nProhibited conduct: You may not use the service for illegal activity, abuse, harassment, or posting content that violates others' rights.\n\nTermination: We may suspend or terminate your account if you violate these terms or for security reasons.\n\nDisclaimer: The service is provided \"as is\" without warranties, to the fullest extent permitted by law.",
+    },
+    contactUs: {
+      ar: "للاستفسارات المتعلقة بالخصوصية أو الشروط، تواصل معنا عبر صفحة الدعم داخل التطبيق.",
+      en: "For privacy or terms questions, contact us via the in-app support page.",
+    },
+  },
+
   // Auth - Login
   auth: {
     welcomeBack: {
