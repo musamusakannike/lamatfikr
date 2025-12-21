@@ -35,14 +35,17 @@ function ClickToPick({ onPick }: { onPick: (pos: { lat: number; lng: number }) =
   return null;
 }
 
-export function LocationPickerModal({
-  isOpen,
+function LocationPickerBody({
   onClose,
   onConfirm,
   initialLocation,
-  title = "Pick location",
   className,
-}: LocationPickerModalProps) {
+}: {
+  onClose: () => void;
+  onConfirm: (location: PickedLocation) => void;
+  initialLocation?: PickedLocation;
+  className?: string;
+}) {
   const [picked, setPicked] = useState<PickedLocation | null>(initialLocation || null);
   const [label, setLabel] = useState(initialLocation?.label || "");
   const [geoLoading, setGeoLoading] = useState(false);
@@ -57,13 +60,6 @@ export function LocationPickerModal({
       shadowUrl: markerShadow.src,
     });
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setPicked(initialLocation || null);
-    setLabel(initialLocation?.label || "");
-    setGeoError(null);
-  }, [isOpen, initialLocation]);
 
   const center = useMemo<[number, number]>(() => {
     if (picked) return [picked.lat, picked.lng];
@@ -104,64 +100,81 @@ export function LocationPickerModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
-      <div className={cn("p-4 space-y-3", className)}>
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-(--text) mb-1">
-              Label (optional)
-            </label>
-            <input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              className={cn(
-                "w-full px-3 py-2 rounded-lg text-sm",
-                "bg-(--bg) border border-(--border)",
-                "outline-none focus:ring-2 focus:ring-primary-500"
-              )}
-              placeholder="e.g. Home, Office"
-            />
-          </div>
-          <div className="flex gap-2 sm:self-end">
-            <Button variant="outline" onClick={handleUseCurrentLocation} disabled={geoLoading}>
-              {geoLoading ? "Locating..." : "Use current"}
-            </Button>
-            <Button variant="primary" onClick={handleConfirm} disabled={!picked}>
-              Send
-            </Button>
-          </div>
+    <div className={cn("p-4 space-y-3", className)}>
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-(--text) mb-1">Label (optional)</label>
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className={cn(
+              "w-full px-3 py-2 rounded-lg text-sm",
+              "bg-(--bg) border border-(--border)",
+              "outline-none focus:ring-2 focus:ring-primary-500"
+            )}
+            placeholder="e.g. Home, Office"
+          />
         </div>
-
-        {geoError && (
-          <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
-            <p className="text-sm text-red-700 dark:text-red-400">{geoError}</p>
-          </div>
-        )}
-
-        <div className="h-[380px] rounded-xl overflow-hidden border border-(--border)">
-          <MapContainer
-            center={center}
-            zoom={picked ? 15 : 6}
-            scrollWheelZoom={true}
-            className="h-full w-full"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ClickToPick
-              onPick={({ lat, lng }) => setPicked({ lat, lng, label: label.trim() || undefined })}
-            />
-            {picked && <Marker position={[picked.lat, picked.lng]} />}
-          </MapContainer>
+        <div className="flex gap-2 sm:self-end">
+          <Button variant="outline" onClick={handleUseCurrentLocation} disabled={geoLoading}>
+            {geoLoading ? "Locating..." : "Use current"}
+          </Button>
+          <Button variant="primary" onClick={handleConfirm} disabled={!picked}>
+            Send
+          </Button>
         </div>
-
-        {picked && (
-          <p className="text-xs text-(--text-muted)">
-            Selected: {picked.lat.toFixed(6)}, {picked.lng.toFixed(6)}
-          </p>
-        )}
       </div>
+
+      {geoError && (
+        <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+          <p className="text-sm text-red-700 dark:text-red-400">{geoError}</p>
+        </div>
+      )}
+
+      <div className="h-[380px] rounded-xl overflow-hidden border border-(--border)">
+        <MapContainer center={center} zoom={picked ? 15 : 6} scrollWheelZoom={true} className="h-full w-full">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ClickToPick onPick={({ lat, lng }) => setPicked({ lat, lng, label: label.trim() || undefined })} />
+          {picked && <Marker position={[picked.lat, picked.lng]} />}
+        </MapContainer>
+      </div>
+
+      {picked && (
+        <p className="text-xs text-(--text-muted)">
+          Selected: {picked.lat.toFixed(6)}, {picked.lng.toFixed(6)}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function LocationPickerModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  initialLocation,
+  title = "Pick location",
+  className,
+}: LocationPickerModalProps) {
+  const [instanceKey, setInstanceKey] = useState(0);
+
+  const handleClose = () => {
+    setInstanceKey((k) => k + 1);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title={title} size="lg">
+      <LocationPickerBody
+        key={instanceKey}
+        onClose={handleClose}
+        onConfirm={onConfirm}
+        initialLocation={initialLocation}
+        className={className}
+      />
     </Modal>
   );
 }
