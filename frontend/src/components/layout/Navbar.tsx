@@ -474,12 +474,13 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
               {/* Dropdown menu */}
               <div
                 className={cn(
-                  "absolute right-0 top-full mt-2 w-56",
+                  "absolute top-full mt-2 w-56",
+                  isRTL ? "left-0 origin-top-left" : "right-0 origin-top-right",
                   "bg-(--bg-card) rounded-xl",
                   "border border-(--border)",
                   "shadow-xl shadow-black/10 dark:shadow-black/30",
                   "py-2 overflow-hidden",
-                  "transition-all duration-200 origin-top-right",
+                  "transition-all duration-200",
                   userMenuOpen
                     ? "opacity-100 scale-100 translate-y-0"
                     : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
