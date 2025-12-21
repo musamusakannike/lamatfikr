@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Navbar, Sidebar } from "@/components/layout";
 import { Badge, Modal, Card, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSocket } from "@/contexts/socket-context";
-import { communitiesApi, Community, CommunityMessage, CommunityMember } from "@/lib/api/communities";
+import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
+import { communitiesApi, type Community, type CommunityMessage, type CommunityMember } from "@/lib/api/communities";
 import { uploadApi } from "@/lib/api/upload";
+import { useSocket } from "@/contexts/socket-context";
 import { getErrorMessage } from "@/lib/api";
+import { LocationPickerModal, type PickedLocation } from "@/components/shared/LocationPickerModal";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import L from "leaflet";
+
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import {
   Plus,
   Users,
@@ -26,9 +34,12 @@ import {
   Loader2,
   ArrowLeft,
   Smile,
+  MapPin,
+  Mic,
+  Camera,
+  StopCircle,
 } from "lucide-react";
 import Image from "next/image";
-import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 
 const categories = [
   "Technology",
@@ -696,8 +707,17 @@ function ChatView({ community, onBack }: ChatViewProps) {
   const [isSending, setIsSending] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; preview?: string }>>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [isRecordingVideo, setIsRecordingVideo] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const [leafletMounted, setLeafletMounted] = useState(false);
 
   const getMessageId = useCallback((msg: unknown) => {
     if (!msg || typeof msg !== "object") return "";
@@ -716,6 +736,46 @@ function ChatView({ community, onBack }: ChatViewProps) {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const stopAnyRecording = () => {
+    try {
+      mediaRecorderRef.current?.stop();
+    } catch {
+      // ignore
+    }
+    mediaRecorderRef.current = null;
+    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    mediaStreamRef.current = null;
+    setIsRecordingAudio(false);
+    setIsRecordingVideo(false);
+  };
+
+  useEffect(() => {
+    setLeafletMounted(true);
+    return () => {
+      stopAnyRecording();
+      selectedFiles.forEach((f) => {
+        if (f.preview) URL.revokeObjectURL(f.preview);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const leafletMarkerIcon = useMemo(() => {
+    const retina = (markerIcon2x as unknown as { src?: string })?.src ?? (markerIcon2x as unknown as string);
+    const icon = (markerIcon as unknown as { src?: string })?.src ?? (markerIcon as unknown as string);
+    const shadow = (markerShadow as unknown as { src?: string })?.src ?? (markerShadow as unknown as string);
+    if (!icon) return undefined;
+    return new L.Icon({
+      iconRetinaUrl: retina || undefined,
+      iconUrl: icon,
+      shadowUrl: shadow || undefined,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+  }, []);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -773,8 +833,22 @@ function ChatView({ community, onBack }: ChatViewProps) {
 
     socket.on("message:new", handleNewMessage);
 
+    const handleReaction = (data: { type: string; communityId?: string; messageId: string; reactions: unknown[] }) => {
+      if (data.communityId !== community.id) return;
+      if (!data.messageId) return;
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (getMessageId(m) !== String(data.messageId)) return m;
+          return Object.assign({}, m, { reactions: data.reactions }) as CommunityMessage;
+        })
+      );
+    };
+
+    socket.on("message:reaction", handleReaction);
+
     return () => {
       socket.off("message:new", handleNewMessage);
+      socket.off("message:reaction", handleReaction);
     };
   }, [socket, community.id, getMessageId]);
 
@@ -793,22 +867,32 @@ function ChatView({ community, onBack }: ChatViewProps) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && selectedImages.length === 0) || isSending) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || isSending) return;
 
     const savedMessage = newMessage;
-    const savedImages = [...selectedImages];
+    const savedFiles = [...selectedFiles];
     setNewMessage("");
-    setSelectedImages([]);
+    setSelectedFiles([]);
     setIsSending(true);
 
     try {
-      // Upload images first
       const uploadedMediaUrls: string[] = [];
-      if (savedImages.length > 0) {
+      const uploadedAttachments: Array<{ url: string; type: "image" | "video" | "audio"; name?: string; size?: number }> = [];
+
+      if (savedFiles.length > 0) {
         setIsUploading(true);
-        for (const img of savedImages) {
-          const result = await uploadApi.uploadImage(img.file, "communities");
-          uploadedMediaUrls.push(result.url);
+        for (const item of savedFiles) {
+          const result = await uploadApi.uploadMedia(item.file, "communities");
+          if (result.type === "image") {
+            uploadedMediaUrls.push(result.url);
+          } else {
+            uploadedAttachments.push({
+              url: result.url,
+              type: (result.type || (item.file.type.startsWith("video/") ? "video" : "audio")) as "video" | "audio",
+              name: item.file.name,
+              size: item.file.size,
+            });
+          }
         }
         setIsUploading(false);
       }
@@ -816,6 +900,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
       const response = await communitiesApi.sendMessage(community.id, {
         content: savedMessage.trim() || undefined,
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
+        attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
       });
       const sentId = getMessageId(response.data);
       setMessages((prev) => {
@@ -826,38 +911,37 @@ function ChatView({ community, onBack }: ChatViewProps) {
         return [...prev, Object.assign({}, response.data, { id: sentId }) as CommunityMessage];
       });
 
-      // Cleanup previews
-      savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+      savedFiles.forEach((f) => {
+        if (f.preview) URL.revokeObjectURL(f.preview);
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
       // Restore on error
       setNewMessage(savedMessage);
-      setSelectedImages(savedImages);
+      setSelectedFiles(savedFiles);
     } finally {
       setIsSending(false);
       setIsUploading(false);
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-
-    const newImages = imageFiles.slice(0, 4 - selectedImages.length).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-
-    setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4));
+    const next = files.slice(0, Math.max(0, 6 - selectedFiles.length)).map((file) => {
+      const needsPreview = file.type.startsWith("image/") || file.type.startsWith("video/");
+      return { file, preview: needsPreview ? URL.createObjectURL(file) : undefined };
+    });
+    setSelectedFiles((prev) => [...prev, ...next].slice(0, 6));
     e.target.value = "";
   };
 
-  const removeImage = (index: number) => {
-    setSelectedImages((prev) => {
-      const newImages = [...prev];
-      URL.revokeObjectURL(newImages[index].preview);
-      newImages.splice(index, 1);
-      return newImages;
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const next = [...prev];
+      const removed = next[index];
+      if (removed?.preview) URL.revokeObjectURL(removed.preview);
+      next.splice(index, 1);
+      return next;
     });
   };
 
@@ -878,6 +962,46 @@ function ChatView({ community, onBack }: ChatViewProps) {
       setNewMessage((prev) => prev + emojiData.emoji);
     }
     setShowEmojiPicker(false);
+  };
+
+  const handleToggleReaction = async (messageId: string, emoji: string) => {
+    try {
+      await communitiesApi.toggleReaction(community.id, messageId, emoji);
+    } catch (err) {
+      console.error("Failed to react:", err);
+    }
+  };
+
+  const startRecording = async (mode: "audio" | "video") => {
+    if (isRecordingAudio || isRecordingVideo) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(
+        mode === "video" ? { video: true, audio: true } : { audio: true }
+      );
+      mediaStreamRef.current = stream;
+      const mimeType = mode === "video" ? "video/webm" : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (evt) => {
+        if (evt.data && evt.data.size > 0) chunks.push(evt.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const file = new File([blob], `${mode}-${Date.now()}.webm`, { type: mimeType });
+        const preview = mode === "video" ? URL.createObjectURL(file) : undefined;
+        setSelectedFiles((prev) => [...prev, { file, preview }].slice(0, 6));
+        stopAnyRecording();
+      };
+
+      if (mode === "audio") setIsRecordingAudio(true);
+      if (mode === "video") setIsRecordingVideo(true);
+      recorder.start();
+    } catch (err) {
+      stopAnyRecording();
+      console.error("Failed to start recording:", err);
+    }
   };
 
   const formatTime = (dateStr: string) => {
@@ -947,6 +1071,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
                       </span>
                       <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
                     </div>
+                    <div className="mt-0.5">
                     {msg.content && (
                       <p className="text-(--text) text-sm mt-0.5 wrap-break-word">{msg.content}</p>
                     )}
@@ -964,6 +1089,94 @@ function ChatView({ community, onBack }: ChatViewProps) {
                         ))}
                       </div>
                     )}
+
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div className="flex flex-col gap-2 mt-2">
+                        {msg.attachments.map((att, i) => (
+                          <div key={`${att.url}-${i}`}>
+                            {att.type === "video" ? (
+                              <video src={att.url} controls className="max-w-full rounded-lg" />
+                            ) : att.type === "audio" ? (
+                              <audio src={att.url} controls className="w-full" />
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {msg.location && (
+                      <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
+                        <div className="h-32 w-full bg-(--bg)">
+                          {leafletMounted ? (
+                            <MapContainer
+                              center={[msg.location.lat, msg.location.lng]}
+                              zoom={15}
+                              scrollWheelZoom={false}
+                              dragging={false}
+                              doubleClickZoom={false}
+                              zoomControl={false}
+                              attributionControl={false}
+                              className="h-full w-full"
+                            >
+                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                              <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
+                            </MapContainer>
+                          ) : (
+                            <div className="h-full w-full" />
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
+                          <p className="text-xs text-(--text-muted)">
+                            {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
+                          </p>
+                          <a
+                            href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs underline text-primary-600"
+                          >
+                            Open in Maps
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {(msg.reactions && msg.reactions.length > 0) && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {Array.from(
+                          (msg.reactions || []).reduce((acc, r) => {
+                            const emoji = r.emoji;
+                            acc.set(emoji, (acc.get(emoji) || 0) + 1);
+                            return acc;
+                          }, new Map<string, number>())
+                        ).map(([emoji, count]) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleToggleReaction(getMessageId(msg), emoji)}
+                            className="px-2 py-0.5 rounded-full text-xs bg-(--bg-card) border border-(--border)"
+                          >
+                            {emoji} {count}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReactingToMessageId(getMessageId(msg));
+                          setShowReactionPicker(true);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs text-(--text-muted) hover:text-primary-600"
+                      >
+                        <Smile size={14} />
+                        React
+                      </button>
+                    </div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -973,20 +1186,28 @@ function ChatView({ community, onBack }: ChatViewProps) {
           {/* Message Input */}
           <form onSubmit={handleSendMessage} className="p-4 border-t border-(--border) bg-(--bg-card)">
             {/* Image Previews */}
-            {selectedImages.length > 0 && (
+            {selectedFiles.length > 0 && (
               <div className="flex gap-2 mb-3 flex-wrap">
-                {selectedImages.map((img, index) => (
+                {selectedFiles.map((item, index) => (
                   <div key={index} className="relative group">
-                    <Image
-                      src={img.preview}
-                      alt={`Selected ${index + 1}`}
-                      width={80}
-                      height={80}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
+                    {item.preview && item.file.type.startsWith("image/") ? (
+                      <Image
+                        src={item.preview}
+                        alt={`Selected ${index + 1}`}
+                        width={80}
+                        height={80}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                    ) : item.preview && item.file.type.startsWith("video/") ? (
+                      <video src={item.preview} className="w-20 h-20 object-cover rounded-lg" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-lg border border-(--border) bg-(--bg) flex items-center justify-center">
+                        <span className="text-xs text-(--text-muted)">{item.file.type.startsWith("audio/") ? "AUDIO" : "FILE"}</span>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => removeImage(index)}
+                      onClick={() => removeSelectedFile(index)}
                       className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={12} />
@@ -1001,24 +1222,54 @@ function ChatView({ community, onBack }: ChatViewProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*,audio/*"
                 multiple
-                onChange={handleImageSelect}
+                onChange={handleFilesSelect}
                 className="hidden"
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={selectedImages.length >= 4}
+                disabled={selectedFiles.length >= 6}
                 className={cn(
                   "p-2.5 rounded-lg transition-colors",
-                  selectedImages.length > 0
+                  selectedFiles.length > 0
                     ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
                     : "text-(--text-muted) hover:bg-(--bg)",
-                  selectedImages.length >= 4 && "opacity-50 cursor-not-allowed"
+                  selectedFiles.length >= 6 && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <ImageIcon size={20} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
+                className={cn(
+                  "p-2.5 rounded-lg transition-colors",
+                  isRecordingAudio ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                )}
+              >
+                {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
+                className={cn(
+                  "p-2.5 rounded-lg transition-colors",
+                  isRecordingVideo ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                )}
+              >
+                {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowLocationPicker(true)}
+                className={cn("p-2.5 rounded-lg transition-colors", "text-(--text-muted) hover:bg-(--bg)")}
+              >
+                <MapPin size={20} />
               </button>
 
               {/* Emoji Picker Button */}
@@ -1066,7 +1317,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={(!newMessage.trim() && selectedImages.length === 0) || isSending || isUploading}
+                disabled={(!newMessage.trim() && selectedFiles.length === 0) || isSending || isUploading}
               >
                 {isSending || isUploading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
               </Button>
@@ -1104,6 +1355,37 @@ function ChatView({ community, onBack }: ChatViewProps) {
           </div>
         )}
       </div>
+
+      <LocationPickerModal
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        title="Send location"
+        onConfirm={async (loc: PickedLocation) => {
+          try {
+            await communitiesApi.sendMessage(community.id, { location: loc });
+          } catch (err) {
+            console.error("Failed to send location:", err);
+          }
+        }}
+      />
+
+      {showReactionPicker && reactingToMessageId && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowReactionPicker(false)} />
+          <div className="relative bg-(--bg-card) border border-(--border) rounded-xl overflow-hidden">
+            <EmojiPicker
+              onEmojiClick={(e) => {
+                handleToggleReaction(reactingToMessageId, e.emoji);
+                setShowReactionPicker(false);
+                setReactingToMessageId(null);
+              }}
+              height={350}
+              width={320}
+              lazyLoadEmojis={true}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
