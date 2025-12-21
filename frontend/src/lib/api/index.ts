@@ -48,3 +48,6 @@ export type {
   MarketplaceStats,
   SellerStats,
 } from "./marketplace";
+
+export { searchApi } from "./search";
+export type { SearchResponse, SearchUser, SearchPost } from "./search";

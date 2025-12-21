@@ -27,6 +27,7 @@ import walletRouter from "./routes/wallet";
 import { userSuggestionsRouter } from "./routes/user-suggestions";
 import { presenceRouter } from "./routes/presence";
 import { announcementsRouter } from "./routes/announcements";
+import { searchRouter } from "./routes/search";
 import { trackAppVisit } from "./middleware/app-visit";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
@@ -80,6 +81,7 @@ export function createApp() {
   app.use("/api/users", userSuggestionsRouter);
   app.use("/api/presence", presenceRouter);
   app.use("/api/announcements", announcementsRouter);
+  app.use("/api/search", searchRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

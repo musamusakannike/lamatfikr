@@ -27,6 +27,7 @@ import { CreatePost } from "@/components/home/CreatePost";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { notificationsApi } from "@/lib/api/notifications";
+import { searchApi, type SearchResponse, type SearchUser, type SearchPost } from "@/lib/api/search";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -48,6 +49,10 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -73,6 +78,34 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
       searchInputRef.current.focus();
     }
   }, [mobileSearchOpen]);
+
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchResults(null);
+      setShowSearchDropdown(false);
+      return;
+    }
+    let active = true;
+    setSearchLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await searchApi.searchAll(q, 5);
+        if (active) {
+          setSearchResults(res);
+          setShowSearchDropdown(true);
+        }
+      } catch {
+        if (active) setSearchResults({ users: [], posts: [] });
+      } finally {
+        if (active) setSearchLoading(false);
+      }
+    }, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -188,9 +221,87 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                   "outline-none transition-all duration-300",
                   "hover:bg-primary-100/80 dark:hover:bg-primary-900/40"
                 )}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  setSearchFocused(true);
+                  if (searchResults && (searchResults.users.length || searchResults.posts.length)) {
+                    setShowSearchDropdown(true);
+                  }
+                }}
+                onBlur={() => {
+                  setSearchFocused(false);
+                  setTimeout(() => setShowSearchDropdown(false), 150);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const q = searchQuery.trim();
+                    if (q.length >= 2) {
+                      router.push(`/search?q=${encodeURIComponent(q)}`);
+                      setShowSearchDropdown(false);
+                    }
+                  }
+                }}
               />
+              {showSearchDropdown && (
+                <div className={cn(
+                  "absolute top-full mt-2 left-0 right-0",
+                  "bg-(--bg-card) rounded-xl border border-(--border)",
+                  "shadow-xl p-2 z-50"
+                )}>
+                  {searchLoading && (
+                    <div className="px-3 py-2 text-sm text-(--text-muted)">Loading...</div>
+                  )}
+                  {!searchLoading && searchResults && (
+                    <div className="grid grid-cols-1 gap-2">
+                      {searchResults.users.length > 0 && (
+                        <div>
+                          <div className="px-3 py-1 text-xs text-(--text-muted)">Users</div>
+                          <ul>
+                            {searchResults.users.map((u: SearchUser) => (
+                              <li key={u._id}>
+                                <Link
+                                  href={`/user/${u.username}`}
+                                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary-50/60 dark:hover:bg-primary-900/30"
+                                  onClick={() => setShowSearchDropdown(false)}
+                                >
+                                  <img src={u.avatar || "/images/default-avatar.svg"} alt={u.username} className="w-7 h-7 rounded-full object-cover" />
+                                  <div>
+                                    <p className="text-sm">{u.firstName} {u.lastName}</p>
+                                    <p className="text-xs text-(--text-muted)">@{u.username}</p>
+                                  </div>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {searchResults.posts.length > 0 && (
+                        <div>
+                          <div className="px-3 py-1 text-xs text-(--text-muted)">Posts</div>
+                          <ul>
+                            {searchResults.posts.map((p: SearchPost) => (
+                              <li key={p._id}>
+                                <Link
+                                  href={`/posts/${p._id}`}
+                                  className="block px-3 py-2 rounded-lg hover:bg-primary-50/60 dark:hover:bg-primary-900/30"
+                                  onClick={() => setShowSearchDropdown(false)}
+                                >
+                                  <p className="text-sm line-clamp-2 whitespace-pre-wrap">{p.contentText || ""}</p>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {searchResults.users.length === 0 && searchResults.posts.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-(--text-muted)">No results</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -443,7 +554,7 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search..."
+              placeholder={t("common", "search") + "..."}
               className={cn(
                 "w-full pl-10 pr-4 py-2.5 rounded-full text-sm",
                 "bg-primary-50/80 dark:bg-primary-950/40",
@@ -451,6 +562,18 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 "placeholder:text-(--text-muted)",
                 "outline-none transition-all duration-200"
               )}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const q = searchQuery.trim();
+                  if (q.length >= 2) {
+                    router.push(`/search?q=${encodeURIComponent(q)}`);
+                    setMobileSearchOpen(false);
+                  }
+                }
+              }}
             />
           </div>
         </div>
