@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { ProductReviews } from "./ProductReviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -338,7 +339,7 @@ export function ProductDetailsModal({
                     {product.seller?.displayName || product.seller?.username || t("marketplace", "unknownSeller")}
                   </span>
                   {(product.seller?.isVerified || product.seller?.verified) && (
-                    <Badge variant="success" size="sm">{t("marketplace", "verified")}</Badge>
+                    <VerifiedBadge size={16} />
                   )}
                 </div>
                 <span className="text-sm text-(--text-muted)">{t("marketplace", "seller")}</span>

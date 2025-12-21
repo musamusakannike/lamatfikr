@@ -24,6 +24,7 @@ import {
   Settings,
   ChevronRight,
 } from "lucide-react";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -188,9 +189,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               online={isAuthenticated}
             />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">
-                {user ? `${user.firstName} ${user.lastName}` : "Guest"}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-sm truncate">
+                  {user ? `${user.firstName} ${user.lastName}` : "Guest"}
+                </p>
+                {user?.verified && (
+                  <VerifiedBadge size={14} />
+                )}
+              </div>
               <p className="text-xs text-(--text-muted) truncate">
                 {user ? `@${user.username}` : ""}
               </p>

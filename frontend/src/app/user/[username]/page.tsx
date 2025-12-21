@@ -33,6 +33,7 @@ import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
 import type { Socket } from "socket.io-client";
 import { createAuthedSocket } from "@/lib/socket";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
@@ -335,13 +336,6 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                 />
                                             )}
                                         </div>
-
-                                        {/* Verified badge */}
-                                        {profile.verified && (
-                                            <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center border-2 border-(--bg-card)">
-                                                <CheckCircle size={16} className="text-white" fill="currentColor" />
-                                            </div>
-                                        )}
                                     </div>
 
                                     {/* Name and actions */}
@@ -351,6 +345,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                 <h1 className="text-2xl font-bold">
                                                     {profile.firstName} {profile.lastName}
                                                 </h1>
+                                                {profile.verified && (
+                                                    <VerifiedBadge size={20} />
+                                                )}
                                                 {isUserOnline !== null && (
                                                     <span
                                                         className={cn(

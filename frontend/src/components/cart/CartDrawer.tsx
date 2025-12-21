@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
+import Image from "next/image";
 
 export function CartDrawer() {
   const {
@@ -166,9 +168,11 @@ export function CartDrawer() {
                       {/* Product Image */}
                       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
                         {item.image ? (
-                          <img
+                          <Image
                             src={item.image}
                             alt={item.title}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -191,9 +195,12 @@ export function CartDrawer() {
                           {item.title}
                         </h4>
                         {item.seller && (
-                          <p className="text-xs text-(--text-muted) mb-2">
-                            by {item.seller.displayName || item.seller.username}
-                          </p>
+                          <div className="flex items-center gap-1 text-xs text-(--text-muted) mb-2">
+                            <span>by {item.seller.displayName || item.seller.username}</span>
+                            {item.seller.isVerified && (
+                              <VerifiedBadge size={12} />
+                            )}
+                          </div>
                         )}
                         <p className="text-primary-600 font-semibold">
                           {formatCurrency(item.price, item.currency)}

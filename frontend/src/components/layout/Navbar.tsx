@@ -29,6 +29,7 @@ import { useCart } from "@/contexts/CartContext";
 import { notificationsApi } from "@/lib/api/notifications";
 import { searchApi, type SearchResponse, type SearchUser, type SearchPost } from "@/lib/api/search";
 import { useDebounce } from "@/lib/hooks/useDebounce";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -485,9 +486,14 @@ export function Navbar({ onMenuToggle, isSidebarOpen }: NavbarProps) {
                 )}
               >
                 <div className="px-4 py-3 border-b border-(--border)">
-                  <p className="font-semibold text-sm text-(--text)">
-                    {user ? `${user.firstName} ${user.lastName}` : "Guest"}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm text-(--text)">
+                      {user ? `${user.firstName} ${user.lastName}` : "Guest"}
+                    </p>
+                    {user?.verified && (
+                      <VerifiedBadge size={16} />
+                    )}
+                  </div>
                   <p className="text-xs text-(--text-muted)">
                     {user ? `@${user.username}` : ""}
                   </p>

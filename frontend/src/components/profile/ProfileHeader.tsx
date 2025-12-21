@@ -267,13 +267,6 @@ export function ProfileHeader({
               onChange={handleAvatarChange}
               className="hidden"
             />
-
-            {/* Verified badge */}
-            {profile.verified && (
-              <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-(--bg-card)">
-                <VerifiedBadge size={18} className="" />
-              </div>
-            )}
           </div>
 
           {/* Name and actions */}
@@ -283,6 +276,9 @@ export function ProfileHeader({
                 <h1 className="text-2xl font-bold">
                   {profile.firstName} {profile.lastName}
                 </h1>
+                {profile.verified && (
+                  <VerifiedBadge size={20} />
+                )}
               </div>
               <p className="text-(--text-muted)">@{profile.username}</p>
               {isPaidVerifiedActive && (

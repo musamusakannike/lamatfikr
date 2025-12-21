@@ -9,6 +9,7 @@ import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
 import { useCart } from "@/contexts/CartContext";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
 export interface Product {
   _id: string;
@@ -222,7 +223,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
             {sellerName}
           </span>
           {isVerified && (
-            <Badge variant="success" size="sm">Verified</Badge>
+            <VerifiedBadge size={14} />
           )}
         </div>
 
