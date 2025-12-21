@@ -15,6 +15,7 @@ import {
   sendMessage,
   getMessages,
   markRoomAsRead,
+  toggleReaction,
   handleMembershipRequest,
   getPendingRequests,
   generateInviteLink,
@@ -52,6 +53,7 @@ roomsRouter.post("/:roomId/requests/:memberId", handleMembershipRequest);
 roomsRouter.post("/:roomId/messages", sendMessage);
 roomsRouter.get("/:roomId/messages", getMessages);
 roomsRouter.post("/:roomId/read", markRoomAsRead);
+roomsRouter.post("/:roomId/messages/:messageId/reactions", toggleReaction);
 
 // Invite links (private rooms)
 roomsRouter.post("/:roomId/invite-links", generateInviteLink);

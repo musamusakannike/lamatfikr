@@ -1,5 +1,25 @@
 import { apiClient } from "../api";
 
+export type RoomMessageAttachmentType = "image" | "video" | "audio";
+
+export interface RoomMessageAttachment {
+  url: string;
+  type: RoomMessageAttachmentType;
+  name?: string;
+  size?: number;
+}
+
+export interface RoomMessageLocation {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
+export interface RoomMessageReaction {
+  emoji: string;
+  userId: string;
+}
+
 export interface RoomOwner {
   _id: string;
   username: string;
@@ -52,6 +72,9 @@ export interface RoomMessage {
   };
   content?: string;
   media?: string[];
+  attachments?: RoomMessageAttachment[];
+  location?: RoomMessageLocation;
+  reactions?: RoomMessageReaction[];
   createdAt: string;
 }
 
@@ -236,8 +259,15 @@ export const roomsApi = {
   },
 
   // Send message
-  sendMessage: (roomId: string, data: { content?: string; media?: string[] }) => {
+  sendMessage: (roomId: string, data: { content?: string; media?: string[]; attachments?: RoomMessageAttachment[]; location?: RoomMessageLocation }) => {
     return apiClient.post<{ message: string; data: RoomMessage }>(`/rooms/${roomId}/messages`, data);
+  },
+
+  toggleReaction: (roomId: string, messageId: string, emoji: string) => {
+    return apiClient.post<{ message: string; data: { messageId: string; reactions: RoomMessageReaction[] } }>(
+      `/rooms/${roomId}/messages/${messageId}/reactions`,
+      { emoji }
+    );
   },
 
   // Get messages

@@ -12,6 +12,7 @@ import {
   createConversationSchema,
   sendMessageSchema,
   getMessagesSchema,
+  toggleReactionSchema,
 } from "../validators/message.validator";
 
 // Get or create a private conversation with another user
@@ -85,6 +86,92 @@ export const getOrCreateConversation: RequestHandler = async (req, res, next) =>
         createdAt: (conversation as unknown as { createdAt: Date }).createdAt,
         updatedAt: (conversation as unknown as { updatedAt: Date }).updatedAt,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const toggleReaction: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+
+    const validation = toggleReactionSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { emoji } = validation.data;
+
+    // Check if user is participant
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participants: userId,
+      deletedAt: null,
+    }).lean();
+
+    if (!conversation) {
+      res.status(404).json({ message: "Conversation not found" });
+      return;
+    }
+
+    const msg = await MessageModel.findOne({
+      _id: messageId,
+      conversationId,
+      deletedAt: null,
+    }).lean();
+
+    if (!msg) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
+      ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
+          (r) => r.emoji === emoji && r.userId.toString() === userId
+        )
+      : false;
+
+    if (hasReaction) {
+      await MessageModel.updateOne(
+        { _id: messageId, conversationId },
+        { $pull: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+      );
+    } else {
+      await MessageModel.updateOne(
+        { _id: messageId, conversationId },
+        { $push: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+      );
+    }
+
+    const updated = await MessageModel.findById(messageId).select("reactions").lean();
+    const reactions = (updated as unknown as { reactions?: unknown[] })?.reactions || [];
+
+    io.to(`conversation:${conversationId}`).emit("message:reaction", {
+      type: "conversation",
+      conversationId,
+      messageId,
+      reactions,
+    });
+
+    res.json({
+      message: "Reaction updated",
+      data: { messageId, reactions },
     });
   } catch (error) {
     next(error);
@@ -224,7 +311,7 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const { content, media } = validation.data;
+    const { content, media, attachments, location } = validation.data;
 
     // Check if user is participant
     const conversation = await ConversationModel.findOne({
@@ -263,6 +350,8 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       senderId: userId,
       content,
       media: media || [],
+      attachments: attachments || [],
+      location,
     });
 
     // Update conversation's lastMessageId

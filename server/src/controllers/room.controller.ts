@@ -955,14 +955,14 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
   try {
     const userId = getUserId(req);
     const { roomId } = req.params;
-    const { content, media } = req.body;
+    const { content, media, attachments, location } = req.body;
 
     if (!Types.ObjectId.isValid(roomId)) {
       res.status(400).json({ message: "Invalid room ID" });
       return;
     }
 
-    if (!content && (!media || media.length === 0)) {
+    if (!content && (!media || media.length === 0) && (!attachments || attachments.length === 0) && !location) {
       res.status(400).json({ message: "Message content or media is required" });
       return;
     }
@@ -985,6 +985,8 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
       senderId: userId,
       content,
       media: media || [],
+      attachments: attachments || [],
+      location,
     });
 
     const populatedMessage = await RoomMessageModel.findById(message._id)
@@ -1001,6 +1003,9 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
         sender: populatedMessage?.senderId,
         content: populatedMessage?.content,
         media: populatedMessage?.media,
+        attachments: (populatedMessage as unknown as { attachments?: unknown[] })?.attachments,
+        location: (populatedMessage as unknown as { location?: unknown })?.location,
+        reactions: (populatedMessage as unknown as { reactions?: unknown[] })?.reactions,
         createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
       },
     });
@@ -1013,9 +1018,80 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
         sender: populatedMessage?.senderId,
         content: populatedMessage?.content,
         media: populatedMessage?.media,
+        attachments: (populatedMessage as unknown as { attachments?: unknown[] })?.attachments,
+        location: (populatedMessage as unknown as { location?: unknown })?.location,
+        reactions: (populatedMessage as unknown as { reactions?: unknown[] })?.reactions,
         createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function toggleReaction(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId, messageId } = req.params;
+    const { emoji } = req.body as { emoji?: string };
+
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid room or message ID" });
+      return;
+    }
+
+    if (!emoji || typeof emoji !== "string") {
+      res.status(400).json({ message: "Emoji is required" });
+      return;
+    }
+
+    const membership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    }).lean();
+
+    if (!membership) {
+      res.status(403).json({ message: "You must be a member to react to messages" });
+      return;
+    }
+
+    const msg = await RoomMessageModel.findOne({ _id: messageId, roomId, deletedAt: null }).lean();
+    if (!msg) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
+      ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
+          (r) => r.emoji === emoji && r.userId.toString() === userId
+        )
+      : false;
+
+    if (hasReaction) {
+      await RoomMessageModel.updateOne(
+        { _id: messageId, roomId },
+        { $pull: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+      );
+    } else {
+      await RoomMessageModel.updateOne(
+        { _id: messageId, roomId },
+        { $push: { reactions: { emoji, userId: new Types.ObjectId(userId) } } }
+      );
+    }
+
+    const updated = await RoomMessageModel.findById(messageId).select("reactions").lean();
+    const reactions = (updated as unknown as { reactions?: unknown[] })?.reactions || [];
+
+    io.to(`room:${roomId}`).emit("message:reaction", {
+      type: "room",
+      roomId,
+      messageId,
+      reactions,
+    });
+
+    res.json({ message: "Reaction updated", data: { messageId, reactions } });
   } catch (error) {
     next(error);
   }
@@ -1066,6 +1142,9 @@ export async function getMessages(req: Request, res: Response, next: NextFunctio
         sender: m.senderId,
         content: m.content,
         media: m.media,
+        attachments: (m as unknown as { attachments?: unknown[] })?.attachments,
+        location: (m as unknown as { location?: unknown })?.location,
+        reactions: (m as unknown as { reactions?: unknown[] })?.reactions,
         createdAt: (m as unknown as { createdAt: Date }).createdAt,
       })),
       hasMore: messages.length === Number(limit),

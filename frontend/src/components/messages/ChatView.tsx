@@ -13,6 +13,10 @@ import {
     Phone,
     Video,
     X,
+    MapPin,
+    Mic,
+    Camera,
+    StopCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,6 +28,7 @@ import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
 import { useSocket } from "@/contexts/socket-context";
 import { useChat } from "@/contexts/chat-context";
+import { LocationPickerModal, type PickedLocation } from "@/components/shared/LocationPickerModal";
 
 interface ChatViewProps {
     conversationId: string;
@@ -49,13 +54,46 @@ export function ChatView({
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; preview?: string }>>([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
+    const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
+    const [showReactionPicker, setShowReactionPicker] = useState(false);
+
+    const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+    const [isRecordingVideo, setIsRecordingVideo] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const mediaStreamRef = useRef<MediaStream | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const selectedImages = selectedFiles.filter((f) => f.file.type.startsWith("image/") && f.preview);
+
+    const stopAnyRecording = () => {
+        try {
+            mediaRecorderRef.current?.stop();
+        } catch {
+            // ignore
+        }
+        mediaRecorderRef.current = null;
+        mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+        mediaStreamRef.current = null;
+        setIsRecordingAudio(false);
+        setIsRecordingVideo(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            stopAnyRecording();
+            selectedFiles.forEach((f) => {
+                if (f.preview) URL.revokeObjectURL(f.preview);
+            });
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const getMessageId = (msg: Message) => (msg?._id ? String(msg._id) : "");
 
@@ -69,6 +107,48 @@ export function ChatView({
         return Array.from(map.values()).sort(
             (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
+    };
+
+    const handleToggleReaction = async (messageId: string, emoji: string) => {
+        try {
+            await messagesApi.toggleReaction(conversationId, messageId, emoji);
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+        }
+    };
+
+    const startRecording = async (mode: "audio" | "video") => {
+        if (isRecordingAudio || isRecordingVideo) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(
+                mode === "video" ? { video: true, audio: true } : { audio: true }
+            );
+            mediaStreamRef.current = stream;
+
+            const mimeType = mode === "video" ? "video/webm" : "audio/webm";
+            const recorder = new MediaRecorder(stream, { mimeType });
+            mediaRecorderRef.current = recorder;
+
+            const chunks: BlobPart[] = [];
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                const ext = mode === "video" ? "webm" : "webm";
+                const file = new File([blob], `${mode}-${Date.now()}.${ext}`, { type: mimeType });
+                const preview = mode === "video" ? URL.createObjectURL(file) : undefined;
+                setSelectedFiles((prev) => [...prev, { file, preview }].slice(0, 6));
+                stopAnyRecording();
+            };
+
+            if (mode === "audio") setIsRecordingAudio(true);
+            if (mode === "video") setIsRecordingVideo(true);
+            recorder.start();
+        } catch (err) {
+            stopAnyRecording();
+            toast.error(getErrorMessage(err));
+        }
     };
 
     const otherParticipant = conversation?.participants.find(
@@ -178,7 +258,7 @@ export function ChatView({
     };
 
     const handleSendMessage = async () => {
-        if ((!messageText.trim() && selectedImages.length === 0) || isSending) return;
+        if ((!messageText.trim() && selectedFiles.length === 0) || isSending) return;
 
         const tempId = `temp-${Date.now()}`;
         const tempMessage: Message = {
@@ -191,7 +271,10 @@ export function ChatView({
                 username: "",
             },
             content: messageText.trim() || undefined,
-            media: selectedImages.map((img) => img.preview),
+            media: selectedImages.map((img) => img.preview as string),
+            attachments: selectedFiles
+                .filter((f) => !f.file.type.startsWith("image/") && !!f.preview)
+                .map((f) => ({ url: f.preview as string, type: f.file.type.startsWith("video/") ? "video" : "audio" })),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -199,19 +282,29 @@ export function ChatView({
         // Optimistic update
         setMessages((prev) => [...prev, tempMessage]);
         const savedMessageText = messageText;
-        const savedImages = [...selectedImages];
+        const savedFiles = [...selectedFiles];
         setMessageText("");
-        setSelectedImages([]);
+        setSelectedFiles([]);
         setIsSending(true);
 
         try {
-            // Upload images first
             const uploadedMediaUrls: string[] = [];
-            if (savedImages.length > 0) {
+            const uploadedAttachments: Array<{ url: string; type: "image" | "video" | "audio"; name?: string; size?: number }> = [];
+
+            if (savedFiles.length > 0) {
                 setIsUploading(true);
-                for (const img of savedImages) {
-                    const result = await uploadApi.uploadImage(img.file, "messages");
-                    uploadedMediaUrls.push(result.url);
+                for (const item of savedFiles) {
+                    const result = await uploadApi.uploadMedia(item.file, "messages");
+                    if (result.type === "image") {
+                        uploadedMediaUrls.push(result.url);
+                    } else {
+                        uploadedAttachments.push({
+                            url: result.url,
+                            type: (result.type || (item.file.type.startsWith("video/") ? "video" : "audio")) as "video" | "audio",
+                            name: item.file.name,
+                            size: item.file.size,
+                        });
+                    }
                 }
                 setIsUploading(false);
             }
@@ -219,6 +312,7 @@ export function ChatView({
             const { data: newMessage } = await messagesApi.sendMessage(conversationId, {
                 content: savedMessageText.trim() || undefined,
                 media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
+                attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
             });
 
             // Replace temp message with real one
@@ -238,6 +332,9 @@ export function ChatView({
                 },
                 content: newMessage.content,
                 media: newMessage.media,
+                attachments: newMessage.attachments,
+                location: newMessage.location,
+                reactions: newMessage.reactions,
                 createdAt: newMessage.createdAt
             }]);
 
@@ -249,46 +346,50 @@ export function ChatView({
                         _id: newMessage._id,
                         content: newMessage.content,
                         media: newMessage.media,
+                        attachments: newMessage.attachments,
+                        location: newMessage.location,
                         senderId: newMessage.senderId,
                         createdAt: newMessage.createdAt,
                     },
                 });
             }
 
-            // Cleanup previews
-            savedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+            savedFiles.forEach((f) => {
+                if (f.preview) URL.revokeObjectURL(f.preview);
+            });
         } catch (error) {
             // Remove temp message on error
             setMessages((prev) => prev.filter((m) => m._id !== tempId));
             console.error("Failed to send message:", error);
             toast.error("Failed to send message");
             setMessageText(savedMessageText); // Restore message text
-            setSelectedImages(savedImages); // Restore images
+            setSelectedFiles(savedFiles); // Restore files
         } finally {
             setIsSending(false);
             setIsUploading(false);
         }
     };
 
-    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-        
-        const newImages = imageFiles.slice(0, 4 - selectedImages.length).map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-
-        setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4));
+        const next = files.slice(0, Math.max(0, 6 - selectedFiles.length)).map((file) => {
+            const needsPreview = file.type.startsWith("image/") || file.type.startsWith("video/");
+            return {
+                file,
+                preview: needsPreview ? URL.createObjectURL(file) : undefined,
+            };
+        });
+        setSelectedFiles((prev) => [...prev, ...next].slice(0, 6));
         e.target.value = "";
     };
 
-    const removeImage = (index: number) => {
-        setSelectedImages((prev) => {
-            const newImages = [...prev];
-            URL.revokeObjectURL(newImages[index].preview);
-            newImages.splice(index, 1);
-            return newImages;
+    const removeSelectedFile = (index: number) => {
+        setSelectedFiles((prev) => {
+            const next = [...prev];
+            const removed = next[index];
+            if (removed?.preview) URL.revokeObjectURL(removed.preview);
+            next.splice(index, 1);
+            return next;
         });
     };
 
@@ -440,7 +541,7 @@ export function ChatView({
                             >
                                 <div
                                     className={cn(
-                                        "max-w-[75%] rounded-2xl px-4 py-2",
+                                        "max-w-[75%] rounded-2xl px-4 py-2 relative",
                                         isOwnMessage
                                             ? "bg-primary-500 text-white rounded-br-md"
                                             : "bg-primary-100 dark:bg-primary-900/40 text-(--text) rounded-bl-md"
@@ -462,12 +563,89 @@ export function ChatView({
                                         </div>
                                     )}
 
+                                    {/* Attachments */}
+                                    {message.attachments && message.attachments.length > 0 && (
+                                        <div className="mb-2 space-y-2">
+                                            {message.attachments.map((att, i) => (
+                                                <div key={`${att.url}-${i}`}>
+                                                    {att.type === "video" ? (
+                                                        <video src={att.url} controls className="max-w-full rounded-lg" />
+                                                    ) : att.type === "audio" ? (
+                                                        <audio src={att.url} controls className="w-full" />
+                                                    ) : null}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Location */}
+                                    {message.location && (
+                                        <div className={cn("mb-2 rounded-lg border p-2", isOwnMessage ? "border-white/30" : "border-(--border)")}> 
+                                            <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}> 
+                                                {message.location.label || "Location"}
+                                            </p>
+                                            <a
+                                                href={`https://www.google.com/maps?q=${message.location.lat},${message.location.lng}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className={cn(
+                                                    "text-xs underline",
+                                                    isOwnMessage ? "text-white/80" : "text-primary-600"
+                                                )}
+                                            >
+                                                Open in Maps
+                                            </a>
+                                        </div>
+                                    )}
+
                                     {/* Content */}
                                     {message.content && (
                                         <p className="whitespace-pre-wrap wrap-break-word">
                                             {message.content}
                                         </p>
                                     )}
+
+                                    {/* Reactions */}
+                                    {message.reactions && message.reactions.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {Array.from(
+                                                message.reactions.reduce((acc, r) => {
+                                                    acc.set(r.emoji, (acc.get(r.emoji) || 0) + 1);
+                                                    return acc;
+                                                }, new Map<string, number>())
+                                            ).map(([emoji, count]) => (
+                                                <button
+                                                    key={emoji}
+                                                    onClick={() => handleToggleReaction(message._id, emoji)}
+                                                    className={cn(
+                                                        "px-2 py-0.5 rounded-full text-xs",
+                                                        isOwnMessage
+                                                            ? "bg-white/20 text-white"
+                                                            : "bg-(--bg-card) border border-(--border)"
+                                                    )}
+                                                >
+                                                    {emoji} {count}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* React button */}
+                                    <button
+                                        onClick={() => {
+                                            setReactingToMessageId(message._id);
+                                            setShowReactionPicker(true);
+                                        }}
+                                        className={cn(
+                                            "absolute -bottom-3",
+                                            isOwnMessage ? "right-2" : "left-2",
+                                            "p-1 rounded-full",
+                                            isOwnMessage ? "bg-primary-600 text-white" : "bg-(--bg-card) border border-(--border)"
+                                        )}
+                                        aria-label="React"
+                                    >
+                                        <Smile size={14} />
+                                    </button>
 
                                     {/* Time */}
                                     <p
@@ -492,19 +670,29 @@ export function ChatView({
             {/* Message Input */}
             <div className="p-4 border-t border-(--border)">
                 {/* Image Previews */}
-                {selectedImages.length > 0 && (
+                {selectedFiles.length > 0 && (
                     <div className="flex gap-2 mb-3 flex-wrap">
-                        {selectedImages.map((img, index) => (
+                        {selectedFiles.map((item, index) => (
                             <div key={index} className="relative group">
-                                <Image
-                                    src={img.preview}
-                                    alt={`Selected ${index + 1}`}
-                                    width={80}
-                                    height={80}
-                                    className="w-20 h-20 object-cover rounded-lg"
-                                />
+                                {item.preview && item.file.type.startsWith("image/") ? (
+                                    <Image
+                                        src={item.preview}
+                                        alt={`Selected ${index + 1}`}
+                                        width={80}
+                                        height={80}
+                                        className="w-20 h-20 object-cover rounded-lg"
+                                    />
+                                ) : item.preview && item.file.type.startsWith("video/") ? (
+                                    <video src={item.preview} className="w-20 h-20 object-cover rounded-lg" />
+                                ) : (
+                                    <div className="w-20 h-20 rounded-lg border border-(--border) bg-(--bg-card) flex items-center justify-center">
+                                        <span className="text-xs text-(--text-muted)">
+                                            {item.file.type.startsWith("audio/") ? "AUDIO" : "FILE"}
+                                        </span>
+                                    </div>
+                                )}
                                 <button
-                                    onClick={() => removeImage(index)}
+                                    onClick={() => removeSelectedFile(index)}
                                     className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                     <X size={12} />
@@ -519,9 +707,9 @@ export function ChatView({
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*,audio/*"
                         multiple
-                        onChange={handleImageSelect}
+                        onChange={handleFilesSelect}
                         className="hidden"
                     />
                     <Button
@@ -529,14 +717,44 @@ export function ChatView({
                         size="icon"
                         className={cn(
                             "shrink-0",
-                            selectedImages.length > 0
+                            selectedFiles.length > 0
                                 ? "text-primary-600 dark:text-primary-400"
                                 : "text-(--text-muted)"
                         )}
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={selectedImages.length >= 4}
+                        disabled={selectedFiles.length >= 6}
                     >
                         <ImageIcon size={20} />
+                    </Button>
+
+                    {/* Record audio */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("shrink-0", isRecordingAudio ? "text-red-600" : "text-(--text-muted)")}
+                        onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
+                    >
+                        {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+                    </Button>
+
+                    {/* Record video */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("shrink-0", isRecordingVideo ? "text-red-600" : "text-(--text-muted)")}
+                        onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
+                    >
+                        {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+                    </Button>
+
+                    {/* Location */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 text-(--text-muted)"
+                        onClick={() => setShowLocationPicker(true)}
+                    >
+                        <MapPin size={20} />
                     </Button>
 
                     {/* Emoji Picker Button */}
@@ -598,7 +816,7 @@ export function ChatView({
 
                     <Button
                         onClick={handleSendMessage}
-                        disabled={(!messageText.trim() && selectedImages.length === 0) || isSending || isUploading}
+                        disabled={(!messageText.trim() && selectedFiles.length === 0) || isSending || isUploading}
                         size="icon"
                         className="shrink-0"
                     >
@@ -610,6 +828,37 @@ export function ChatView({
                     </Button>
                 </div>
             </div>
+
+            <LocationPickerModal
+                isOpen={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                title="Send location"
+                onConfirm={async (loc: PickedLocation) => {
+                    try {
+                        await messagesApi.sendMessage(conversationId, { location: loc });
+                    } catch (err) {
+                        toast.error(getErrorMessage(err));
+                    }
+                }}
+            />
+
+            {showReactionPicker && reactingToMessageId && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center p-4">
+                    <div className="absolute inset-0 bg-black/30" onClick={() => setShowReactionPicker(false)} />
+                    <div className="relative bg-(--bg-card) border border-(--border) rounded-xl overflow-hidden">
+                        <EmojiPicker
+                            onEmojiClick={(e) => {
+                                handleToggleReaction(reactingToMessageId, e.emoji);
+                                setShowReactionPicker(false);
+                                setReactingToMessageId(null);
+                            }}
+                            height={350}
+                            width={320}
+                            lazyLoadEmojis={true}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

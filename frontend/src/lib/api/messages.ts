@@ -9,12 +9,35 @@ export interface MessageUser {
   verified?: boolean;
 }
 
+export type MessageAttachmentType = "image" | "video" | "audio";
+
+export interface MessageAttachment {
+  url: string;
+  type: MessageAttachmentType;
+  name?: string;
+  size?: number;
+}
+
+export interface MessageLocation {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
+export interface MessageReaction {
+  emoji: string;
+  userId: string;
+}
+
 export interface Message {
   _id: string;
   conversationId: string;
   senderId: MessageUser;
   content?: string;
   media?: string[];
+  attachments?: MessageAttachment[];
+  location?: MessageLocation;
+  reactions?: MessageReaction[];
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +50,8 @@ export interface Conversation {
     _id: string;
     content?: string;
     media?: string[];
+    attachments?: MessageAttachment[];
+    location?: MessageLocation;
     senderId: MessageUser;
     createdAt: string;
   };
@@ -58,6 +83,8 @@ export interface MessagesResponse {
 export interface SendMessageData {
   content?: string;
   media?: string[];
+  attachments?: MessageAttachment[];
+  location?: MessageLocation;
 }
 
 export const messagesApi = {
@@ -84,6 +111,12 @@ export const messagesApi = {
     apiClient.post<{ message: string; data: Message }>(
       `/messages/conversations/${conversationId}/messages`,
       data
+    ),
+
+  toggleReaction: (conversationId: string, messageId: string, emoji: string) =>
+    apiClient.post<{ message: string; data: { messageId: string; reactions: MessageReaction[] } }>(
+      `/messages/conversations/${conversationId}/messages/${messageId}/reactions`,
+      { emoji }
     ),
 
   // Get messages in a conversation

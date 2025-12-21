@@ -15,6 +15,9 @@ interface Message {
   };
   content?: string;
   media?: string[];
+  attachments?: Array<{ url: string; type: "image" | "video" | "audio"; name?: string; size?: number }>;
+  location?: { lat: number; lng: number; label?: string };
+  reactions?: Array<{ emoji: string; userId: string }>;
   createdAt: string;
 }
 
@@ -67,6 +70,29 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           [chatId]: [...existingMessages, normalizeMessage(data.message)],
         };
+      });
+    };
+
+    const handleReaction = (data: {
+      type: string;
+      conversationId?: string;
+      communityId?: string;
+      roomId?: string;
+      messageId: string;
+      reactions: Array<{ emoji: string; userId: string }>;
+    }) => {
+      const chatId = data.conversationId || data.communityId || data.roomId;
+      if (!chatId) return;
+      if (!data.messageId) return;
+
+      setMessages((prev) => {
+        const existingMessages = prev[chatId] || [];
+        const nextMessages = existingMessages.map((m) => {
+          const id = getMessageId(m);
+          if (id !== String(data.messageId)) return m;
+          return { ...m, reactions: data.reactions };
+        });
+        return { ...prev, [chatId]: nextMessages };
       });
     };
 
@@ -129,12 +155,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
 
     socket.on("message:new", handleNewMessage);
+    socket.on("message:reaction", handleReaction);
     socket.on("typing:conversation", handleConversationTyping);
     socket.on("typing:community", handleCommunityTyping);
     socket.on("typing:room", handleRoomTyping);
 
     return () => {
       socket.off("message:new", handleNewMessage);
+      socket.off("message:reaction", handleReaction);
       socket.off("typing:conversation", handleConversationTyping);
       socket.off("typing:community", handleCommunityTyping);
       socket.off("typing:room", handleRoomTyping);

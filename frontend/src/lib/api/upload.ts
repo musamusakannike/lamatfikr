@@ -4,7 +4,7 @@ export interface UploadResponse {
   message: string;
   url: string;
   key: string;
-  type?: "image" | "video";
+  type?: "image" | "video" | "audio";
 }
 
 export const uploadApi = {

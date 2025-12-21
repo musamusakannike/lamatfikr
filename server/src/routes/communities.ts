@@ -14,6 +14,7 @@ import {
   getMessages,
   markCommunityAsRead,
   getTotalUnreadCount,
+  toggleReaction,
 } from "../controllers/community.controller";
 
 export const communitiesRouter = Router();
@@ -40,3 +41,4 @@ communitiesRouter.get("/:communityId/members", getCommunityMembers);
 communitiesRouter.post("/:communityId/messages", sendMessage);
 communitiesRouter.get("/:communityId/messages", getMessages);
 communitiesRouter.post("/:communityId/read", markCommunityAsRead);
+communitiesRouter.post("/:communityId/messages/:messageId/reactions", toggleReaction);

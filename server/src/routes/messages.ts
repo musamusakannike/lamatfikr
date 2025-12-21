@@ -10,6 +10,7 @@ import {
   deleteMessage,
   markConversationAsRead,
   getUnreadCount,
+  toggleReaction,
 } from "../controllers/message.controller";
 
 export const messagesRouter = Router();
@@ -24,6 +25,11 @@ messagesRouter.post("/conversations/:conversationId/read", requireAuth, markConv
 messagesRouter.post("/conversations/:conversationId/messages", requireAuth, sendMessage);
 messagesRouter.get("/conversations/:conversationId/messages", requireAuth, getMessages);
 messagesRouter.delete("/conversations/:conversationId/messages/:messageId", requireAuth, deleteMessage);
+messagesRouter.post(
+  "/conversations/:conversationId/messages/:messageId/reactions",
+  requireAuth,
+  toggleReaction
+);
 
 // Unread count
 messagesRouter.get("/unread-count", requireAuth, getUnreadCount);

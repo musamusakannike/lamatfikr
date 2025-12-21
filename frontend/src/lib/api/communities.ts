@@ -1,5 +1,25 @@
 import { apiClient } from "../api";
 
+export type CommunityMessageAttachmentType = "image" | "video" | "audio";
+
+export interface CommunityMessageAttachment {
+  url: string;
+  type: CommunityMessageAttachmentType;
+  name?: string;
+  size?: number;
+}
+
+export interface CommunityMessageLocation {
+  lat: number;
+  lng: number;
+  label?: string;
+}
+
+export interface CommunityMessageReaction {
+  emoji: string;
+  userId: string;
+}
+
 export interface CommunityOwner {
   _id: string;
   username: string;
@@ -47,6 +67,9 @@ export interface CommunityMessage {
   };
   content?: string;
   media?: string[];
+  attachments?: CommunityMessageAttachment[];
+  location?: CommunityMessageLocation;
+  reactions?: CommunityMessageReaction[];
   createdAt: string;
 }
 
@@ -155,8 +178,15 @@ export const communitiesApi = {
   },
 
   // Send message
-  sendMessage: (communityId: string, data: { content?: string; media?: string[] }) => {
+  sendMessage: (communityId: string, data: { content?: string; media?: string[]; attachments?: CommunityMessageAttachment[]; location?: CommunityMessageLocation }) => {
     return apiClient.post<{ message: string; data: CommunityMessage }>(`/communities/${communityId}/messages`, data);
+  },
+
+  toggleReaction: (communityId: string, messageId: string, emoji: string) => {
+    return apiClient.post<{ message: string; data: { messageId: string; reactions: CommunityMessageReaction[] } }>(
+      `/communities/${communityId}/messages/${messageId}/reactions`,
+      { emoji }
+    );
   },
 
   // Get messages
