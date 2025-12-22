@@ -463,3 +463,38 @@ export async function sendRoomPaymentCapturedOwnerEmail(params: {
     html,
   });
 }
+
+export async function sendReportReplyEmail(params: {
+  to: string;
+  firstName: string;
+  replyMessage: string;
+}): Promise<void> {
+  const bodyHtml = `
+    <p style="font-size: 16px;">Hi ${escapeHtml(params.firstName)},</p>
+    <p style="font-size: 16px;">We are writing to you regarding your recent report.</p>
+    <div style="background:#fafafa; border:1px solid #eee; border-radius:8px; padding:16px; margin:16px 0;">
+      <p style="margin:0; font-size:14px; color:#666;">Response</p>
+      <p style="margin:6px 0 0; font-size:14px; white-space: pre-wrap;">${escapeHtml(params.replyMessage)}</p>
+    </div>
+    <div dir="rtl" style="font-family: Tahoma, Arial, sans-serif; margin-top: 20px;">
+      <p style="font-size:16px; margin:0 0 8px;">مرحباً ${escapeHtml(params.firstName)}،</p>
+      <p style="font-size:16px; margin:0;">نكتب إليك بخصوص بلاغك الأخير.</p>
+      <div style="background:#fafafa; border:1px solid #eee; border-radius:8px; padding:16px; margin:16px 0;">
+        <p style="margin:0; font-size:14px; color:#666;">الرد</p>
+        <p style="margin:6px 0 0; font-size:14px; white-space: pre-wrap;">${escapeHtml(params.replyMessage)}</p>
+      </div>
+    </div>
+  `;
+
+  const html = buildEmailShell({
+    title: "Update on your report",
+    heading: "Report Update",
+    bodyHtml,
+  });
+
+  await sendEmail({
+    to: params.to,
+    subject: "Update regarding your report - LamatFikr",
+    html,
+  });
+}

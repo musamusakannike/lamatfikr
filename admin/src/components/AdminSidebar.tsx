@@ -102,6 +102,12 @@ export default function AdminSidebar({
       icon: Megaphone,
     },
     {
+      type: "link",
+      key: "reports",
+      href: "/dashboard/reports",
+      icon: Flag,
+    },
+    {
       type: "group",
       key: "social",
       icon: HeartHandshake,
@@ -171,6 +177,7 @@ export default function AdminSidebar({
   const iconByKey: Record<string, any> = {
     posts: FileText,
     comments: Flag,
+    reports: Flag,
     stories: ImageIcon,
     uploadsMedia: ImageIcon,
     userDirectory: Users,

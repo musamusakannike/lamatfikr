@@ -2,6 +2,8 @@ import type { RequestHandler } from "express";
 import { ReportModel } from "../models/report.model";
 import { createReportSchema, updateReportStatusSchema } from "../validators/report.validator";
 import { UserModel } from "../models/user.model";
+import { reportReplySchema } from "../validators/report-reply.validator";
+import { sendReportReplyEmail } from "../services/email";
 
 export const createReport: RequestHandler = async (req, res, next) => {
     try {
@@ -77,6 +79,39 @@ export const getReports: RequestHandler = async (req, res, next) => {
                 pages: Math.ceil(total / limit),
             },
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const replyToReport: RequestHandler = async (req, res, next) => {
+    try {
+        const { reportId } = req.params;
+        const validation = reportReplySchema.safeParse(req.body);
+        if (!validation.success) {
+            res.status(400).json({ message: "Validation failed" });
+            return;
+        }
+
+        const report = await ReportModel.findById(reportId).populate("reporterId");
+        if (!report) {
+            res.status(404).json({ message: "Report not found" });
+            return;
+        }
+
+        const reporter = report.reporterId as any;
+        if (!reporter || !reporter.email) {
+            res.status(400).json({ message: "Reporter email not found" });
+            return;
+        }
+
+        await sendReportReplyEmail({
+            to: reporter.email,
+            firstName: reporter.firstName,
+            replyMessage: validation.data.message,
+        });
+
+        res.json({ message: "Reply sent successfully" });
     } catch (error) {
         next(error);
     }
