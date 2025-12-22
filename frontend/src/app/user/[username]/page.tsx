@@ -22,6 +22,8 @@ import {
     ArrowLeft,
     MessageCircle,
     MoreHorizontal,
+    Flag,
+    Ban,
 } from "lucide-react";
 import Image from "next/image";
 import { profileApi, type PublicProfile } from "@/lib/api/profile";
@@ -34,6 +36,14 @@ import toast from "react-hot-toast";
 import type { Socket } from "socket.io-client";
 import { createAuthedSocket } from "@/lib/socket";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
+import { BlockUserModal } from "@/components/shared/BlockUserModal";
+import { ReportModal } from "@/components/shared/ReportModal";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 
 const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
@@ -62,6 +72,8 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
     const [isStartingConversation, setIsStartingConversation] = useState(false);
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const [isUserOnline, setIsUserOnline] = useState<boolean | null>(null);
 
@@ -407,9 +419,23 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                     </Button>
                                                 </>
                                             )}
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal size={20} />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreHorizontal size={20} />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
+                                                        <Flag className="mr-2 h-4 w-4" />
+                                                        Report User
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setShowBlockModal(true)} className="text-red-500">
+                                                        <Ban className="mr-2 h-4 w-4" />
+                                                        Block User
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 </div>
@@ -534,6 +560,25 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                     )}
                 </div>
             </main>
+            {profile && (
+                <>
+                    <BlockUserModal
+                        isOpen={showBlockModal}
+                        onClose={() => setShowBlockModal(false)}
+                        userId={profile.id}
+                        username={profile.username}
+                        onBlockSuccess={() => {
+                            router.push("/");
+                        }}
+                    />
+                    <ReportModal
+                        isOpen={showReportModal}
+                        onClose={() => setShowReportModal(false)}
+                        targetType="user"
+                        targetId={profile.id}
+                    />
+                </>
+            )}
         </div>
     );
 }

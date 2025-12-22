@@ -29,6 +29,7 @@ import { presenceRouter } from "./routes/presence";
 import { announcementsRouter } from "./routes/announcements";
 import { searchRouter } from "./routes/search";
 import { reelsRouter } from "./routes/reels";
+import { reportsRouter } from "./routes/reports";
 import { trackAppVisit } from "./middleware/app-visit";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
@@ -84,6 +85,7 @@ export function createApp() {
   app.use("/api/announcements", announcementsRouter);
   app.use("/api/search", searchRouter);
   app.use("/api/reels", reelsRouter);
+  app.use("/api/reports", reportsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -17,6 +17,8 @@ import {
     Mic,
     Camera,
     StopCircle,
+    Flag,
+    Ban,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,6 +37,14 @@ import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { BlockUserModal } from "@/components/shared/BlockUserModal";
+import { ReportModal } from "@/components/shared/ReportModal";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 
 interface ChatViewProps {
     conversationId: string;
@@ -65,6 +75,8 @@ export function ChatView({
     const [showLocationPicker, setShowLocationPicker] = useState(false);
     const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
     const [showReactionPicker, setShowReactionPicker] = useState(false);
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const [isRecordingAudio, setIsRecordingAudio] = useState(false);
     const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -347,7 +359,7 @@ export function ChatView({
             setMessages((prev) =>
                 dedupeMessages(prev.map((m) => (m._id === tempId ? newMessage : m)))
             );
-            
+
             // Add to chat context for real-time sync
             addMessages(conversationId, [{
                 id: newMessage._id,
@@ -428,7 +440,7 @@ export function ChatView({
             const end = input.selectionEnd ?? messageText.length;
             const newText = messageText.slice(0, start) + emojiData.emoji + messageText.slice(end);
             setMessageText(newText);
-            
+
             // Set cursor position after emoji
             requestAnimationFrame(() => {
                 input.focus();
@@ -512,9 +524,23 @@ export function ChatView({
                     <Button variant="ghost" size="icon" className="text-(--text-muted)">
                         <Video size={20} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-(--text-muted)">
-                        <MoreVertical size={20} />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-(--text-muted)">
+                                <MoreVertical size={20} />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
+                                <Flag className="mr-2 h-4 w-4" />
+                                Report User
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setShowBlockModal(true)} className="text-red-500">
+                                <Ban className="mr-2 h-4 w-4" />
+                                Block User
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
@@ -637,10 +663,10 @@ export function ChatView({
                                                 )}
                                             </div>
                                             <div className="p-2">
-                                                <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}> 
+                                                <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}>
                                                     {message.location.label || "Location"}
                                                 </p>
-                                                <p className={cn("text-xs", isOwnMessage ? "text-white/80" : "text-(--text-muted)")}> 
+                                                <p className={cn("text-xs", isOwnMessage ? "text-white/80" : "text-(--text-muted)")}>
                                                     {message.location.lat.toFixed(6)}, {message.location.lng.toFixed(6)}
                                                 </p>
                                                 <a
@@ -918,6 +944,25 @@ export function ChatView({
                         />
                     </div>
                 </div>
+            )}
+            {otherParticipant && (
+                <>
+                    <BlockUserModal
+                        isOpen={showBlockModal}
+                        onClose={() => setShowBlockModal(false)}
+                        userId={otherParticipant._id}
+                        username={otherParticipant.username}
+                        onBlockSuccess={() => {
+                            onBack();
+                        }}
+                    />
+                    <ReportModal
+                        isOpen={showReportModal}
+                        onClose={() => setShowReportModal(false)}
+                        targetType="user"
+                        targetId={otherParticipant._id}
+                    />
+                </>
             )}
         </div>
     );
