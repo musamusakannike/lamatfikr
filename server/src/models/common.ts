@@ -70,6 +70,7 @@ export const NotificationType = {
   comment: "comment",
   follow: "follow",
   mention: "mention",
+  share: "share",
   friend_request: "friend_request",
   friend_accept: "friend_accept",
   verification_request_submitted: "verification_request_submitted",
