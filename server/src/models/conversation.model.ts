@@ -8,6 +8,7 @@ export interface Conversation {
   participants: ObjectId[];
   lastMessageId?: ObjectId;
   deletedAt?: Date | null;
+  disappearingMessagesDuration?: number | null;
 }
 
 const ConversationSchema = new Schema<Conversation>(
@@ -22,6 +23,7 @@ const ConversationSchema = new Schema<Conversation>(
     },
     lastMessageId: { type: Schema.Types.ObjectId, ref: "Message" },
     deletedAt: { type: Date, default: null },
+    disappearingMessagesDuration: { type: Number, default: null },
   },
   { timestamps: true }
 );

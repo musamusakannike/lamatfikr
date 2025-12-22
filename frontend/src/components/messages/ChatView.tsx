@@ -17,9 +17,10 @@ import {
     Mic,
     Camera,
     StopCircle,
+    Plus,
+    Clock,
     Flag,
     Ban,
-    Plus,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -49,6 +50,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+
 
 interface ChatViewProps {
     conversationId: string;
@@ -83,7 +93,12 @@ export function ChatView({
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReactionPicker, setShowReactionPicker] = useState(false);
+    // const [showReactionPicker, setShowReactionPicker] = useState(false);
     const [showMobileOptions, setShowMobileOptions] = useState(false);
+
+    const [showDisappearingMessagesModal, setShowDisappearingMessagesModal] = useState(false);
+    const [customDuration, setCustomDuration] = useState("");
+    const [customUnit, setCustomUnit] = useState<"hours" | "days">("hours");
 
     const [isRecordingAudio, setIsRecordingAudio] = useState(false);
     const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -144,6 +159,7 @@ export function ChatView({
 
     const getMessageId = (msg: Message) => (msg?._id ? String(msg._id) : "");
 
+    
     const dedupeMessages = (list: Message[]) => {
         const map = new Map<string, Message>();
         for (const m of list) {
@@ -241,7 +257,45 @@ export function ChatView({
         };
 
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversationId, addMessages]);
+
+    // Update conversation state when real-time update received
+    useEffect(() => {
+        if (conversation) {
+            onConversationUpdate(conversation);
+        }
+    }, [conversation, onConversationUpdate]);
+
+    const handleUpdateDisappearingMessages = async (duration: number | null) => {
+        try {
+            await messagesApi.updateSettings(conversationId, {
+                disappearingMessagesDuration: duration,
+            });
+
+            setConversation((prev) => prev ? ({ ...prev, disappearingMessagesDuration: duration }) : null);
+            onConversationUpdate({ ...conversation!, disappearingMessagesDuration: duration });
+
+            toast.success(t("common", "save"));
+            setShowDisappearingMessagesModal(false);
+        } catch (error) {
+            console.error("Failed to update settings:", error);
+            toast.error(getErrorMessage(error));
+        }
+    };
+
+    const getDurationLabel = (duration: number | null) => {
+        if (!duration) return t("disappearingMessages", "off");
+        if (duration === 24 * 60 * 60 * 1000) return t("disappearingMessages", "hours24");
+        if (duration === 3 * 24 * 60 * 60 * 1000) return t("disappearingMessages", "days3");
+        if (duration === 7 * 24 * 60 * 60 * 1000) return t("disappearingMessages", "days7");
+
+        const hours = Math.floor(duration / (60 * 60 * 1000));
+        if (hours < 24) return `${hours} hours`;
+        const days = Math.floor(hours / 24);
+        return `${days} days`;
+    };
+
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -527,7 +581,14 @@ export function ChatView({
                             {otherParticipant.firstName} {otherParticipant.lastName}
                         </h2>
                         <p className="text-sm text-(--text-muted) truncate">
-                            @{otherParticipant.username}
+                            {conversation?.disappearingMessagesDuration ? (
+                                <span className="flex items-center gap-1 text-primary-500">
+                                    <Clock size={12} />
+                                    {getDurationLabel(conversation.disappearingMessagesDuration)}
+                                </span>
+                            ) : (
+                                `@${otherParticipant.username}`
+                            )}
                         </p>
                     </div>
                 </Link>
@@ -546,6 +607,10 @@ export function ChatView({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setShowDisappearingMessagesModal(true)}>
+                                <Clock className="mr-2 h-4 w-4" />
+                                {t("disappearingMessages", "disappearingMessages")}
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
                                 <Flag className="mr-2 h-4 w-4" />
                                 {t("reportModal", "reportUser")}
@@ -558,6 +623,78 @@ export function ChatView({
                     </DropdownMenu>
                 </div>
             </div>
+
+            <Dialog open={showDisappearingMessagesModal} onOpenChange={setShowDisappearingMessagesModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t("disappearingMessages", "disappearingMessages")}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid gap-2">
+                            <Button
+                                variant={conversation?.disappearingMessagesDuration === null ? "primary" : "outline"}
+                                className="justify-start"
+                                onClick={() => handleUpdateDisappearingMessages(null)}
+                            >
+                                {t("disappearingMessages", "off")}
+                            </Button>
+                            <Button
+                                variant={conversation?.disappearingMessagesDuration === 24 * 60 * 60 * 1000 ? "primary" : "outline"}
+                                className="justify-start"
+                                onClick={() => handleUpdateDisappearingMessages(24 * 60 * 60 * 1000)}
+                            >
+                                {t("disappearingMessages", "hours24")}
+                            </Button>
+                            <Button
+                                variant={conversation?.disappearingMessagesDuration === 3 * 24 * 60 * 60 * 1000 ? "primary" : "outline"}
+                                className="justify-start"
+                                onClick={() => handleUpdateDisappearingMessages(3 * 24 * 60 * 60 * 1000)}
+                            >
+                                {t("disappearingMessages", "days3")}
+                            </Button>
+                            <Button
+                                variant={conversation?.disappearingMessagesDuration === 7 * 24 * 60 * 60 * 1000 ? "primary" : "outline"}
+                                className="justify-start"
+                                onClick={() => handleUpdateDisappearingMessages(7 * 24 * 60 * 60 * 1000)}
+                            >
+                                {t("disappearingMessages", "days7")}
+                            </Button>
+
+                            <div className="pt-4 border-t border-(--border)">
+                                <Label className="mb-2 block">{t("disappearingMessages", "custom")}</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        value={customDuration}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomDuration(e.target.value)}
+                                        placeholder="Duration"
+                                        min="1"
+                                    />
+                                    <select
+                                        className="h-10 px-3 py-2 rounded-md border border-input bg-background"
+                                        value={customUnit}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomUnit(e.target.value as "hours" | "days")}
+                                    >
+                                        <option value="hours">Hours</option>
+                                        <option value="days">Days</option>
+                                    </select>
+                                    <Button
+                                        onClick={() => {
+                                            const val = parseInt(customDuration);
+                                            if (val > 0) {
+                                                const ms = val * (customUnit === "hours" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000);
+                                                handleUpdateDisappearingMessages(ms);
+                                            }
+                                        }}
+                                    >
+                                        {t("disappearingMessages", "setTimer")}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Messages */}
             <div
@@ -817,7 +954,7 @@ export function ChatView({
                     {/* Mobile Options Modal/Menu */}
                     {showMobileOptions && (
                         <>
-                             <div
+                            <div
                                 className="fixed inset-0 z-10 bg-black/5 md:hidden"
                                 onClick={() => setShowMobileOptions(false)}
                             />

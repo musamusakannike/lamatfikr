@@ -11,6 +11,7 @@ import {
   markConversationAsRead,
   getUnreadCount,
   toggleReaction,
+  updateConversationSettings,
 } from "../controllers/message.controller";
 
 export const messagesRouter = Router();
@@ -20,6 +21,7 @@ messagesRouter.post("/conversations", requireAuth, getOrCreateConversation);
 messagesRouter.get("/conversations", requireAuth, getConversations);
 messagesRouter.get("/conversations/:conversationId", requireAuth, getConversation);
 messagesRouter.post("/conversations/:conversationId/read", requireAuth, markConversationAsRead);
+messagesRouter.patch("/conversations/:conversationId/settings", requireAuth, updateConversationSettings);
 
 // Message routes
 messagesRouter.post("/conversations/:conversationId/messages", requireAuth, sendMessage);

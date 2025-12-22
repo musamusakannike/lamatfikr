@@ -31,6 +31,7 @@ export interface Message {
   location?: MessageLocation;
   reactions?: MessageReaction[];
   deletedAt?: Date | null;
+  expiresAt?: Date | null;
 }
 
 const MessageSchema = new Schema<Message>(
@@ -73,6 +74,7 @@ const MessageSchema = new Schema<Message>(
       default: [],
     },
     deletedAt: { type: Date, default: null },
+    expiresAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -80,6 +82,7 @@ const MessageSchema = new Schema<Message>(
 MessageSchema.index({ conversationId: 1, createdAt: -1 });
 MessageSchema.index({ senderId: 1, createdAt: -1 });
 MessageSchema.index({ deletedAt: 1 });
+MessageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const MessageModel =
   (mongoose.models.Message as mongoose.Model<Message>) || mongoose.model<Message>("Message", MessageSchema);

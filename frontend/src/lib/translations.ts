@@ -59,6 +59,38 @@ export const translations = {
       ar: "السابق",
       en: "Previous",
     },
+    disappearingMessages: {
+      ar: "الرسائل ذاتية الاختفاء",
+      en: "Disappearing Messages",
+    },
+    off: {
+      ar: "متوقف",
+      en: "Off",
+    },
+    hours24: {
+      ar: "24 ساعة",
+      en: "24 Hours",
+    },
+    days3: {
+      ar: "3 أيام",
+      en: "3 Days",
+    },
+    days7: {
+      ar: "7 أيام",
+      en: "7 Days",
+    },
+    custom: {
+      ar: "مخصص",
+      en: "Custom",
+    },
+    setTimer: {
+      ar: "ضبط المؤقت",
+      en: "Set Timer",
+    },
+    timerSetTo: {
+      ar: "تم ضبط المؤقت على",
+      en: "Timer set to",
+    },
     yes: {
       ar: "نعم",
       en: "Yes",

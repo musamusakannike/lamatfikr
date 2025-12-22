@@ -56,6 +56,7 @@ export interface Conversation {
     createdAt: string;
   };
   unreadCount?: number;
+  disappearingMessagesDuration?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -140,4 +141,10 @@ export const messagesApi = {
   // Get unread message count
   getUnreadCount: () =>
     apiClient.get<{ unreadCount: number }>("/messages/unread-count"),
+
+  updateSettings: (conversationId: string, settings: { disappearingMessagesDuration: number | null }) =>
+    apiClient.patch<{ message: string; data: { disappearingMessagesDuration: number | null } }>(
+      `/messages/conversations/${conversationId}/settings`,
+      settings
+    ),
 };

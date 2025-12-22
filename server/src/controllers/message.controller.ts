@@ -13,6 +13,7 @@ import {
   sendMessageSchema,
   getMessagesSchema,
   toggleReactionSchema,
+  updateConversationSettingsSchema,
 } from "../validators/message.validator";
 
 // Get or create a private conversation with another user
@@ -143,8 +144,8 @@ export const toggleReaction: RequestHandler = async (req, res, next) => {
 
     const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
       ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
-          (r) => r.emoji === emoji && r.userId.toString() === userId
-        )
+        (r) => r.emoji === emoji && r.userId.toString() === userId
+      )
       : false;
 
     if (hasReaction) {
@@ -344,6 +345,12 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       }
     }
 
+    // Calculate expiration if disappearing messages are enabled
+    let expiresAt: Date | null = null;
+    if (conversation.disappearingMessagesDuration) {
+      expiresAt = new Date(Date.now() + conversation.disappearingMessagesDuration);
+    }
+
     // Create message
     const message = await MessageModel.create({
       conversationId,
@@ -352,6 +359,7 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       media: media || [],
       attachments: attachments || [],
       location,
+      expiresAt,
     });
 
     // Update conversation's lastMessageId
@@ -622,6 +630,64 @@ export const getUnreadCount: RequestHandler = async (req, res, next) => {
     const unreadCount = allMessages.length - readMessageIds.length;
 
     res.json({ unreadCount: Math.max(0, unreadCount) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update conversation settings (e.g., disappearing messages)
+export const updateConversationSettings: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId)) {
+      res.status(400).json({ message: "Invalid conversation ID" });
+      return;
+    }
+
+    const validation = updateConversationSettingsSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { disappearingMessagesDuration } = validation.data;
+
+    // Check if user is participant
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participants: userId,
+      deletedAt: null,
+    });
+
+    if (!conversation) {
+      res.status(404).json({ message: "Conversation not found" });
+      return;
+    }
+
+    // Update conversation
+    conversation.disappearingMessagesDuration = disappearingMessagesDuration;
+    await conversation.save();
+
+    // Emit socket event to update participants
+    io.to(`conversation:${conversationId}`).emit("conversation:updated", {
+      conversationId,
+      updates: { disappearingMessagesDuration },
+    });
+
+    res.json({
+      message: "Settings updated",
+      data: { disappearingMessagesDuration },
+    });
   } catch (error) {
     next(error);
   }

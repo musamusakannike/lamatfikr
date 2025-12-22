@@ -41,3 +41,7 @@ export const getMessagesSchema = z.object({
 export const toggleReactionSchema = z.object({
   emoji: z.string().min(1),
 });
+
+export const updateConversationSettingsSchema = z.object({
+  disappearingMessagesDuration: z.number().nullable(),
+});
