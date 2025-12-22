@@ -152,6 +152,32 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
         }
     };
 
+    const handleShare = async () => {
+        const shareUrl = `${window.location.origin}/posts/${post._id}`;
+        const shareTitle = `Post by ${post.userId.firstName} ${post.userId.lastName}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: shareTitle,
+                    text: post.contentText || "Check out this post!",
+                    url: shareUrl,
+                });
+            } catch (error) {
+                // User cancelled or share failed
+                console.error("Share failed:", error);
+            }
+        } else {
+            // Fallback to clipboard
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Link copied to clipboard");
+            } catch (error) {
+                toast.error("Failed to copy link");
+            }
+        }
+    };
+
     const handleSave = async () => {
         try {
             if (saved) {
@@ -440,7 +466,10 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                         </button>
 
                         {/* Share */}
-                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors">
+                        <button
+                            onClick={handleShare}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                        >
                             <Share2 size={18} />
                             <span className="text-sm hidden sm:inline">{post.shareCount}</span>
                         </button>
