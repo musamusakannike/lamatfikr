@@ -16,7 +16,14 @@ import {
   Phone,
   MoreHorizontal,
   Loader2,
+  Share2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { profileApi, socialApi, uploadApi } from "@/lib/api/index";
@@ -314,9 +321,41 @@ export function ProfileHeader({
                 <Edit3 size={16} />
                 Edit Profile
               </Button>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal size={20} />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal size={20} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={async () => {
+                    const shareUrl = `${window.location.origin}/user/${profile.username}`;
+                    const shareTitle = `${profile.firstName} ${profile.lastName} on LamatFikr`;
+
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: shareTitle,
+                          text: profile.bio || `Check out ${profile.firstName}'s profile!`,
+                          url: shareUrl,
+                        });
+                      } catch (err) {
+                        console.error("Share failed:", err);
+                      }
+                    } else {
+                      try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        toast.success("Profile link copied to clipboard");
+                      } catch {
+                        toast.error("Failed to copy link");
+                      }
+                    }
+                  }}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Profile
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

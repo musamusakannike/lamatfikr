@@ -24,6 +24,7 @@ import {
     MoreHorizontal,
     Flag,
     Ban,
+    Share2,
 } from "lucide-react";
 import Image from "next/image";
 import { profileApi, type PublicProfile } from "@/lib/api/profile";
@@ -429,6 +430,45 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={handleFollow} className="md:hidden">
+                                                        {isFollowing ? (
+                                                            <>
+                                                                <UserCheck className="mr-2 h-4 w-4" />
+                                                                {t("userProfile", "following")}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                                {t("userProfile", "follow")}
+                                                            </>
+                                                        )}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={async () => {
+                                                        const shareUrl = window.location.href;
+                                                        const shareTitle = `${profile.firstName} ${profile.lastName} on LamatFikr`;
+
+                                                        if (navigator.share) {
+                                                            try {
+                                                                await navigator.share({
+                                                                    title: shareTitle,
+                                                                    text: profile.bio || `Check out ${profile.firstName}'s profile!`,
+                                                                    url: shareUrl,
+                                                                });
+                                                            } catch (err) {
+                                                                console.error("Share failed:", err);
+                                                            }
+                                                        } else {
+                                                            try {
+                                                                await navigator.clipboard.writeText(shareUrl);
+                                                                toast.success("Profile link copied to clipboard");
+                                                            } catch {
+                                                                toast.error("Failed to copy link");
+                                                            }
+                                                        }
+                                                    }}>
+                                                        <Share2 className="mr-2 h-4 w-4" />
+                                                        Share Profile
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
                                                         <Flag className="mr-2 h-4 w-4" />
                                                         {t("reportModal", "reportUser")}
