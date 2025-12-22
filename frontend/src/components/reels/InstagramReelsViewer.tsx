@@ -33,7 +33,7 @@ export function InstagramReelsViewer({
     const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const viewRecordedRef = useRef<Set<string>>(new Set());
     const viewTimerRef = useRef<NodeJS.Timeout | null>(null);
     const startTimeRef = useRef<number>(0);
