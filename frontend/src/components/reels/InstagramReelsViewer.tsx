@@ -51,15 +51,17 @@ export function InstagramReelsViewer({
         if (viewRecordedRef.current.has(reelId)) return;
 
         try {
-            await reelsApi.recordView(reelId, watchDuration);
+            const response = await reelsApi.recordView(reelId, watchDuration);
             viewRecordedRef.current.add(reelId);
 
-            // Update view count locally
-            setReels((prev) =>
-                prev.map((r) =>
-                    r._id === reelId ? { ...r, viewCount: r.viewCount + 1 } : r
-                )
-            );
+            // Only update local count if backend confirms new view was recorded
+            if (response.viewRecorded) {
+                setReels((prev) =>
+                    prev.map((r) =>
+                        r._id === reelId ? { ...r, viewCount: response.viewCount } : r
+                    )
+                );
+            }
         } catch (error) {
             console.error("Failed to record view:", error);
         }

@@ -123,8 +123,8 @@ export const reelsApi = {
     return apiClient.post<{ message: string; liked: boolean }>(`/reels/${reelId}/like`);
   },
 
-  async recordView(reelId: string, watchDuration: number): Promise<{ message: string }> {
-    return apiClient.post<{ message: string }>(`/reels/${reelId}/view`, { watchDuration });
+  async recordView(reelId: string, watchDuration: number): Promise<{ message: string; viewRecorded: boolean; viewCount: number }> {
+    return apiClient.post<{ message: string; viewRecorded: boolean; viewCount: number }>(`/reels/${reelId}/view`, { watchDuration });
   },
 
   async shareReel(reelId: string): Promise<{ message: string }> {

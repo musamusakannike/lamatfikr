@@ -517,9 +517,12 @@ export const recordReelView: RequestHandler = async (req, res, next) => {
 
       reel.viewCount += 1;
       await reel.save();
+
+      res.json({ message: "View recorded", viewRecorded: true, viewCount: reel.viewCount });
+      return;
     }
 
-    res.json({ message: "View recorded" });
+    res.json({ message: "View already recorded", viewRecorded: false, viewCount: reel.viewCount });
   } catch (error) {
     next(error);
   }
