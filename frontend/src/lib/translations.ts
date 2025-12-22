@@ -4228,6 +4228,22 @@ export const translations = {
       ar: "استكشف الريلز",
       en: "Explore Reels",
     },
+    gridView: {
+      ar: "عرض الشبكة",
+      en: "Grid View",
+    },
+    viewReel: {
+      ar: "عرض الريل",
+      en: "View Reel",
+    },
+    noReelsYet: {
+      ar: "لا توجد ريلز بعد",
+      en: "No reels yet",
+    },
+    backToGrid: {
+      ar: "العودة للشبكة",
+      en: "Back to Grid",
+    },
     watchMore: {
       ar: "شاهد المزيد",
       en: "Watch More",
