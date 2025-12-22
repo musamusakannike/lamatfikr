@@ -25,6 +25,8 @@ import Link from "next/link";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { messagesApi, type Message, type Conversation } from "@/lib/api/messages";
+
+import { socialApi } from "@/lib/api/social";
 import { uploadApi } from "@/lib/api/upload";
 import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -74,9 +76,10 @@ export function ChatView({
     const [isUploading, setIsUploading] = useState(false);
     const [showLocationPicker, setShowLocationPicker] = useState(false);
     const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
-    const [showReactionPicker, setShowReactionPicker] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [showReactionPicker, setShowReactionPicker] = useState(false);
 
     const [isRecordingAudio, setIsRecordingAudio] = useState(false);
     const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -242,6 +245,14 @@ export function ChatView({
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages, isLoadingMore]);
+
+    useEffect(() => {
+        if (otherParticipant) {
+            socialApi.checkFollowStatus(otherParticipant._id)
+                .then(res => setIsBlocked(res.isBlocked))
+                .catch(console.error);
+        }
+    }, [otherParticipant]);
 
     // Focus input on mount
     useEffect(() => {
@@ -535,9 +546,9 @@ export function ChatView({
                                 <Flag className="mr-2 h-4 w-4" />
                                 Report User
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setShowBlockModal(true)} className="text-red-500">
+                            <DropdownMenuItem onClick={() => setShowBlockModal(true)} className={isBlocked ? "text-primary-500" : "text-red-500"}>
                                 <Ban className="mr-2 h-4 w-4" />
-                                Block User
+                                {isBlocked ? "Unblock User" : "Block User"}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -952,8 +963,10 @@ export function ChatView({
                         onClose={() => setShowBlockModal(false)}
                         userId={otherParticipant._id}
                         username={otherParticipant.username}
-                        onBlockSuccess={() => {
-                            onBack();
+                        isBlocked={isBlocked}
+                        onSuccess={(blocked) => {
+                            setIsBlocked(blocked);
+                            if (blocked) onBack();
                         }}
                     />
                     <ReportModal

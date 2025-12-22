@@ -15,7 +15,7 @@ import {
     Link as LinkIcon,
     Calendar,
     Heart,
-    CheckCircle,
+
     UserPlus,
     UserCheck,
     Loader2,
@@ -71,7 +71,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const [followingCount, setFollowingCount] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
     const [isStartingConversation, setIsStartingConversation] = useState(false);
+
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
 
@@ -113,8 +115,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 // Check follow status if authenticated
                 if (isAuthenticated && !isOwnProfile) {
                     try {
-                        const { isFollowing: following } = await socialApi.checkFollowStatus(profileData.id);
+                        const { isFollowing: following, isBlocked: blocked } = await socialApi.checkFollowStatus(profileData.id);
                         setIsFollowing(following);
+                        setIsBlocked(blocked);
                     } catch (err) {
                         console.error("Failed to check follow status:", err);
                     }
@@ -430,9 +433,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                         <Flag className="mr-2 h-4 w-4" />
                                                         Report User
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setShowBlockModal(true)} className="text-red-500">
+                                                    <DropdownMenuItem onClick={() => setShowBlockModal(true)} className={isBlocked ? "text-primary-500" : "text-red-500"}>
                                                         <Ban className="mr-2 h-4 w-4" />
-                                                        Block User
+                                                        {isBlocked ? "Unblock User" : "Block User"}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -567,8 +570,12 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                         onClose={() => setShowBlockModal(false)}
                         userId={profile.id}
                         username={profile.username}
-                        onBlockSuccess={() => {
-                            router.push("/");
+                        isBlocked={isBlocked}
+                        onSuccess={(blocked) => {
+                            setIsBlocked(blocked);
+                            if (blocked) {
+                                router.push("/");
+                            }
                         }}
                     />
                     <ReportModal

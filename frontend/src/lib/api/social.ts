@@ -34,6 +34,7 @@ export interface FriendsResponse extends PaginatedResponse<UserSummary> {
 
 export interface FollowStatusResponse {
   isFollowing: boolean;
+  isBlocked: boolean;
   isOwnProfile: boolean;
 }
 

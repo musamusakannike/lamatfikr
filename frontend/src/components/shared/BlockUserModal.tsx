@@ -11,34 +11,50 @@ interface BlockUserModalProps {
     onClose: () => void;
     userId: string;
     username: string;
-    onBlockSuccess?: () => void;
+    isBlocked: boolean;
+    onSuccess?: (isBlocked: boolean) => void;
 }
 
-export function BlockUserModal({ isOpen, onClose, userId, username, onBlockSuccess }: BlockUserModalProps) {
-    const [isBlocking, setIsBlocking] = useState(false);
+export function BlockUserModal({ isOpen, onClose, userId, username, isBlocked, onSuccess }: BlockUserModalProps) {
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleBlock = async () => {
+    const handleAction = async () => {
         try {
-            setIsBlocking(true);
-            await socialApi.blockUser(userId);
-            toast.success(`Blocked @${username}`);
-            onBlockSuccess?.();
+            setIsLoading(true);
+            if (isBlocked) {
+                await socialApi.unblockUser(userId);
+                toast.success(`Unblocked @${username}`);
+                onSuccess?.(false);
+            } else {
+                await socialApi.blockUser(userId);
+                toast.success(`Blocked @${username}`);
+                onSuccess?.(true);
+            }
             onClose();
         } catch (error) {
             toast.error(getErrorMessage(error));
         } finally {
-            setIsBlocking(false);
+            setIsLoading(false);
         }
     };
 
+    const title = isBlocked ? `Unblock @${username}?` : `Block @${username}?`;
+    const message = isBlocked
+        ? "Are you sure you want to unblock this user? They will be able to see your profile and message you again."
+        : "Are you sure you want to block this user? They will no longer be able to message you or see your profile.";
+    const buttonText = isLoading
+        ? (isBlocked ? "Unblocking..." : "Blocking...")
+        : (isBlocked ? "Unblock User" : "Block User");
+    const variant = isBlocked ? "primary" : "danger";
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Block @${username}?`}>
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className="p-4 space-y-4">
-                <p>Are you sure you want to block this user? They will no longer be able to message you or see your profile.</p>
+                <p>{message}</p>
                 <div className="flex justify-end gap-2">
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>
-                    <Button variant="danger" onClick={handleBlock} disabled={isBlocking}>
-                        {isBlocking ? "Blocking..." : "Block User"}
+                    <Button variant={variant} onClick={handleAction} disabled={isLoading}>
+                        {buttonText}
                     </Button>
                 </div>
             </div>

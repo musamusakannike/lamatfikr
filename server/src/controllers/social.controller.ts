@@ -533,14 +533,21 @@ export const checkFollowStatus: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const follow = await FollowModel.findOne({
-      followerId: userId,
-      followingId: targetUserId,
-      status: FollowStatus.accepted,
-    });
+    const [follow, block] = await Promise.all([
+      FollowModel.findOne({
+        followerId: userId,
+        followingId: targetUserId,
+        status: FollowStatus.accepted,
+      }),
+      BlockModel.findOne({
+        blockerId: userId,
+        blockedId: targetUserId,
+      }),
+    ]);
 
     res.json({
       isFollowing: !!follow,
+      isBlocked: !!block,
       isOwnProfile: false,
     });
   } catch (error) {
