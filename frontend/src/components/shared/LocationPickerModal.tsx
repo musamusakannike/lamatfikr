@@ -96,8 +96,8 @@ function LocationPickerBody({
 
   const center = useMemo<[number, number]>(() => {
     if (picked) return [picked.lat, picked.lng];
-    // Default: Riyadh-ish as a reasonable fallback for MENA audience
-    return [24.7136, 46.6753];
+    // Default: Muscat-ish as a reasonable fallback for Oman audience
+    return [23.5880, 58.3829];
   }, [picked]);
 
   const handleUseCurrentLocation = () => {
