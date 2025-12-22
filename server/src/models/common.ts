@@ -77,6 +77,7 @@ export const NotificationType = {
   verification_request_rejected: "verification_request_rejected",
   marketplace_order_paid_buyer: "marketplace_order_paid_buyer",
   marketplace_order_paid_seller: "marketplace_order_paid_seller",
+  blocked_by_user: "blocked_by_user",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

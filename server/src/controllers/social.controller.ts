@@ -597,7 +597,7 @@ export const blockUser: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    await Promise.all([
+    const [block] = await Promise.all([
       BlockModel.create({ blockerId: userId, blockedId, reason }),
       FollowModel.deleteMany({
         $or: [
@@ -612,6 +612,14 @@ export const blockUser: RequestHandler = async (req, res, next) => {
         ],
       }),
     ]);
+
+    await createNotification({
+      userId: blockedId,
+      actorId: userId,
+      type: NotificationType.blocked_by_user,
+      targetId: block._id.toString(),
+      url: "/",
+    });
 
     res.status(201).json({ message: "User blocked successfully" });
   } catch (error) {
