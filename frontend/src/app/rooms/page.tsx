@@ -540,7 +540,7 @@ function EditRoomModal({ isOpen, room, onClose, onRoomUpdated }: EditRoomModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!room) return;
-    
+
     setIsLoading(true);
     setError(null);
 
@@ -939,6 +939,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showMobileOptions, setShowMobileOptions] = useState(false);
 
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -1317,110 +1318,110 @@ function ChatView({ room, onBack }: ChatViewProps) {
                       <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
                     </div>
                     <div className="mt-0.5">
-                    {msg.content && (
-                      <p className="text-(--text) text-sm mt-0.5 wrap-break-word">{msg.content}</p>
-                    )}
-                    {msg.media && msg.media.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {msg.media.map((url, i) => (
-                          <Image
-                            key={i}
-                            src={url}
-                            alt="Media"
-                            width={200}
-                            height={150}
-                            className="rounded-lg max-w-[200px] object-cover"
-                          />
-                        ))}
-                      </div>
-                    )}
+                      {msg.content && (
+                        <p className="text-(--text) text-sm mt-0.5 wrap-break-word">{msg.content}</p>
+                      )}
+                      {msg.media && msg.media.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {msg.media.map((url, i) => (
+                            <Image
+                              key={i}
+                              src={url}
+                              alt="Media"
+                              width={200}
+                              height={150}
+                              className="rounded-lg max-w-[200px] object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
 
-                    {msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-col gap-2 mt-2">
-                        {msg.attachments.map((att, i) => (
-                          <div key={`${att.url}-${i}`}>
-                            {att.type === "video" ? (
-                              <video src={att.url} controls className="max-w-full rounded-lg" />
-                            ) : att.type === "audio" ? (
-                              <audio src={att.url} controls className="w-full" />
-                            ) : null}
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="flex flex-col gap-2 mt-2">
+                          {msg.attachments.map((att, i) => (
+                            <div key={`${att.url}-${i}`}>
+                              {att.type === "video" ? (
+                                <video src={att.url} controls className="max-w-full rounded-lg" />
+                              ) : att.type === "audio" ? (
+                                <audio src={att.url} controls className="w-full" />
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {msg.location && (
+                        <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
+                          <div className="h-32 w-full bg-(--bg)">
+                            {leafletMounted ? (
+                              <MapContainer
+                                center={[msg.location.lat, msg.location.lng]}
+                                zoom={15}
+                                scrollWheelZoom={false}
+                                dragging={false}
+                                doubleClickZoom={false}
+                                zoomControl={false}
+                                attributionControl={false}
+                                className="h-full w-full"
+                              >
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
+                              </MapContainer>
+                            ) : (
+                              <div className="h-full w-full" />
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {msg.location && (
-                      <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
-                        <div className="h-32 w-full bg-(--bg)">
-                          {leafletMounted ? (
-                            <MapContainer
-                              center={[msg.location.lat, msg.location.lng]}
-                              zoom={15}
-                              scrollWheelZoom={false}
-                              dragging={false}
-                              doubleClickZoom={false}
-                              zoomControl={false}
-                              attributionControl={false}
-                              className="h-full w-full"
+                          <div className="p-2">
+                            <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
+                            <p className="text-xs text-(--text-muted)">
+                              {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
+                            </p>
+                            <a
+                              href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs underline text-primary-600"
                             >
-                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                              <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
-                            </MapContainer>
-                          ) : (
-                            <div className="h-full w-full" />
-                          )}
+                              Open in Maps
+                            </a>
+                          </div>
                         </div>
-                        <div className="p-2">
-                          <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
-                          <p className="text-xs text-(--text-muted)">
-                            {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
-                          </p>
-                          <a
-                            href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs underline text-primary-600"
-                          >
-                            Open in Maps
-                          </a>
+                      )}
+
+                      {(msg.reactions && msg.reactions.length > 0) && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {Array.from(
+                            (msg.reactions || []).reduce((acc, r) => {
+                              const emoji = r.emoji;
+                              acc.set(emoji, (acc.get(emoji) || 0) + 1);
+                              return acc;
+                            }, new Map<string, number>())
+                          ).map(([emoji, count]) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleToggleReaction(getMessageId(msg), emoji)}
+                              className="px-2 py-0.5 rounded-full text-xs bg-(--bg-card) border border-(--border)"
+                            >
+                              {emoji} {count}
+                            </button>
+                          ))}
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {(msg.reactions && msg.reactions.length > 0) && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {Array.from(
-                          (msg.reactions || []).reduce((acc, r) => {
-                            const emoji = r.emoji;
-                            acc.set(emoji, (acc.get(emoji) || 0) + 1);
-                            return acc;
-                          }, new Map<string, number>())
-                        ).map(([emoji, count]) => (
-                          <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => handleToggleReaction(getMessageId(msg), emoji)}
-                            className="px-2 py-0.5 rounded-full text-xs bg-(--bg-card) border border-(--border)"
-                          >
-                            {emoji} {count}
-                          </button>
-                        ))}
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReactingToMessageId(getMessageId(msg));
+                            setShowReactionPicker(true);
+                          }}
+                          className="inline-flex items-center gap-1 text-xs text-(--text-muted) hover:text-primary-600"
+                        >
+                          <Smile size={14} />
+                          React
+                        </button>
                       </div>
-                    )}
-
-                    <div className="mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setReactingToMessageId(getMessageId(msg));
-                          setShowReactionPicker(true);
-                        }}
-                        className="inline-flex items-center gap-1 text-xs text-(--text-muted) hover:text-primary-600"
-                      >
-                        <Smile size={14} />
-                        React
-                      </button>
-                    </div>
                     </div>
                   </div>
                 </div>
@@ -1462,8 +1463,108 @@ function ChatView({ room, onBack }: ChatViewProps) {
               </div>
             )}
 
-            <div className="flex gap-2 items-center">
-              {/* Image Upload Button */}
+            <div className="flex gap-2 items-center relative">
+              {/* Mobile Options Toggle */}
+              <button
+                type="button"
+                className="md:hidden p-2.5 rounded-lg text-(--text-muted) hover:bg-(--bg) transition-colors shrink-0"
+                onClick={() => setShowMobileOptions(!showMobileOptions)}
+              >
+                {showMobileOptions ? <X size={20} /> : <Plus size={20} />}
+              </button>
+
+              {/* Mobile Options Modal/Menu */}
+              {showMobileOptions && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10 bg-black/5 md:hidden"
+                    onClick={() => setShowMobileOptions(false)}
+                  />
+                  <div className="absolute bottom-16 left-0 bg-(--bg-card) border border-(--border) p-2 rounded-xl shadow-lg flex flex-wrap gap-2 md:hidden z-20 min-w-[200px] animate-in slide-in-from-bottom-2 fade-in-20">
+                    {/* Image Upload */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        setShowMobileOptions(false);
+                      }}
+                      disabled={selectedFiles.length >= 6}
+                      className={cn(
+                        "p-2.5 rounded-lg transition-colors",
+                        selectedFiles.length > 0
+                          ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                          : "text-(--text-muted) hover:bg-(--bg)",
+                        selectedFiles.length >= 6 && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <ImageIcon size={20} />
+                    </button>
+
+                    {/* Audio */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isRecordingAudio) stopAnyRecording();
+                        else startRecording("audio");
+                        setShowMobileOptions(false);
+                      }}
+                      className={cn(
+                        "p-2.5 rounded-lg transition-colors",
+                        isRecordingAudio ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                      )}
+                    >
+                      {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+                    </button>
+
+                    {/* Video */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isRecordingVideo) stopAnyRecording();
+                        else startRecording("video");
+                        setShowMobileOptions(false);
+                      }}
+                      className={cn(
+                        "p-2.5 rounded-lg transition-colors",
+                        isRecordingVideo ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                      )}
+                    >
+                      {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+                    </button>
+
+                    {/* Location */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowLocationPicker(true);
+                        setShowMobileOptions(false);
+                      }}
+                      className={cn("p-2.5 rounded-lg transition-colors", "text-(--text-muted) hover:bg-(--bg)")}
+                    >
+                      <MapPin size={20} />
+                    </button>
+
+                    {/* Emoji */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmojiPicker(!showEmojiPicker);
+                        setShowMobileOptions(false);
+                      }}
+                      className={cn(
+                        "p-2.5 rounded-lg transition-colors",
+                        showEmojiPicker
+                          ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                          : "text-(--text-muted) hover:bg-(--bg)"
+                      )}
+                    >
+                      <Smile size={20} />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Image Upload Button (Desktop) */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1472,83 +1573,85 @@ function ChatView({ room, onBack }: ChatViewProps) {
                 onChange={handleFilesSelect}
                 className="hidden"
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={selectedFiles.length >= 6}
-                className={cn(
-                  "p-2.5 rounded-lg transition-colors",
-                  selectedFiles.length > 0
-                    ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
-                    : "text-(--text-muted) hover:bg-(--bg)",
-                  selectedFiles.length >= 6 && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <ImageIcon size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
-                className={cn(
-                  "p-2.5 rounded-lg transition-colors",
-                  isRecordingAudio ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
-                )}
-              >
-                {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
-                className={cn(
-                  "p-2.5 rounded-lg transition-colors",
-                  isRecordingVideo ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
-                )}
-              >
-                {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowLocationPicker(true)}
-                className={cn("p-2.5 rounded-lg transition-colors", "text-(--text-muted) hover:bg-(--bg)")}
-              >
-                <MapPin size={20} />
-              </button>
-
-              {/* Emoji Picker Button */}
-              <div className="relative">
+              <div className="hidden md:flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={selectedFiles.length >= 6}
                   className={cn(
                     "p-2.5 rounded-lg transition-colors",
-                    showEmojiPicker
+                    selectedFiles.length > 0
                       ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
-                      : "text-(--text-muted) hover:bg-(--bg)"
+                      : "text-(--text-muted) hover:bg-(--bg)",
+                    selectedFiles.length >= 6 && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <Smile size={20} />
+                  <ImageIcon size={20} />
                 </button>
 
-                {showEmojiPicker && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setShowEmojiPicker(false)}
-                    />
-                    <div className="absolute left-0 bottom-full mb-2 z-20">
-                      <EmojiPicker
-                        onEmojiClick={handleEmojiClick}
-                        height={350}
-                        width={320}
-                        searchPlaceHolder="Search emoji..."
-                        lazyLoadEmojis={true}
+                <button
+                  type="button"
+                  onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-colors",
+                    isRecordingAudio ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                  )}
+                >
+                  {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-colors",
+                    isRecordingVideo ? "text-red-600 bg-red-50 dark:bg-red-900/20" : "text-(--text-muted) hover:bg-(--bg)"
+                  )}
+                >
+                  {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLocationPicker(true)}
+                  className={cn("p-2.5 rounded-lg transition-colors", "text-(--text-muted) hover:bg-(--bg)")}
+                >
+                  <MapPin size={20} />
+                </button>
+
+                {/* Emoji Picker Button (Desktop) */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={cn(
+                      "p-2.5 rounded-lg transition-colors",
+                      showEmojiPicker
+                        ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                        : "text-(--text-muted) hover:bg-(--bg)"
+                    )}
+                  >
+                    <Smile size={20} />
+                  </button>
+
+                  {showEmojiPicker && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowEmojiPicker(false)}
                       />
-                    </div>
-                  </>
-                )}
+                      <div className="absolute left-0 bottom-full mb-2 z-20">
+                        <EmojiPicker
+                          onEmojiClick={handleEmojiClick}
+                          height={350}
+                          width={320}
+                          searchPlaceHolder="Search emoji..."
+                          lazyLoadEmojis={true}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <input
