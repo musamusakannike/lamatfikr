@@ -91,6 +91,18 @@ export const translations = {
       ar: "تم ضبط المؤقت على",
       en: "Timer set to",
     },
+    durationPlaceholder: {
+      ar: "المدة",
+      en: "Duration",
+    },
+    hours: {
+      ar: "ساعات",
+      en: "Hours",
+    },
+    days: {
+      ar: "أيام",
+      en: "Days",
+    },
     yes: {
       ar: "نعم",
       en: "Yes",
