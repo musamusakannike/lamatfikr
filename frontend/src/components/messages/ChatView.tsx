@@ -19,6 +19,7 @@ import {
     StopCircle,
     Flag,
     Ban,
+    Plus,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -82,6 +83,7 @@ export function ChatView({
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showReactionPicker, setShowReactionPicker] = useState(false);
+    const [showMobileOptions, setShowMobileOptions] = useState(false);
 
     const [isRecordingAudio, setIsRecordingAudio] = useState(false);
     const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -801,8 +803,107 @@ export function ChatView({
                     </div>
                 )}
 
-                <div className="flex items-center gap-2">
-                    {/* Image Upload Button */}
+                <div className="flex items-center gap-2 relative">
+                    {/* Mobile Options Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden shrink-0 text-(--text-muted)"
+                        onClick={() => setShowMobileOptions(!showMobileOptions)}
+                    >
+                        {showMobileOptions ? <X size={20} /> : <Plus size={20} />}
+                    </Button>
+
+                    {/* Mobile Options Modal/Menu */}
+                    {showMobileOptions && (
+                        <>
+                             <div
+                                className="fixed inset-0 z-10 bg-black/5 md:hidden"
+                                onClick={() => setShowMobileOptions(false)}
+                            />
+                            <div className="absolute bottom-16 left-0 bg-(--bg-card) border border-(--border) p-2 rounded-xl shadow-lg flex flex-wrap gap-2 md:hidden z-20 min-w-[200px] animate-in slide-in-from-bottom-2 fade-in-20">
+                                {/* Image Upload */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                        "shrink-0",
+                                        selectedFiles.length > 0
+                                            ? "text-primary-600 dark:text-primary-400"
+                                            : "text-(--text-muted)"
+                                    )}
+                                    onClick={() => {
+                                        fileInputRef.current?.click();
+                                        setShowMobileOptions(false);
+                                    }}
+                                    disabled={selectedFiles.length >= 6}
+                                >
+                                    <ImageIcon size={20} />
+                                </Button>
+
+                                {/* Record audio */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn("shrink-0", isRecordingAudio ? "text-red-600" : "text-(--text-muted)")}
+                                    onClick={() => {
+                                        if (isRecordingAudio) stopAnyRecording();
+                                        else startRecording("audio");
+                                        setShowMobileOptions(false);
+                                    }}
+                                >
+                                    {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+                                </Button>
+
+                                {/* Record video */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn("shrink-0", isRecordingVideo ? "text-red-600" : "text-(--text-muted)")}
+                                    onClick={() => {
+                                        if (isRecordingVideo) stopAnyRecording();
+                                        else startRecording("video");
+                                        setShowMobileOptions(false);
+                                    }}
+                                >
+                                    {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+                                </Button>
+
+                                {/* Location */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="shrink-0 text-(--text-muted)"
+                                    onClick={() => {
+                                        setShowLocationPicker(true);
+                                        setShowMobileOptions(false);
+                                    }}
+                                >
+                                    <MapPin size={20} />
+                                </Button>
+
+                                {/* Emoji */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                        "shrink-0",
+                                        showEmojiPicker
+                                            ? "text-primary-600 dark:text-primary-400"
+                                            : "text-(--text-muted)"
+                                    )}
+                                    onClick={() => {
+                                        setShowEmojiPicker(!showEmojiPicker);
+                                        setShowMobileOptions(false);
+                                    }}
+                                >
+                                    <Smile size={20} />
+                                </Button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Image Upload Button (Desktop) */}
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -811,53 +912,53 @@ export function ChatView({
                         onChange={handleFilesSelect}
                         className="hidden"
                     />
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                            "shrink-0",
-                            selectedFiles.length > 0
-                                ? "text-primary-600 dark:text-primary-400"
-                                : "text-(--text-muted)"
-                        )}
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={selectedFiles.length >= 6}
-                    >
-                        <ImageIcon size={20} />
-                    </Button>
+                    <div className="hidden md:flex items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "shrink-0",
+                                selectedFiles.length > 0
+                                    ? "text-primary-600 dark:text-primary-400"
+                                    : "text-(--text-muted)"
+                            )}
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={selectedFiles.length >= 6}
+                        >
+                            <ImageIcon size={20} />
+                        </Button>
 
-                    {/* Record audio */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn("shrink-0", isRecordingAudio ? "text-red-600" : "text-(--text-muted)")}
-                        onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
-                    >
-                        {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
-                    </Button>
+                        {/* Record audio (Desktop) */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn("shrink-0", isRecordingAudio ? "text-red-600" : "text-(--text-muted)")}
+                            onClick={() => (isRecordingAudio ? stopAnyRecording() : startRecording("audio"))}
+                        >
+                            {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
+                        </Button>
 
-                    {/* Record video */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn("shrink-0", isRecordingVideo ? "text-red-600" : "text-(--text-muted)")}
-                        onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
-                    >
-                        {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
-                    </Button>
+                        {/* Record video (Desktop) */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn("shrink-0", isRecordingVideo ? "text-red-600" : "text-(--text-muted)")}
+                            onClick={() => (isRecordingVideo ? stopAnyRecording() : startRecording("video"))}
+                        >
+                            {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
+                        </Button>
 
-                    {/* Location */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-(--text-muted)"
-                        onClick={() => setShowLocationPicker(true)}
-                    >
-                        <MapPin size={20} />
-                    </Button>
+                        {/* Location (Desktop) */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 text-(--text-muted)"
+                            onClick={() => setShowLocationPicker(true)}
+                        >
+                            <MapPin size={20} />
+                        </Button>
 
-                    {/* Emoji Picker Button */}
-                    <div className="relative">
+                        {/* Emoji Picker Button (Desktop) */}
                         <Button
                             variant="ghost"
                             size="icon"
@@ -871,25 +972,25 @@ export function ChatView({
                         >
                             <Smile size={20} />
                         </Button>
-
-                        {showEmojiPicker && (
-                            <>
-                                <div
-                                    className="fixed inset-0 z-10"
-                                    onClick={() => setShowEmojiPicker(false)}
-                                />
-                                <div className="absolute left-0 bottom-full mb-2 z-20">
-                                    <EmojiPicker
-                                        onEmojiClick={handleEmojiClick}
-                                        height={350}
-                                        width={320}
-                                        searchPlaceHolder="Search emoji..."
-                                        lazyLoadEmojis={true}
-                                    />
-                                </div>
-                            </>
-                        )}
                     </div>
+
+                    {showEmojiPicker && (
+                        <>
+                            <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setShowEmojiPicker(false)}
+                            />
+                            <div className="absolute left-0 bottom-full mb-2 z-20">
+                                <EmojiPicker
+                                    onEmojiClick={handleEmojiClick}
+                                    height={350}
+                                    width={320}
+                                    searchPlaceHolder="Search emoji..."
+                                    lazyLoadEmojis={true}
+                                />
+                            </div>
+                        </>
+                    )}
 
                     <input
                         ref={inputRef}
