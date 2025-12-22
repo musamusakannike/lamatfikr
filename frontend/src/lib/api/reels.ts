@@ -54,6 +54,42 @@ export interface ReelsResponse {
   };
 }
 
+export interface Comment {
+  _id: string;
+  postId: string;
+  userId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    avatar?: string;
+    verified?: boolean;
+  };
+  parentCommentId?: string | null;
+  content: string;
+  media?: string[];
+  reactionCount: number;
+  replyCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCommentData {
+  content: string;
+  parentCommentId?: string;
+  media?: string[];
+}
+
+export interface CommentsResponse {
+  comments: Comment[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
 export const reelsApi = {
   async createReel(data: CreateReelData): Promise<{ message: string; reel: Reel }> {
     return apiClient.post<{ message: string; reel: Reel }>("/reels", data);
@@ -90,4 +126,34 @@ export const reelsApi = {
   async recordView(reelId: string, watchDuration: number): Promise<{ message: string }> {
     return apiClient.post<{ message: string }>(`/reels/${reelId}/view`, { watchDuration });
   },
+
+  async shareReel(reelId: string): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>(`/reels/${reelId}/share`);
+  },
+
+  // Comments
+  async createComment(reelId: string, data: CreateCommentData): Promise<{ message: string; comment: Comment }> {
+    return apiClient.post<{ message: string; comment: Comment }>(`/reels/${reelId}/comments`, data);
+  },
+
+  async getComments(reelId: string, page = 1, limit = 20): Promise<CommentsResponse> {
+    return apiClient.get<CommentsResponse>(`/reels/${reelId}/comments`, {
+      params: { page, limit },
+    });
+  },
+
+  async getReplies(reelId: string, commentId: string, page = 1, limit = 20): Promise<{ replies: Comment[]; pagination: { page: number; limit: number; total: number; pages: number } }> {
+    return apiClient.get<{ replies: Comment[]; pagination: { page: number; limit: number; total: number; pages: number } }>(`/reels/${reelId}/comments/${commentId}/replies`, {
+      params: { page, limit },
+    });
+  },
+
+  async updateComment(reelId: string, commentId: string, content: string): Promise<{ message: string; comment: Comment }> {
+    return apiClient.patch<{ message: string; comment: Comment }>(`/reels/${reelId}/comments/${commentId}`, { content });
+  },
+
+  async deleteComment(reelId: string, commentId: string): Promise<{ message: string }> {
+    return apiClient.delete<{ message: string }>(`/reels/${reelId}/comments/${commentId}`);
+  },
 };
+

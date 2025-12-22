@@ -224,6 +224,22 @@ export function InstagramReelsViewer({
                     text: currentReel.caption || "Check out this reel!",
                     url: shareUrl,
                 });
+
+                // Track share on backend
+                try {
+                    await reelsApi.shareReel(currentReel._id);
+
+                    // Update local count
+                    setReels((prev) =>
+                        prev.map((r, idx) =>
+                            idx === currentIndex
+                                ? { ...r, shareCount: r.shareCount + 1 }
+                                : r
+                        )
+                    );
+                } catch (error) {
+                    console.error("Failed to track share:", error);
+                }
             } catch (error) {
                 if ((error as Error).name !== "AbortError") {
                     copyToClipboard(shareUrl);
@@ -231,6 +247,20 @@ export function InstagramReelsViewer({
             }
         } else {
             copyToClipboard(shareUrl);
+
+            // Still track the share
+            try {
+                await reelsApi.shareReel(currentReel._id);
+                setReels((prev) =>
+                    prev.map((r, idx) =>
+                        idx === currentIndex
+                            ? { ...r, shareCount: r.shareCount + 1 }
+                            : r
+                    )
+                );
+            } catch (error) {
+                console.error("Failed to track share:", error);
+            }
         }
     };
 

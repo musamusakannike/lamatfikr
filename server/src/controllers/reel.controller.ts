@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ReelModel } from "../models/reel.model";
 import { ReelLikeModel } from "../models/reel-like.model";
 import { ReelViewModel } from "../models/reel-view.model";
+import { ReelShareModel } from "../models/reel-share.model";
 import { CommentModel } from "../models/comment.model";
 import { UserModel } from "../models/user.model";
 import { FriendshipModel } from "../models/friendship.model";
@@ -76,7 +77,7 @@ async function processHashtagsAndMentions(reelId: Types.ObjectId, caption: strin
       await MentionModel.insertMany(
         mentionedUsers.map((u) => ({ postId: reelId, mentionedUserId: u._id })),
         { ordered: false }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 }
@@ -641,3 +642,383 @@ export const getUserReels: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==================== SHARE REEL ====================
+
+export const shareReel: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { reelId } = req.params;
+
+    const reel = await ReelModel.findOne({ _id: reelId, deletedAt: null });
+    if (!reel) {
+      res.status(404).json({ message: "Reel not found" });
+      return;
+    }
+
+    const canView = await canViewReel(userId, reel);
+    if (!canView) {
+      res.status(403).json({ message: "You cannot share this reel" });
+      return;
+    }
+
+    // Create share record (allow multiple shares by same user)
+    await ReelShareModel.create({ userId, reelId });
+
+    // Increment share count
+    reel.shareCount += 1;
+    await reel.save();
+
+    // Optional: Notify reel owner
+    const reelOwnerId = reel.userId?.toString?.() ?? reel.userId;
+    if (typeof reelOwnerId === "string" && reelOwnerId !== userId) {
+      await createNotification({
+        userId: reelOwnerId,
+        actorId: userId,
+        type: NotificationType.share,
+        targetId: reelId,
+        url: `/reels/${reelId}`,
+      });
+    }
+
+    res.json({ message: "Reel shared successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==================== REEL COMMENTS ====================
+
+const createCommentSchema = z.object({
+  content: z.string().min(1).max(2200),
+  parentCommentId: z.string().optional(),
+  media: z.array(z.string().url()).optional(),
+});
+
+const updateCommentSchema = z.object({
+  content: z.string().min(1).max(2200),
+});
+
+export const createReelComment: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { reelId } = req.params;
+
+    const validation = createCommentSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { content, parentCommentId, media } = validation.data;
+
+    const reel = await ReelModel.findOne({ _id: reelId, deletedAt: null });
+    if (!reel) {
+      res.status(404).json({ message: "Reel not found" });
+      return;
+    }
+
+    const canView = await canViewReel(userId, reel);
+    if (!canView) {
+      res.status(403).json({ message: "You cannot comment on this reel" });
+      return;
+    }
+
+    if (parentCommentId) {
+      const parentComment = await CommentModel.findOne({
+        _id: parentCommentId,
+        postId: reelId,
+        deletedAt: null,
+      });
+      if (!parentComment) {
+        res.status(404).json({ message: "Parent comment not found" });
+        return;
+      }
+    }
+
+    const comment = await CommentModel.create({
+      postId: reelId, // Using postId field for reelId
+      userId,
+      parentCommentId: parentCommentId || null,
+      content,
+      media: media || [],
+    });
+
+    // Send notification
+    if (parentCommentId) {
+      const parentComment = await CommentModel.findById(parentCommentId).select("userId").lean();
+      const recipientId = parentComment?.userId?.toString();
+      if (recipientId && recipientId !== userId) {
+        await createNotification({
+          userId: recipientId,
+          actorId: userId,
+          type: NotificationType.comment,
+          targetId: comment._id.toString(),
+          url: `/reels/${reelId}`,
+        });
+      }
+    } else {
+      const reelOwnerId = reel.userId?.toString?.() ?? reel.userId;
+      if (typeof reelOwnerId === "string" && reelOwnerId !== userId) {
+        await createNotification({
+          userId: reelOwnerId,
+          actorId: userId,
+          type: NotificationType.comment,
+          targetId: comment._id.toString(),
+          url: `/reels/${reelId}`,
+        });
+      }
+    }
+
+    // Update counts
+    reel.commentCount += 1;
+    await reel.save();
+
+    if (parentCommentId) {
+      await CommentModel.findByIdAndUpdate(parentCommentId, {
+        $inc: { replyCount: 1 },
+      });
+    }
+
+    const populatedComment = await CommentModel.findById(comment._id)
+      .populate("userId", "firstName lastName username avatar verified")
+      .lean();
+
+    res.status(201).json({
+      message: "Comment created successfully",
+      comment: populatedComment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getReelComments: RequestHandler = async (req, res, next) => {
+  try {
+    const { reelId } = req.params;
+    const viewerId = req.userId;
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const reel = await ReelModel.findOne({ _id: reelId, deletedAt: null });
+    if (!reel) {
+      res.status(404).json({ message: "Reel not found" });
+      return;
+    }
+
+    const canView = await canViewReel(viewerId, reel);
+    if (!canView) {
+      res.status(403).json({ message: "You cannot view comments on this reel" });
+      return;
+    }
+
+    const comments = await CommentModel.find({
+      postId: reelId,
+      parentCommentId: null,
+      deletedAt: null,
+    })
+      .populate("userId", "firstName lastName username avatar verified")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await CommentModel.countDocuments({
+      postId: reelId,
+      parentCommentId: null,
+      deletedAt: null,
+    });
+
+    res.json({
+      comments,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getReelCommentReplies: RequestHandler = async (req, res, next) => {
+  try {
+    const { reelId, commentId } = req.params;
+    const viewerId = req.userId;
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const reel = await ReelModel.findOne({ _id: reelId, deletedAt: null });
+    if (!reel) {
+      res.status(404).json({ message: "Reel not found" });
+      return;
+    }
+
+    const canView = await canViewReel(viewerId, reel);
+    if (!canView) {
+      res.status(403).json({ message: "You cannot view replies on this reel" });
+      return;
+    }
+
+    const parentComment = await CommentModel.findOne({
+      _id: commentId,
+      postId: reelId,
+      deletedAt: null,
+    });
+    if (!parentComment) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+
+    const replies = await CommentModel.find({
+      postId: reelId,
+      parentCommentId: commentId,
+      deletedAt: null,
+    })
+      .populate("userId", "firstName lastName username avatar verified")
+      .sort({ createdAt: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await CommentModel.countDocuments({
+      postId: reelId,
+      parentCommentId: commentId,
+      deletedAt: null,
+    });
+
+    res.json({
+      replies,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateReelComment: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { reelId, commentId } = req.params;
+
+    const validation = updateCommentSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { content } = validation.data;
+
+    const comment = await CommentModel.findOne({
+      _id: commentId,
+      postId: reelId,
+      deletedAt: null,
+    });
+
+    if (!comment) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+
+    if (comment.userId.toString() !== userId) {
+      res.status(403).json({ message: "You can only edit your own comments" });
+      return;
+    }
+
+    comment.content = content;
+    await comment.save();
+
+    const populatedComment = await CommentModel.findById(comment._id)
+      .populate("userId", "firstName lastName username avatar verified")
+      .lean();
+
+    res.json({
+      message: "Comment updated successfully",
+      comment: populatedComment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteReelComment: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { reelId, commentId } = req.params;
+
+    const comment = await CommentModel.findOne({
+      _id: commentId,
+      postId: reelId,
+      deletedAt: null,
+    });
+
+    if (!comment) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+
+    if (comment.userId.toString() !== userId) {
+      res.status(403).json({ message: "You can only delete your own comments" });
+      return;
+    }
+
+    comment.deletedAt = new Date();
+    await comment.save();
+
+    // Update reel comment count
+    const reel = await ReelModel.findById(reelId);
+    if (reel) {
+      reel.commentCount = Math.max(0, reel.commentCount - 1);
+      await reel.save();
+    }
+
+    // Update parent reply count if applicable
+    if (comment.parentCommentId) {
+      await CommentModel.findByIdAndUpdate(comment.parentCommentId, {
+        $inc: { replyCount: -1 },
+      });
+    }
+
+    res.json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+

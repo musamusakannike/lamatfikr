@@ -9,6 +9,12 @@ import {
   likeReel,
   recordReelView,
   getUserReels,
+  shareReel,
+  createReelComment,
+  getReelComments,
+  getReelCommentReplies,
+  updateReelComment,
+  deleteReelComment,
 } from "../controllers/reel.controller";
 
 export const reelsRouter = Router();
@@ -21,3 +27,11 @@ reelsRouter.put("/:reelId", requireAuth, updateReel);
 reelsRouter.delete("/:reelId", requireAuth, deleteReel);
 reelsRouter.post("/:reelId/like", requireAuth, likeReel);
 reelsRouter.post("/:reelId/view", recordReelView);
+reelsRouter.post("/:reelId/share", requireAuth, shareReel);
+
+// Comments
+reelsRouter.post("/:reelId/comments", requireAuth, createReelComment);
+reelsRouter.get("/:reelId/comments", getReelComments);
+reelsRouter.get("/:reelId/comments/:commentId/replies", getReelCommentReplies);
+reelsRouter.patch("/:reelId/comments/:commentId", requireAuth, updateReelComment);
+reelsRouter.delete("/:reelId/comments/:commentId", requireAuth, deleteReelComment);
