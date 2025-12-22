@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Navbar, Sidebar } from "@/components/layout";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -67,29 +67,29 @@ export default function MessagesPage() {
         fetchConversations();
     }, [isAuthenticated]);
 
-    const handleSelectConversation = (conversationId: string) => {
+    const handleSelectConversation = useCallback((conversationId: string) => {
         setSelectedConversationId(conversationId);
         router.push(`/messages?conversation=${conversationId}`, { scroll: false });
-    };
+    }, [router]);
 
-    const handleBackToList = () => {
+    const handleBackToList = useCallback(() => {
         setSelectedConversationId(null);
         router.push("/messages", { scroll: false });
-    };
+    }, [router]);
 
-    const handleConversationUpdate = (updatedConversation: Conversation) => {
+    const handleConversationUpdate = useCallback((updatedConversation: Conversation) => {
         setConversations((prev) =>
             prev.map((c) => (c._id === updatedConversation._id ? updatedConversation : c))
         );
-    };
+    }, []);
 
     const filteredConversations = conversations.filter((conv) => {
         if (!searchQuery) return true;
         const otherParticipant = conv.participants.find((p) => p._id !== currentUser?.id);
         if (!otherParticipant) return false;
         const fullName = `${otherParticipant.firstName} ${otherParticipant.lastName}`.toLowerCase();
-        return fullName.includes(searchQuery.toLowerCase()) || 
-               otherParticipant.username.toLowerCase().includes(searchQuery.toLowerCase());
+        return fullName.includes(searchQuery.toLowerCase()) ||
+            otherParticipant.username.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
     if (authLoading) {
