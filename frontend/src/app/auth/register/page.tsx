@@ -58,7 +58,7 @@ export default function RegisterPage() {
         .regex(/[a-z]/, t("auth", "passwordLowercase"))
         .regex(/[0-9]/, t("auth", "passwordNumber")),
       gender: z.enum(["male", "female", "other", "prefer_not_to_say"], {
-        errorMap: () => ({ message: t("auth", "selectGender") }),
+        message: t("auth", "selectGender"),
       }),
     });
   };
