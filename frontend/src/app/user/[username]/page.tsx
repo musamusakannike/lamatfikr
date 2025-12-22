@@ -316,7 +316,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                             <CardContent className="relative pt-0 pb-6">
                                 {/* Avatar and Actions */}
                                 <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
-                                    <div className="relative">
+                                    <div className="relative sm:mb-6">
                                         <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-(--bg-card) overflow-hidden bg-primary-100 dark:bg-primary-900">
                                             {profile.avatar ? (
                                                 <Image

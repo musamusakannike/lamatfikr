@@ -186,7 +186,7 @@ export function ProfileHeader({
             className="object-cover"
           />
         )}
-        
+
         {/* Banner edit overlay */}
         <div
           className={cn(
@@ -222,7 +222,7 @@ export function ProfileHeader({
         {/* Avatar */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
           <div
-            className="relative"
+            className="relative sm:mb-6"
             onMouseEnter={() => setIsHoveringAvatar(true)}
             onMouseLeave={() => setIsHoveringAvatar(false)}
           >
@@ -245,7 +245,7 @@ export function ProfileHeader({
                 />
               )}
             </div>
-            
+
             {/* Avatar edit overlay */}
             <div
               className={cn(
