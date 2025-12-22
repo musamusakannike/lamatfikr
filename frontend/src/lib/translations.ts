@@ -527,6 +527,22 @@ export const translations = {
     },
   },
 
+  // Saved Posts
+  savedPosts: {
+    title: {
+      ar: "المنشورات المحفوظة",
+      en: "Saved Posts",
+    },
+    noSavedPosts: {
+      ar: "لم تقم بحفظ أي منشورات بعد",
+      en: "You haven't saved any posts yet",
+    },
+    savedPostsDescription: {
+      ar: "المنشورات التي قمت بحفظها ستظهر هنا",
+      en: "Posts you've saved will appear here",
+    },
+  },
+
   // Navigation
   nav: {
     home: {
@@ -570,6 +586,10 @@ export const translations = {
     profile: {
       ar: "الملف الشخصي",
       en: "Profile",
+    },
+    savedPosts: {
+      ar: "المنشورات المحفوظة",
+      en: "Saved Posts",
     },
   },
 

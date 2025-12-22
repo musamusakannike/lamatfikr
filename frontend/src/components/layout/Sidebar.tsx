@@ -23,7 +23,8 @@ import {
   Bell,
   Settings,
   ChevronRight,
-  Film
+  Film,
+  Bookmark
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
@@ -115,6 +116,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: ShoppingBag, label: t("nav", "marketplace"), href: "/marketplace" },
     { icon: UserPlus, label: t("suggestions", "peopleYouMayKnow"), href: "/suggestions" },
     { icon: Wallet, label: t("nav", "wallet"), href: "/wallet" },
+    { icon: Bookmark, label: t("nav", "savedPosts"), href: "/saved-posts" },
     { icon: Bell, label: t("nav", "notifications"), href: "/notifications", badge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined },
     { icon: Settings, label: t("nav", "settings"), href: "/profile" },
   ];
@@ -140,20 +142,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         className={cn(
           "fixed top-16 bottom-0 w-64 bg-(--bg-sidebar) z-40 transition-transform duration-300 flex flex-col",
           isRTL ? "right-0 border-l border-(--border)" : "left-0 border-r border-(--border)",
-          isOpen 
-            ? "translate-x-0" 
-            : isRTL 
-              ? "translate-x-full lg:translate-x-0" 
+          isOpen
+            ? "translate-x-0"
+            : isRTL
+              ? "translate-x-full lg:translate-x-0"
               : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink 
-              key={item.label} 
-              item={item} 
-              isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))} 
+            <NavLink
+              key={item.label}
+              item={item}
+              isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))}
             />
           ))}
 
