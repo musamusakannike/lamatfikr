@@ -29,7 +29,7 @@ export function InstagramReelPlayer({
     const [progress, setProgress] = useState(0);
     const [showPlayIcon, setShowPlayIcon] = useState(false);
     const lastTapRef = useRef(0);
-    const playIconTimeoutRef = useRef<NodeJS.Timeout>();
+    const playIconTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     // Handle active state changes
     useEffect(() => {
@@ -116,7 +116,9 @@ export function InstagramReelPlayer({
         };
     }, []);
 
-    const handleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    const handleTap = () => {
+        // Note: Date.now() is safe here - it's called in an event handler, not during render
+        // The linter warning is a false positive
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
 
