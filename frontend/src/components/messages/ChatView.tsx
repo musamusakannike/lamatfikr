@@ -32,6 +32,7 @@ import { getErrorMessage } from "@/lib/api";
 import toast from "react-hot-toast";
 import { useSocket } from "@/contexts/socket-context";
 import { useChat } from "@/contexts/chat-context";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { LocationPickerModal, type PickedLocation } from "@/components/shared/LocationPickerModal";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import L from "leaflet";
@@ -62,6 +63,7 @@ export function ChatView({
     onConversationUpdate,
 }: ChatViewProps) {
     const { joinConversation, leaveConversation, sendTyping } = useSocket();
+    const { t } = useLanguage();
     const { addMessages } = useChat();
     const [conversation, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -544,11 +546,11 @@ export function ChatView({
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
                                 <Flag className="mr-2 h-4 w-4" />
-                                Report User
+                                {t("reportModal", "reportUser")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setShowBlockModal(true)} className={isBlocked ? "text-primary-500" : "text-red-500"}>
                                 <Ban className="mr-2 h-4 w-4" />
-                                {isBlocked ? "Unblock User" : "Block User"}
+                                {isBlocked ? t("blockModal", "confirmUnblock") : t("blockModal", "confirmBlock")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

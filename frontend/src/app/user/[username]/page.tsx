@@ -431,11 +431,11 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => setShowReportModal(true)} className="text-red-500">
                                                         <Flag className="mr-2 h-4 w-4" />
-                                                        Report User
+                                                        {t("reportModal", "reportUser")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setShowBlockModal(true)} className={isBlocked ? "text-primary-500" : "text-red-500"}>
                                                         <Ban className="mr-2 h-4 w-4" />
-                                                        {isBlocked ? "Unblock User" : "Block User"}
+                                                        {isBlocked ? t("blockModal", "confirmUnblock") : t("blockModal", "confirmBlock")}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

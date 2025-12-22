@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { socialApi } from "@/lib/api/social";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "@/lib/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlockUserModalProps {
     isOpen: boolean;
@@ -16,6 +17,7 @@ interface BlockUserModalProps {
 }
 
 export function BlockUserModal({ isOpen, onClose, userId, username, isBlocked, onSuccess }: BlockUserModalProps) {
+    const { t } = useLanguage();
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAction = async () => {
@@ -23,11 +25,11 @@ export function BlockUserModal({ isOpen, onClose, userId, username, isBlocked, o
             setIsLoading(true);
             if (isBlocked) {
                 await socialApi.unblockUser(userId);
-                toast.success(`Unblocked @${username}`);
+                toast.success(`${t("blockModal", "successUnblock")} @${username}`);
                 onSuccess?.(false);
             } else {
                 await socialApi.blockUser(userId);
-                toast.success(`Blocked @${username}`);
+                toast.success(`${t("blockModal", "successBlock")} @${username}`);
                 onSuccess?.(true);
             }
             onClose();
@@ -38,13 +40,18 @@ export function BlockUserModal({ isOpen, onClose, userId, username, isBlocked, o
         }
     };
 
-    const title = isBlocked ? `Unblock @${username}?` : `Block @${username}?`;
+    const title = isBlocked
+        ? `${t("blockModal", "titleUnblock")} @${username}?`
+        : `${t("blockModal", "titleBlock")} @${username}?`;
+
     const message = isBlocked
-        ? "Are you sure you want to unblock this user? They will be able to see your profile and message you again."
-        : "Are you sure you want to block this user? They will no longer be able to message you or see your profile.";
+        ? t("blockModal", "messageUnblock")
+        : t("blockModal", "messageBlock");
+
     const buttonText = isLoading
-        ? (isBlocked ? "Unblocking..." : "Blocking...")
-        : (isBlocked ? "Unblock User" : "Block User");
+        ? (isBlocked ? t("blockModal", "btnUnblocking") : t("blockModal", "btnBlocking"))
+        : (isBlocked ? t("blockModal", "btnUnblock") : t("blockModal", "btnBlock"));
+
     const variant = isBlocked ? "primary" : "danger";
 
     return (
@@ -52,7 +59,7 @@ export function BlockUserModal({ isOpen, onClose, userId, username, isBlocked, o
             <div className="p-4 space-y-4">
                 <p>{message}</p>
                 <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                    <Button variant="ghost" onClick={onClose}>{t("blockModal", "cancel")}</Button>
                     <Button variant={variant} onClick={handleAction} disabled={isLoading}>
                         {buttonText}
                     </Button>

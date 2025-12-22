@@ -4139,6 +4139,34 @@ export const translations = {
       en: "Watch More",
     },
   },
+  // Block User Modal
+  blockModal: {
+    titleBlock: { ar: "حظر", en: "Block" },
+    titleUnblock: { ar: "إلغاء حظر", en: "Unblock" },
+    messageBlock: { ar: "هل أنت متأكد من حظر هذا المستخدم؟ لن يتمكن من مراسلتك أو رؤية ملفك الشخصي.", en: "Are you sure you want to block this user? They will no longer be able to message you or see your profile." },
+    messageUnblock: { ar: "هل أنت متأكد من إلغاء حظر هذا المستخدم؟ سيتمكن من رؤية ملفك الشخصي ومراسلتك مرة أخرى.", en: "Are you sure you want to unblock this user? They will be able to see your profile and message you again." },
+    btnBlock: { ar: "حظر المستخدم", en: "Block User" },
+    confirmBlock: { ar: "حظر المستخدم", en: "Block User" },
+    confirmUnblock: { ar: "إلغاء الحظر", en: "Unblock User" },
+    btnUnblock: { ar: "إلغاء الحظر", en: "Unblock User" },
+    btnBlocking: { ar: "جاري الحظر...", en: "Blocking..." },
+    btnUnblocking: { ar: "جاري إلغاء الحظر...", en: "Unblocking..." },
+    cancel: { ar: "إلغاء", en: "Cancel" },
+    successBlock: { ar: "تم حظر", en: "Blocked" },
+    successUnblock: { ar: "تم إلغاء حظر", en: "Unblocked" },
+  },
+
+  // Report Modal
+  reportModal: {
+    title: { ar: "إبلاغ", en: "Report" },
+    reportUser: { ar: "الإبلاغ عن المستخدم", en: "Report User" },
+    labelReason: { ar: "سبب الإبلاغ", en: "Reason for report" },
+    placeholderReason: { ar: "يرجى تقديم تفاصيل حول البلاغ...", en: "Please provide details about your report..." },
+    btnSubmit: { ar: "إرسال البلاغ", en: "Submit Report" },
+    btnSubmitting: { ar: "جاري الإرسال...", en: "Submitting..." },
+    cancel: { ar: "إلغاء", en: "Cancel" },
+    success: { ar: "تم إرسال البلاغ بنجاح", en: "Report submitted successfully" },
+  },
 };
 
 export type TranslationKey = keyof typeof translations;
