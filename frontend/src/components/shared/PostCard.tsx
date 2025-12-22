@@ -9,7 +9,6 @@ import {
     MessageCircle,
     Share2,
     Bookmark,
-    MoreHorizontal,
     Megaphone,
     Send,
     Loader2,
@@ -19,7 +18,6 @@ import {
     Smile,
     Edit3,
     BarChart3,
-    Play,
     Volume2,
     X,
     ChevronLeft,
@@ -174,6 +172,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                 toast.success("Link copied to clipboard");
             } catch (error) {
                 toast.error("Failed to copy link");
+                console.error(error)
             }
         }
     };
@@ -342,9 +341,6 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                             </div>
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-(--text-muted)">
-                        <MoreHorizontal size={18} />
-                    </Button>
                 </div>
 
                 {/* Content */}
