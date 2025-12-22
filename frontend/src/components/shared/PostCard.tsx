@@ -46,7 +46,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const { user: currentUser, isAuthenticated } = useAuth();
     const [post, setPost] = useState(initialPost);
     const [isVoting, setIsVoting] = useState(false);
-    const [saved, setSaved] = useState(false);
+    const [saved, setSaved] = useState(initialPost.isSaved || false);
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
     const [isLoadingComments, setIsLoadingComments] = useState(false);
@@ -64,6 +64,7 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     // Sync post state when initialPost prop changes
     useEffect(() => {
         setPost(initialPost);
+        setSaved(initialPost.isSaved || false);
     }, [initialPost]);
 
     // Check follow status on mount

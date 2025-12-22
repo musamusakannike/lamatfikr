@@ -410,10 +410,11 @@ export const getFeed: RequestHandler = async (req, res, next) => {
 
     const postIds = posts.map((p) => p._id);
 
-    const [allMedia, allPolls, userVotes] = await Promise.all([
+    const [allMedia, allPolls, userVotes, savedItems] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
       VoteModel.find({ userId, postId: { $in: postIds } }).lean(),
+      SavedItemModel.find({ userId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean(),
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -428,6 +429,9 @@ export const getFeed: RequestHandler = async (req, res, next) => {
 
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
+
+    const savedPostIds = new Set<string>();
+    savedItems.forEach((s) => savedPostIds.add(s.itemId.toString()));
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
@@ -460,6 +464,7 @@ export const getFeed: RequestHandler = async (req, res, next) => {
         media: mediaByPost.get(post._id.toString()) || [],
         poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
         userVote: voteByPost.get(post._id.toString()) || null,
+        isSaved: savedPostIds.has(post._id.toString()),
       };
     });
 
@@ -569,10 +574,11 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
 
     const postIds = posts.map((p) => p._id);
 
-    const [allMedia, allPolls, userVotes] = await Promise.all([
+    const [allMedia, allPolls, userVotes, savedItems] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
       VoteModel.find({ userId, postId: { $in: postIds } }).lean(),
+      SavedItemModel.find({ userId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean(),
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -587,6 +593,9 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
 
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
+
+    const savedPostIds = new Set<string>();
+    savedItems.forEach((s) => savedPostIds.add(s.itemId.toString()));
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
@@ -619,6 +628,7 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
         media: mediaByPost.get(post._id.toString()) || [],
         poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
         userVote: voteByPost.get(post._id.toString()) || null,
+        isSaved: savedPostIds.has(post._id.toString()),
       };
     });
 
@@ -742,10 +752,11 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
 
     const postIds = postsWithEffectiveVerified.map((p) => p._id);
 
-    const [allMedia, allPolls, userVotes] = await Promise.all([
+    const [allMedia, allPolls, userVotes, savedItems] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
       viewerId ? VoteModel.find({ userId: viewerId, postId: { $in: postIds } }).lean() : [],
+      viewerId ? SavedItemModel.find({ userId: viewerId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean() : [],
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -760,6 +771,9 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
 
     const voteByPost = new Map<string, string>();
     userVotes.forEach((v) => voteByPost.set(v.postId.toString(), v.voteType));
+
+    const savedPostIds = new Set<string>();
+    savedItems.forEach((s) => savedPostIds.add(s.itemId.toString()));
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
@@ -782,6 +796,7 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
         media: mediaByPost.get(post._id.toString()) || [],
         poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
         userVote: voteByPost.get(post._id.toString()) || null,
+        isSaved: viewerId ? savedPostIds.has(post._id.toString()) : false,
       };
     });
 
@@ -1180,6 +1195,7 @@ export const getSavedPosts: RequestHandler = async (req, res, next) => {
           poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
           userVote: voteByPost.get(post._id.toString()) || null,
           savedAt: (saved as any).createdAt,
+          isSaved: true,
         };
       })
       .filter(Boolean);

@@ -42,6 +42,7 @@ export interface Post {
     shareCount: number;
     hasPoll: boolean;
     userVote?: "upvote" | "downvote" | null;
+    isSaved?: boolean;
     createdAt: string;
     updatedAt: string;
 }
