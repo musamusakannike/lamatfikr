@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiClient, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Announcement {
     _id: string;
@@ -32,6 +33,7 @@ interface AnnouncementsResponse {
 }
 
 export default function AnnouncementsPage() {
+    const { t, isRTL } = useLanguage();
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export default function AnnouncementsPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this announcement?")) return;
+        if (!confirm(t("adminAnnouncements", "confirmDelete"))) return;
 
         try {
             await apiClient.delete(`/announcements/${id}`);
@@ -133,19 +135,19 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="space-y-4">
+        <div className={cn("space-y-4", isRTL ? "text-right" : "text-left")}>
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-(--text)">Announcements</h1>
+                    <h1 className="text-2xl font-bold text-(--text)">{t("adminAnnouncements", "title")}</h1>
                     <div className="text-sm text-(--text-muted) mt-1">
-                        Manage platform announcements for users
+                        {t("adminAnnouncements", "subtitle")}
                     </div>
                 </div>
                 <button
                     onClick={() => setShowForm(!showForm)}
                     className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
                 >
-                    {showForm ? "Cancel" : "Create Announcement"}
+                    {showForm ? t("adminAnnouncements", "btnCancel") : t("adminAnnouncements", "createNew")}
                 </button>
             </div>
 
@@ -161,12 +163,12 @@ export default function AnnouncementsPage() {
                     className="bg-(--bg-card) border border-(--border) rounded-xl p-6 space-y-4"
                 >
                     <h2 className="text-lg font-bold text-(--text)">
-                        {editingId ? "Edit Announcement" : "Create New Announcement"}
+                        {editingId ? t("adminAnnouncements", "editModalTitle") : t("adminAnnouncements", "createModalTitle")}
                     </h2>
 
                     <div>
                         <label className="block text-sm font-medium text-(--text) mb-2">
-                            Title
+                            {t("adminAnnouncements", "formTitle")}
                         </label>
                         <input
                             type="text"
@@ -175,13 +177,13 @@ export default function AnnouncementsPage() {
                             required
                             maxLength={200}
                             className="w-full px-3 py-2 border border-(--border) rounded-lg bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="Enter announcement title"
+                            placeholder={t("adminAnnouncements", "formTitle")}
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-(--text) mb-2">
-                            Content
+                            {t("adminAnnouncements", "formMessage")}
                         </label>
                         <textarea
                             value={formData.content}
@@ -190,17 +192,17 @@ export default function AnnouncementsPage() {
                             maxLength={5000}
                             rows={6}
                             className="w-full px-3 py-2 border border-(--border) rounded-lg bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                            placeholder="Enter announcement content"
+                            placeholder={t("adminAnnouncements", "formMessage")}
                         />
-                        <div className="text-xs text-(--text-muted) mt-1">
-                            {formData.content.length}/5000 characters
+                        <div className="text-xs text-(--text-muted) mt-1 text-right ltr:text-left">
+                            {formData.content.length}/5000
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-(--text) mb-2">
-                                Priority
+                                {t("adminAnnouncements", "formPriority")}
                             </label>
                             <select
                                 value={formData.priority}
@@ -212,15 +214,15 @@ export default function AnnouncementsPage() {
                                 }
                                 className="w-full px-3 py-2 border border-(--border) rounded-lg bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
                             >
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
+                                <option value="low">{t("adminAnnouncements", "priorityLow")}</option>
+                                <option value="medium">{t("adminAnnouncements", "priorityMedium")}</option>
+                                <option value="high">{t("adminAnnouncements", "priorityHigh")}</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-(--text) mb-2">
-                                Status
+                                {t("adminAnnouncements", "formStatus")}
                             </label>
                             <select
                                 value={formData.isActive ? "active" : "inactive"}
@@ -229,8 +231,8 @@ export default function AnnouncementsPage() {
                                 }
                                 className="w-full px-3 py-2 border border-(--border) rounded-lg bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500"
                             >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="active">{t("adminAnnouncements", "statusActive")}</option>
+                                <option value="inactive">{t("adminAnnouncements", "statusInactive")}</option>
                             </select>
                         </div>
                     </div>
@@ -241,14 +243,14 @@ export default function AnnouncementsPage() {
                             onClick={handleCancel}
                             className="px-4 py-2 border border-(--border) rounded-lg text-(--text) hover:bg-(--bg) transition-colors"
                         >
-                            Cancel
+                            {t("adminAnnouncements", "btnCancel")}
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
                             className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                         >
-                            {submitting ? "Saving..." : editingId ? "Update" : "Create"}
+                            {submitting ? t("adminAnnouncements", "btnSaving") : editingId ? t("adminAnnouncements", "btnUpdate") : t("adminAnnouncements", "btnCreate")}
                         </button>
                     </div>
                 </form>
@@ -257,23 +259,23 @@ export default function AnnouncementsPage() {
             <div className="bg-(--bg-card) border border-(--border) rounded-xl overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center text-(--text-muted)">
-                        Loading announcements...
+                        {t("adminAnnouncements", "loading")}
                     </div>
                 ) : announcements.length === 0 ? (
                     <div className="p-8 text-center text-(--text-muted)">
-                        No announcements found. Create your first announcement!
+                        {t("adminAnnouncements", "noData")}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-(--bg)">
                                 <tr className="text-(--text-muted)">
-                                    <th className="px-4 py-3 text-left">Title</th>
-                                    <th className="px-4 py-3 text-left">Content</th>
-                                    <th className="px-4 py-3 text-center">Priority</th>
-                                    <th className="px-4 py-3 text-center">Status</th>
-                                    <th className="px-4 py-3 text-center">Created</th>
-                                    <th className="px-4 py-3 text-center">Actions</th>
+                                    <th className={cn("px-4 py-3", isRTL ? "text-right" : "text-left")}>{t("adminAnnouncements", "colTitle")}</th>
+                                    <th className={cn("px-4 py-3", isRTL ? "text-right" : "text-left")}>{t("adminAnnouncements", "colContent")}</th>
+                                    <th className="px-4 py-3 text-center">{t("adminAnnouncements", "colPriority")}</th>
+                                    <th className="px-4 py-3 text-center">{t("adminAnnouncements", "colStatus")}</th>
+                                    <th className="px-4 py-3 text-center">{t("adminAnnouncements", "colDate")}</th>
+                                    <th className="px-4 py-3 text-center">{t("adminAnnouncements", "colActions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -298,7 +300,7 @@ export default function AnnouncementsPage() {
                                                     getPriorityColor(announcement.priority)
                                                 )}
                                             >
-                                                {announcement.priority}
+                                                {t("adminAnnouncements", `priority${announcement.priority.charAt(0).toUpperCase() + announcement.priority.slice(1)}`)}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
@@ -313,10 +315,10 @@ export default function AnnouncementsPage() {
                                                 )}
                                             >
                                                 {announcement.deletedAt
-                                                    ? "Deleted"
+                                                    ? t("adminAnnouncements", "statusDeleted")
                                                     : announcement.isActive
-                                                        ? "Active"
-                                                        : "Inactive"}
+                                                        ? t("adminAnnouncements", "statusActive")
+                                                        : t("adminAnnouncements", "statusInactive")}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center text-(--text-muted)">
@@ -329,13 +331,13 @@ export default function AnnouncementsPage() {
                                                         onClick={() => handleEdit(announcement)}
                                                         className="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors"
                                                     >
-                                                        Edit
+                                                        {t("adminAnnouncements", "btnEdit")}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(announcement._id)}
                                                         className="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded-lg transition-colors"
                                                     >
-                                                        Delete
+                                                        {t("adminAnnouncements", "btnDelete")}
                                                     </button>
                                                 </div>
                                             )}
@@ -351,7 +353,7 @@ export default function AnnouncementsPage() {
             {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                     <div className="text-sm text-(--text-muted)">
-                        Page {page} of {totalPages}
+                        {t("adminAnnouncements", "page")} {page} {t("adminAnnouncements", "of")} {totalPages}
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -364,7 +366,7 @@ export default function AnnouncementsPage() {
                                     : "border-(--border) text-(--text) hover:bg-(--bg) hover:border-primary-500"
                             )}
                         >
-                            Previous
+                            {t("adminAnnouncements", "paginationPrev")}
                         </button>
                         <button
                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
@@ -376,7 +378,7 @@ export default function AnnouncementsPage() {
                                     : "border-(--border) text-(--text) hover:bg-(--bg) hover:border-primary-500"
                             )}
                         >
-                            Next
+                            {t("adminAnnouncements", "paginationNext")}
                         </button>
                     </div>
                 </div>

@@ -27,6 +27,9 @@ export const translations = {
     stories: { ar: "القصص", en: "Stories" },
     uploadsMedia: { ar: "الوسائط والرفع", en: "Uploads & Media" },
 
+    reports: { ar: "البلاغات", en: "Reports" },
+    announcements: { ar: "الإعلانات", en: "Announcements" },
+
     social: { ar: "الاجتماعي", en: "Social" },
     followsFriends: { ar: "المتابعات والأصدقاء", en: "Follows & Friends" },
     blocksMutes: { ar: "الحظر والكتم", en: "Blocks & Mutes" },
@@ -601,6 +604,77 @@ export const translations = {
     transactionsTrend: { ar: "اتجاه المعاملات", en: "Transactions Trend" },
     transactionVolumeTrend: { ar: "اتجاه حجم المعاملات", en: "Transaction Volume Trend" },
     lastNDays: { ar: "آخر 30 يوم", en: "Last 30 days" },
+  },
+
+  adminReports: {
+    title: { ar: "البلاغات", en: "Reports" },
+    reporter: { ar: "المُبلِغ", en: "Reporter" },
+    target: { ar: "الهدف", en: "Target" },
+    reason: { ar: "السبب", en: "Reason" },
+    status: { ar: "الحالة", en: "Status" },
+    created: { ar: "تاريخ الإنشاء", en: "Created" },
+    reportDetailsTitle: { ar: "تفاصيل البلاغ", en: "Report Details" },
+    replyViaEmail: { ar: "الرد عبر البريد الإلكتروني", en: "Reply via Email" },
+    replyPlaceholder: { ar: "اكتب ردك هنا...", en: "Write your reply here..." },
+    sendReply: { ar: "إرسال الرد", en: "Send Reply" },
+    sending: { ar: "جاري الإرسال...", en: "Sending..." },
+    replySentSuccess: { ar: "تم إرسال الرد بنجاح", en: "Reply sent successfully" },
+    replySentError: { ar: "فشل إرسال الرد", en: "Failed to send reply" },
+  },
+
+  adminAnnouncements: {
+    title: { ar: "الإعلانات", en: "Announcements" },
+    subtitle: { ar: "إدارة إعلانات المنصة للمستخدمين", en: "Manage platform announcements for users" },
+    createNew: { ar: "إعلان جديد", en: "New Announcement" },
+    createModalTitle: { ar: "إنشاء إعلان جديد", en: "Create New Announcement" },
+    editModalTitle: { ar: "تعديل الإعلان", en: "Edit Announcement" },
+
+    searchPlaceholder: { ar: "بحث في الإعلانات", en: "Search announcements" },
+
+    colTitle: { ar: "العنوان", en: "Title" },
+    colType: { ar: "النوع", en: "Type" },
+    colTarget: { ar: "الجمهور", en: "Target" },
+    colStatus: { ar: "الحالة", en: "Status" },
+    colDate: { ar: "تاريخ الإنشاء", en: "Created" },
+    colActions: { ar: "إجراءات", en: "Actions" },
+    colPriority: { ar: "الأولوية", en: "Priority" },
+    colContent: { ar: "المحتوى", en: "Content" },
+
+    formTitle: { ar: "العنوان", en: "Title" },
+    formMessage: { ar: "المحتوى", en: "Content" },
+    formType: { ar: "النوع", en: "Type" },
+    formTarget: { ar: "الجمهور المستهدف", en: "Target Audience" },
+    formPriority: { ar: "الأولوية", en: "Priority" },
+    formStatus: { ar: "الحالة", en: "Status" },
+
+    priorityLow: { ar: "منخفضة", en: "Low" },
+    priorityMedium: { ar: "متوسطة", en: "Medium" },
+    priorityHigh: { ar: "عالية", en: "High" },
+
+    statusActive: { ar: "نشط", en: "Active" },
+    statusInactive: { ar: "غير نشط", en: "Inactive" },
+    statusDeleted: { ar: "محذوف", en: "Deleted" },
+
+    btnEdit: { ar: "تعديل", en: "Edit" },
+    btnDelete: { ar: "حذف", en: "Delete" },
+    btnCancel: { ar: "إلغاء", en: "Cancel" },
+    btnSave: { ar: "حفظ", en: "Save" },
+    btnCreate: { ar: "إنشاء", en: "Create" },
+    btnUpdate: { ar: "تحديث", en: "Update" },
+    btnSaving: { ar: "جاري الحفظ...", en: "Saving..." },
+
+    createSuccess: { ar: "تم إنشاء الإعلان بنجاح", en: "Announcement created successfully" },
+    deleteSuccess: { ar: "تم حذف الإعلان", en: "Announcement deleted" },
+    confirmDelete: { ar: "هل أنت متأكد من الحذف؟", en: "Are you sure you want to delete?" },
+
+    paginationPrev: { ar: "السابق", en: "Previous" },
+    paginationNext: { ar: "التالي", en: "Next" },
+    page: { ar: "صفحة", en: "Page" },
+    of: { ar: "من", en: "of" },
+
+    loading: { ar: "جاري التحميل...", en: "Loading..." },
+    failedToLoad: { ar: "فشل تحميل الإعلانات", en: "Failed to load announcements" },
+    noData: { ar: "لا توجد إعلانات", en: "No announcements found" },
   },
 
   language: {
