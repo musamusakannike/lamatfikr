@@ -36,6 +36,8 @@ export function InstagramReelPlayer({
         const video = videoRef.current;
         if (!video) return;
 
+        let isMounted = true;
+
         if (isActive) {
             video.currentTime = 0;
             const playPromise = video.play();
@@ -43,13 +45,18 @@ export function InstagramReelPlayer({
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        setIsPlaying(true);
-                        onPlayStateChange?.(true);
+                        if (isMounted) {
+                            setIsPlaying(true);
+                            onPlayStateChange?.(true);
+                        }
                     })
                     .catch((error) => {
-                        console.error("Error playing video:", error);
-                        setIsPlaying(false);
-                        onPlayStateChange?.(false);
+                        // Ignore AbortError - it's expected when component unmounts
+                        if (error.name !== "AbortError" && isMounted) {
+                            console.error("Error playing video:", error);
+                            setIsPlaying(false);
+                            onPlayStateChange?.(false);
+                        }
                     });
             }
         } else {
@@ -59,6 +66,14 @@ export function InstagramReelPlayer({
             setProgress(0);
             onPlayStateChange?.(false);
         }
+
+        return () => {
+            isMounted = false;
+            // Pause video on cleanup to prevent play errors
+            if (video) {
+                video.pause();
+            }
+        };
     }, [isActive, onPlayStateChange]);
 
     // Handle mute state
@@ -126,9 +141,20 @@ export function InstagramReelPlayer({
         if (!video) return;
 
         if (video.paused) {
-            video.play();
-            setIsPlaying(true);
-            onPlayStateChange?.(true);
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        setIsPlaying(true);
+                        onPlayStateChange?.(true);
+                    })
+                    .catch((error) => {
+                        // Ignore AbortError
+                        if (error.name !== "AbortError") {
+                            console.error("Error playing video:", error);
+                        }
+                    });
+            }
         } else {
             video.pause();
             setIsPlaying(false);
