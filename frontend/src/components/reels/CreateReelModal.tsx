@@ -117,7 +117,7 @@ export function CreateReelModal({ isOpen, onClose, onSuccess }: CreateReelModalP
       formData.append("file", videoFile);
 
       const uploadResponse = await apiClient.post<{ url: string }>(
-        "/upload/video",
+        "/upload/media",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
