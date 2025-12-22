@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -23,6 +23,7 @@ function VerifyEmailContent() {
   const [message, setMessage] = useState("");
   const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const verifiedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -30,6 +31,9 @@ function VerifyEmailContent() {
       setMessage(t("auth", "noVerificationToken"));
       return;
     }
+
+    if (verifiedTokenRef.current === token) return;
+    verifiedTokenRef.current = token;
 
     const verifyEmail = async () => {
       try {
