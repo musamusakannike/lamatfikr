@@ -20,6 +20,7 @@ import { useAuth, getErrorMessage } from "@/contexts/AuthContext";
 import { signInWithGoogle } from "@/lib/firebase";
 import { Gender } from "@/types/auth";
 import toast from "react-hot-toast";
+import { z } from "zod";
 
 type GenderType = "male" | "female" | "other" | "prefer_not_to_say" | "";
 
@@ -39,18 +40,65 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const getValidationSchema = () => {
+    return z.object({
+      firstName: z.string().min(1, t("auth", "firstName") + " " + t("common", "required")),
+      lastName: z.string().min(1, t("auth", "lastName") + " " + t("common", "required")),
+      username: z
+        .string()
+        .min(2, t("auth", "usernameMinLength"))
+        .regex(/^[a-zA-Z0-9_]+$/, t("auth", "usernamePattern")),
+      email: z.string().email(t("auth", "invalidEmail")),
+      password: z
+        .string()
+        .min(8, t("auth", "passwordMinLength"))
+        .regex(/[A-Z]/, t("auth", "passwordUppercase"))
+        .regex(/[a-z]/, t("auth", "passwordLowercase"))
+        .regex(/[0-9]/, t("auth", "passwordNumber")),
+      gender: z.enum(["male", "female", "other", "prefer_not_to_say"], {
+        errorMap: () => ({ message: t("auth", "selectGender") }),
+      }),
+    });
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear validation error when user types
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setValidationErrors({});
+
+    // Validate form
+    const schema = getValidationSchema();
+    const result = schema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0].toString()] = issue.message;
+        }
+      });
+      setValidationErrors(fieldErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await register({
@@ -228,10 +276,16 @@ export default function RegisterPage() {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder={t("auth", "firstNamePlaceholder")}
-                      required
-                      className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
+                      className={cn(
+                        "w-full py-2.5 rounded-lg border bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
+                        validationErrors.firstName ? "border-red-500 focus:ring-red-500" : "border-(--border)",
+                        isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
+                      )}
                     />
                   </div>
+                  {validationErrors.firstName && (
+                    <p className="mt-1 text-xs text-red-500">{validationErrors.firstName}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-(--text) mb-1.5">
@@ -243,9 +297,14 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={handleChange}
                     placeholder={t("auth", "lastNamePlaceholder")}
-                    required
-                    className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={cn(
+                      "w-full px-4 py-2.5 rounded-lg border bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
+                      validationErrors.lastName ? "border-red-500 focus:ring-red-500" : "border-(--border)"
+                    )}
                   />
+                  {validationErrors.lastName && (
+                    <p className="mt-1 text-xs text-red-500">{validationErrors.lastName}</p>
+                  )}
                 </div>
               </div>
 
@@ -265,10 +324,16 @@ export default function RegisterPage() {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder={t("auth", "usernamePlaceholder")}
-                    required
-                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
+                    className={cn(
+                      "w-full py-2.5 rounded-lg border bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
+                      validationErrors.username ? "border-red-500 focus:ring-red-500" : "border-(--border)",
+                      isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
+                    )}
                   />
                 </div>
+                {validationErrors.username && (
+                  <p className="mt-1 text-xs text-red-500">{validationErrors.username}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -287,10 +352,16 @@ export default function RegisterPage() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder={t("auth", "emailPlaceholder")}
-                    required
-                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-4" : "pl-10 pr-4")}
+                    className={cn(
+                      "w-full py-2.5 rounded-lg border bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
+                      validationErrors.email ? "border-red-500 focus:ring-red-500" : "border-(--border)",
+                      isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
+                    )}
                   />
                 </div>
+                {validationErrors.email && (
+                  <p className="mt-1 text-xs text-red-500">{validationErrors.email}</p>
+                )}
               </div>
 
               {/* Password */}
@@ -309,9 +380,11 @@ export default function RegisterPage() {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder={t("auth", "passwordPlaceholder")}
-                    required
-                    minLength={8}
-                    className={cn("w-full py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500", isRTL ? "pr-10 pl-12" : "pl-10 pr-12")}
+                    className={cn(
+                      "w-full py-2.5 rounded-lg border bg-(--bg) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500",
+                      validationErrors.password ? "border-red-500 focus:ring-red-500" : "border-(--border)",
+                      isRTL ? "pr-10 pl-12" : "pl-10 pr-12"
+                    )}
                   />
                   <button
                     type="button"
@@ -321,6 +394,9 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {validationErrors.password && (
+                  <p className="mt-1 text-xs text-red-500">{validationErrors.password}</p>
+                )}
               </div>
 
               {/* Gender */}
@@ -333,8 +409,10 @@ export default function RegisterPage() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer"
+                    className={cn(
+                      "w-full px-4 py-2.5 rounded-lg border bg-(--bg) text-(--text) focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none cursor-pointer",
+                      validationErrors.gender ? "border-red-500 focus:ring-red-500" : "border-(--border)"
+                    )}
                   >
                     <option value="">{t("auth", "selectGender")}</option>
                     <option value="male">{t("auth", "male")}</option>
@@ -347,6 +425,9 @@ export default function RegisterPage() {
                     className={cn("absolute top-1/2 -translate-y-1/2 text-(--text-muted) pointer-events-none", isRTL ? "left-3" : "right-3")}
                   />
                 </div>
+                {validationErrors.gender && (
+                  <p className="mt-1 text-xs text-red-500">{validationErrors.gender}</p>
+                )}
               </div>
 
               {/* Submit Button */}

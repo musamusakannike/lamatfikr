@@ -398,6 +398,36 @@ export const translations = {
       en: "Registration successful! Please check your email to verify your account.",
     },
 
+    // Validation Errors
+    usernameMinLength: {
+      ar: "يجب أن يتكون اسم المستخدم من حرفين على الأقل",
+      en: "Username must be at least 2 characters",
+    },
+    usernamePattern: {
+      ar: "يمكن لاسم المستخدم أن يحتوي فقط على أحرف وأرقام وشرطات سفلية",
+      en: "Username can only contain letters, numbers, and underscores",
+    },
+    passwordMinLength: {
+      ar: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+      en: "Password must be at least 8 characters",
+    },
+    passwordUppercase: {
+      ar: "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+      en: "Password must contain at least one uppercase letter",
+    },
+    passwordLowercase: {
+      ar: "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+      en: "Password must contain at least one lowercase letter",
+    },
+    passwordNumber: {
+      ar: "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+      en: "Password must contain at least one number",
+    },
+    invalidEmail: {
+      ar: "بريد إلكتروني غير صالح",
+      en: "Invalid email address",
+    },
+
     // Email Verification
     emailVerificationTitle: {
       ar: "تأكيد البريد الإلكتروني",
