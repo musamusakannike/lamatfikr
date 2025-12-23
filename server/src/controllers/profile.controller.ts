@@ -19,8 +19,18 @@ const SALT_ROUNDS = 12;
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 const VERIFIED_TAG_DURATION_DAYS = 30;
-const VERIFIED_TAG_PRICE = 30;
+const DEFAULT_VERIFIED_TAG_PRICE = 30;
 const VERIFIED_TAG_CURRENCY = "OMR";
+
+import { SettingModel } from "../models";
+
+async function getVerifiedTagPrice(): Promise<number> {
+  const setting = await SettingModel.findOne({ key: "price_verification" });
+  if (setting && typeof setting.value === "number") {
+    return setting.value;
+  }
+  return DEFAULT_VERIFIED_TAG_PRICE;
+}
 
 export const getProfile: RequestHandler = async (req, res, next) => {
   try {
@@ -189,10 +199,12 @@ export const initiateVerifiedTagPurchase: RequestHandler = async (req, res, next
     const endsAt = new Date(startsAt);
     endsAt.setDate(endsAt.getDate() + VERIFIED_TAG_DURATION_DAYS);
 
+    const price = await getVerifiedTagPrice();
+
     const response = await axios.post(
       TAP_API_URL,
       {
-        amount: VERIFIED_TAG_PRICE,
+        amount: price,
         currency: VERIFIED_TAG_CURRENCY,
         threeDSecure: true,
         save_card: false,
@@ -225,7 +237,7 @@ export const initiateVerifiedTagPurchase: RequestHandler = async (req, res, next
 
     await VerifiedTagPaymentModel.create({
       userId,
-      amount: VERIFIED_TAG_PRICE,
+      amount: price,
       currency: VERIFIED_TAG_CURRENCY,
       tapChargeId: response.data.id,
       status: VerifiedTagPaymentStatus.pending,
@@ -241,7 +253,7 @@ export const initiateVerifiedTagPurchase: RequestHandler = async (req, res, next
       message: "Payment initiated",
       redirectUrl: response.data.transaction?.url,
       chargeId: response.data.id,
-      amount: VERIFIED_TAG_PRICE,
+      amount: price,
       currency: VERIFIED_TAG_CURRENCY,
       durationDays: VERIFIED_TAG_DURATION_DAYS,
     });

@@ -10,11 +10,21 @@ import {
   RoomMemberModel,
   RoomMemberRole,
   UserModel,
+  SettingModel,
 } from "../models";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
-const FEATURED_ROOM_PRICE_PER_DAY = 10;
+const DEFAULT_FEATURED_ROOM_PRICE = 10;
+
+async function getFeaturedRoomPrice(): Promise<number> {
+  const setting = await SettingModel.findOne({ key: "price_featured_room_per_day" });
+  if (setting && typeof setting.value === "number") {
+    return setting.value;
+  }
+  return DEFAULT_FEATURED_ROOM_PRICE;
+}
+
 
 function getUserId(req: Request): Types.ObjectId {
   const userId = (req as Request & { userId?: string }).userId;
@@ -91,7 +101,8 @@ export async function initiateFeaturedRoomPayment(
       return;
     }
 
-    const amount = FEATURED_ROOM_PRICE_PER_DAY * days;
+    const pricePerDay = await getFeaturedRoomPrice();
+    const amount = pricePerDay * days;
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
@@ -150,7 +161,7 @@ export async function initiateFeaturedRoomPayment(
       chargeId: response.data.id,
       amount,
       days,
-      pricePerDay: FEATURED_ROOM_PRICE_PER_DAY,
+      pricePerDay: await getFeaturedRoomPrice(),
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -341,17 +352,17 @@ export async function getRoomFeaturedStatus(req: Request, res: Response, next: N
       isFeatured: !!activeFeatured,
       activeFeatured: activeFeatured
         ? {
-            id: activeFeatured._id,
-            startDate: activeFeatured.startDate,
-            endDate: activeFeatured.endDate,
-            days: activeFeatured.days,
-            amount: activeFeatured.amount,
-            currency: activeFeatured.currency,
-            status: activeFeatured.status,
-          }
+          id: activeFeatured._id,
+          startDate: activeFeatured.startDate,
+          endDate: activeFeatured.endDate,
+          days: activeFeatured.days,
+          amount: activeFeatured.amount,
+          currency: activeFeatured.currency,
+          status: activeFeatured.status,
+        }
         : null,
       history: allFeatured,
-      pricePerDay: FEATURED_ROOM_PRICE_PER_DAY,
+      pricePerDay: await getFeaturedRoomPrice(),
     });
   } catch (error) {
     next(error);

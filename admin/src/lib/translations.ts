@@ -69,6 +69,7 @@ export const translations = {
     system: { ar: "النظام", en: "System" },
     health: { ar: "الحالة الصحية", en: "Health" },
     stripe: { ar: "Stripe", en: "Stripe" },
+    pricing: { ar: "ادارة الاسعار", en: "Pricing Control" },
   },
 
   adminUsers: {
@@ -682,6 +683,21 @@ export const translations = {
       ar: "English",
       en: "العربية",
     },
+  },
+
+  adminPricing: {
+    title: { ar: "ادارة الاسعار", en: "Pricing Control" },
+    subtitle: { ar: "تحكم بأسعار الميزات والخدمات", en: "Manage prices for features and services" },
+    saveSuccess: { ar: "تم حفظ الأسعار بنجاح", en: "Prices saved successfully" },
+    saveError: { ar: "فشل حفظ الأسعار", en: "Failed to save prices" },
+
+    // Settings
+    priceFeaturedRoomPerDay: { ar: "سعر تمييز الغرفة (لليوم)", en: "Featured Room Price (Per Day)" },
+    priceVerification: { ar: "سعر التوثيق", en: "Verification Price" },
+
+    currency: { ar: "ر.ع", en: "OMR" },
+    save: { ar: "حفظ", en: "Save" },
+    saving: { ar: "جاري الحفظ...", en: "Saving..." },
   },
 
   auth: {

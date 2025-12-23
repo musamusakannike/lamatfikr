@@ -26,6 +26,7 @@ import {
   CreditCard,
   ChevronDown,
   Megaphone,
+  DollarSign,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -170,6 +171,7 @@ export default function AdminSidebar({
       items: [
         { key: "health", href: "/dashboard/system/health" },
         { key: "stripe", href: "/dashboard/system/stripe" },
+        { key: "pricing", href: "/dashboard/pricing" },
       ],
     },
   ];
@@ -199,6 +201,7 @@ export default function AdminSidebar({
     adminWithdrawals: Wallet,
     verificationRequests: ShieldCheck,
     verificationStats: Activity,
+    pricing: DollarSign,
   };
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + "/");

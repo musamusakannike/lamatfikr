@@ -13,6 +13,8 @@ import {
 import { batchAdminUsers, listAdminUsers, updateAdminUser, getAdminUserProfile, updateAdminUserProfile } from "../controllers/admin-users.controller";
 import { getAdminRolesSummary } from "../controllers/admin-roles.controller";
 import { getAdminTopFollowed } from "../controllers/admin-social.controller";
+import { getAdminSettings, updateAdminSettings } from "../controllers/admin-settings.controller";
+
 import {
   adminDeleteComment,
   adminDeleteMedia,
@@ -197,6 +199,10 @@ adminRouter.post(
 adminRouter.get("/featured-rooms", requireAuth, requireAdmin, listAdminFeaturedRooms);
 adminRouter.patch("/featured-rooms/:featuredId/cancel", requireAuth, requireAdmin, adminCancelFeaturedRoom);
 adminRouter.patch("/featured-rooms/:featuredId/expire", requireAuth, requireAdmin, adminExpireFeaturedRoom);
+
+// Settings routes
+adminRouter.get("/settings", requireAuth, requireAdmin, getAdminSettings);
+adminRouter.post("/settings", requireAuth, requireAdmin, updateAdminSettings);
 
 // Wallet tracking routes
 adminRouter.get("/wallet", requireAuth, requireAdmin, getAdminWallet);
