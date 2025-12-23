@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
 import bcrypt from "bcryptjs";
+import { StreamChat } from "stream-chat";
 
 import { UserModel } from "../models/user.model";
 import { AuthProvider, Gender } from "../models/common";
@@ -21,6 +22,11 @@ import {
 const SALT_ROUNDS = 12;
 const EMAIL_VERIFICATION_EXPIRY_HOURS = 24;
 const PASSWORD_RESET_EXPIRY_HOURS = 1;
+
+const streamClient = StreamChat.getInstance(
+  process.env.STREAM_API_KEY!,
+  process.env.STREAM_SECRET_KEY!
+);
 
 export const register: RequestHandler = async (req, res, next) => {
   try {
@@ -694,6 +700,22 @@ export const getMe: RequestHandler = async (req, res, next) => {
     userObj.verified = userObj.verified || isPaidVerified;
 
     res.json({ user: userObj });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStreamToken: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const token = streamClient.createToken(userId);
+
+    res.json({ token });
   } catch (error) {
     next(error);
   }

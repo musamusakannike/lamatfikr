@@ -9,6 +9,9 @@ import { CartProvider } from "@/contexts/CartContext";
 import { SocketProvider } from "@/contexts/socket-context";
 import { ChatProvider } from "@/contexts/chat-context";
 import { CartDrawer } from "@/components/cart";
+import { StreamClientProvider } from "@/contexts/StreamClientContext";
+import { CallOverlay } from "@/components/shared/CallOverlay";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   variable: "--font-arabic",
@@ -44,21 +47,24 @@ export default function RootLayout({
             <AuthProvider>
               <SocketProvider>
                 <ChatProvider>
-                  <CartProvider>
-                    {children}
-                    <CartDrawer />
-                    <Toaster
-                      position="top-center"
-                      toastOptions={{
-                        duration: 4000,
-                        style: {
-                          background: "var(--bg-card)",
-                          color: "var(--text)",
-                          border: "1px solid var(--border)",
-                        },
-                      }}
-                    />
-                  </CartProvider>
+                  <StreamClientProvider>
+                    <CartProvider>
+                      {children}
+                      <CartDrawer />
+                      <Toaster
+                        position="top-center"
+                        toastOptions={{
+                          duration: 4000,
+                          style: {
+                            background: "var(--bg-card)",
+                            color: "var(--text)",
+                            border: "1px solid var(--border)",
+                          },
+                        }}
+                      />
+                      <CallOverlay />
+                    </CartProvider>
+                  </StreamClientProvider>
                 </ChatProvider>
               </SocketProvider>
             </AuthProvider>

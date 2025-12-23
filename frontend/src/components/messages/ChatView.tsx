@@ -44,6 +44,7 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { BlockUserModal } from "@/components/shared/BlockUserModal";
 import { ReportModal } from "@/components/shared/ReportModal";
+import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -75,6 +76,7 @@ export function ChatView({
 }: ChatViewProps) {
     const { joinConversation, leaveConversation, sendTyping } = useSocket();
     const { t } = useLanguage();
+    const videoClient = useStreamVideoClient();
     const { addMessages } = useChat();
     const [conversation, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -211,6 +213,34 @@ export function ChatView({
         } catch (err) {
             stopAnyRecording();
             toast.error(getErrorMessage(err));
+        }
+    };
+
+    const handleStartCall = async (video: boolean) => {
+        if (!videoClient || !otherParticipant) return;
+
+        try {
+            const call = videoClient.call("default", conversationId);
+            await call.join({
+                create: true,
+                ring: true,
+                data: {
+                    members: [
+                        { user_id: currentUserId },
+                        { user_id: otherParticipant._id }
+                    ],
+                    custom: {
+                        type: video ? 'video' : 'audio'
+                    }
+                }
+            });
+
+            if (!video) {
+                await call.camera.disable();
+            }
+        } catch (error) {
+            console.error("Failed to start call", error);
+            toast.error("Failed to start call");
         }
     };
 
@@ -594,10 +624,20 @@ export function ChatView({
                 </Link>
 
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="text-(--text-muted)">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-(--text-muted)"
+                        onClick={() => handleStartCall(false)}
+                    >
                         <Phone size={20} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-(--text-muted)">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-(--text-muted)"
+                        onClick={() => handleStartCall(true)}
+                    >
                         <Video size={20} />
                     </Button>
                     <DropdownMenu>
@@ -662,34 +702,34 @@ export function ChatView({
 
                             <div className="pt-4 border-t border-(--border)">
                                 <Label className="mb-2 block">{t("common", "custom")}</Label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            type="number"
-                                            value={customDuration}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomDuration(e.target.value)}
-                                            placeholder={t("common", "durationPlaceholder")}
-                                            min="1"
-                                        />
-                                        <select
-                                            className="h-10 px-3 py-2 rounded-md border border-input bg-background"
-                                            value={customUnit}
-                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomUnit(e.target.value as "hours" | "days")}
-                                        >
-                                            <option value="hours">{t("common", "hours")}</option>
-                                            <option value="days">{t("common", "days")}</option>
-                                        </select>
-                                        <Button
-                                            onClick={() => {
-                                                const val = parseInt(customDuration);
-                                                if (val > 0) {
-                                                    const ms = val * (customUnit === "hours" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000);
-                                                    handleUpdateDisappearingMessages(ms);
-                                                }
-                                            }}
-                                        >
-                                            {t("common", "setTimer")}
-                                        </Button>
-                                    </div>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="number"
+                                        value={customDuration}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomDuration(e.target.value)}
+                                        placeholder={t("common", "durationPlaceholder")}
+                                        min="1"
+                                    />
+                                    <select
+                                        className="h-10 px-3 py-2 rounded-md border border-input bg-background"
+                                        value={customUnit}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomUnit(e.target.value as "hours" | "days")}
+                                    >
+                                        <option value="hours">{t("common", "hours")}</option>
+                                        <option value="days">{t("common", "days")}</option>
+                                    </select>
+                                    <Button
+                                        onClick={() => {
+                                            const val = parseInt(customDuration);
+                                            if (val > 0) {
+                                                const ms = val * (customUnit === "hours" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000);
+                                                handleUpdateDisappearingMessages(ms);
+                                            }
+                                        }}
+                                    >
+                                        {t("common", "setTimer")}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>

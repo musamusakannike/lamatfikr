@@ -11,6 +11,7 @@ import {
   forgotPassword,
   resetPassword,
   getMe,
+  getStreamToken,
 } from "../controllers/auth.controller";
 import { requireAuth } from "../middleware/auth";
 
@@ -26,3 +27,4 @@ authRouter.post("/resend-verification", resendVerification);
 authRouter.post("/forgot-password", forgotPassword);
 authRouter.post("/reset-password", resetPassword);
 authRouter.get("/me", requireAuth, getMe);
+authRouter.get("/stream-token", requireAuth, getStreamToken);
