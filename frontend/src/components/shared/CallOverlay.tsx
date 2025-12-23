@@ -3,10 +3,12 @@
 import {
     useCalls,
     StreamCall,
-    CallContent,
     useStreamVideoClient,
     CallingState,
     RingingCall,
+    StreamTheme,
+    SpeakerLayout,
+    CallControls,
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 
@@ -29,13 +31,14 @@ export const CallOverlay = () => {
                 </div>
             ) : (
                 <div className="fixed inset-0 z-50 bg-black">
-                    <CallContent
-                        onLeave={() => {
-                            // The onLeave prop in CallContent doesn't automatically end the call for everyone or leave it in a way that clears it from local state immediately purely via this callback sometimes.
-                            // But typically CallContent handles the UI transition.
-                            // We rely on the hook updates to clear the overlay.
-                        }}
-                    />
+                    <StreamTheme>
+                        <div className="flex h-full w-full flex-col items-center justify-center">
+                            <SpeakerLayout />
+                            <div className="absolute bottom-4 z-50">
+                                <CallControls onLeave={() => console.log("Call left")} />
+                            </div>
+                        </div>
+                    </StreamTheme>
                 </div>
             )}
         </StreamCall>
