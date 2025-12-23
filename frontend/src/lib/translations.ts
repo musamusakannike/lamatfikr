@@ -633,6 +633,82 @@ export const translations = {
     },
   },
 
+  // Followers and Following
+  followersFollowing: {
+    followersTitle: {
+      ar: "المتابعون",
+      en: "Followers",
+    },
+    followingTitle: {
+      ar: "المتابَعون",
+      en: "Following",
+    },
+    follow: {
+      ar: "متابعة",
+      en: "Follow",
+    },
+    following: {
+      ar: "متابَع",
+      en: "Following",
+    },
+    followBack: {
+      ar: "متابعة متبادلة",
+      en: "Follow Back",
+    },
+    unfollow: {
+      ar: "إلغاء المتابعة",
+      en: "Unfollow",
+    },
+    noFollowers: {
+      ar: "لا يوجد متابعون بعد",
+      en: "No followers yet",
+    },
+    noFollowersDescription: {
+      ar: "عندما يتابعك أشخاص، سيظهرون هنا",
+      en: "When people follow you, they'll appear here",
+    },
+    noFollowing: {
+      ar: "لا تتابع أحداً بعد",
+      en: "Not following anyone yet",
+    },
+    noFollowingDescription: {
+      ar: "عندما تتابع أشخاصاً، سيظهرون هنا",
+      en: "When you follow people, they'll appear here",
+    },
+    searchFollowers: {
+      ar: "البحث في المتابعين...",
+      en: "Search followers...",
+    },
+    searchFollowing: {
+      ar: "البحث في المتابَعين...",
+      en: "Search following...",
+    },
+    loadingFollowers: {
+      ar: "جاري تحميل المتابعين...",
+      en: "Loading followers...",
+    },
+    loadingFollowing: {
+      ar: "جاري تحميل المتابَعين...",
+      en: "Loading following...",
+    },
+    followerCount: {
+      ar: "متابع",
+      en: "follower",
+    },
+    followerCountPlural: {
+      ar: "متابعون",
+      en: "followers",
+    },
+    followingCount: {
+      ar: "متابَع",
+      en: "following",
+    },
+    viewProfile: {
+      ar: "عرض الملف الشخصي",
+      en: "View Profile",
+    },
+  },
+
   // Navigation
   nav: {
     home: {

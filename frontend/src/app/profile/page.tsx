@@ -8,7 +8,6 @@ import {
   ProfileHeader,
   ProfileCompletion,
   ProfilePosts,
-  FollowersModal,
   EditProfileModal,
 } from "@/components/profile";
 import { CreatePost } from "@/components/home";
@@ -16,20 +15,7 @@ import { CreatePost } from "@/components/home";
 export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isRTL } = useLanguage();
-  const [showFollowersModal, setShowFollowersModal] = useState(false);
-  const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
-  const [activeFollowTab, setActiveFollowTab] = useState<"followers" | "following">("followers");
-
-  const handleShowFollowers = () => {
-    setActiveFollowTab("followers");
-    setShowFollowersModal(true);
-  };
-
-  const handleShowFollowing = () => {
-    setActiveFollowTab("following");
-    setShowFollowingModal(true);
-  };
 
   return (
     <div className="min-h-screen">
@@ -45,9 +31,7 @@ export default function ProfilePage() {
           {/* Profile Header with banner, avatar, edit options */}
           <ProfileHeader
             onEditProfile={() => setShowEditProfileModal(true)}
-            onShowFollowers={handleShowFollowers}
-            onShowFollowing={handleShowFollowing}
-            onProfileUpdate={() => {}}
+            onProfileUpdate={() => { }}
           />
 
           {/* Profile Completion Section */}
@@ -61,22 +45,11 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Followers/Following Modal */}
-      <FollowersModal
-        isOpen={showFollowersModal || showFollowingModal}
-        onClose={() => {
-          setShowFollowersModal(false);
-          setShowFollowingModal(false);
-        }}
-        activeTab={activeFollowTab}
-        onTabChange={setActiveFollowTab}
-      />
-
       {/* Edit Profile Modal */}
       <EditProfileModal
         isOpen={showEditProfileModal}
         onClose={() => setShowEditProfileModal(false)}
-        onProfileUpdate={() => {}}
+        onProfileUpdate={() => { }}
       />
     </div>
   );

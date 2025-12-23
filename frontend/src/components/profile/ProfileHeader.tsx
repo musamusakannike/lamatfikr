@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { profileApi, socialApi, uploadApi } from "@/lib/api/index";
 import type { User } from "@/types/auth";
 import toast from "react-hot-toast";
@@ -35,8 +36,6 @@ import { useRouter } from "next/navigation";
 
 interface ProfileHeaderProps {
   onEditProfile: () => void;
-  onShowFollowers: () => void;
-  onShowFollowing: () => void;
   onProfileUpdate?: () => void;
 }
 
@@ -44,12 +43,11 @@ const DEFAULT_AVATAR = "/images/default-avatar.svg";
 
 export function ProfileHeader({
   onEditProfile,
-  onShowFollowers,
-  onShowFollowing,
   onProfileUpdate,
 }: ProfileHeaderProps) {
   const router = useRouter();
   const { user: authUser, refreshUser } = useAuth();
+  const { language } = useLanguage();
   const [profile, setProfile] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitiatingVerifiedPurchase, setIsInitiatingVerifiedPurchase] = useState(false);
@@ -368,18 +366,24 @@ export function ProfileHeader({
         {/* Stats */}
         <div className="flex items-center gap-6 mt-4">
           <button
-            onClick={onShowFollowers}
+            onClick={() => router.push("/profile/followers")}
             className="hover:underline"
           >
             <span className="font-bold">{followersCount.toLocaleString()}</span>
-            <span className="text-(--text-muted) ml-1">Followers</span>
+            <span className="text-(--text-muted) ml-1">
+              {followersCount === 1
+                ? (language === "ar" ? "متابع" : "Follower")
+                : (language === "ar" ? "متابعون" : "Followers")}
+            </span>
           </button>
           <button
-            onClick={onShowFollowing}
+            onClick={() => router.push("/profile/following")}
             className="hover:underline"
           >
             <span className="font-bold">{followingCount.toLocaleString()}</span>
-            <span className="text-(--text-muted) ml-1">Following</span>
+            <span className="text-(--text-muted) ml-1">
+              {language === "ar" ? "متابَع" : "Following"}
+            </span>
           </button>
         </div>
 
