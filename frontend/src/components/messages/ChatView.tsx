@@ -48,6 +48,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { BlockUserModal } from "@/components/shared/BlockUserModal";
+import { ViewOnceModal } from "./ViewOnceModal";
 import { ReportModal } from "@/components/shared/ReportModal";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import {
@@ -458,19 +459,36 @@ export function ChatView({
         }
     };
 
+    const [viewOnceModalOpen, setViewOnceModalOpen] = useState(false);
+    const [viewOnceContent, setViewOnceContent] = useState<{
+        content?: string;
+        media?: string[];
+        attachments?: any[];
+        location?: any;
+    } | null>(null);
+
     const handleViewOnceMessage = async (messageId: string) => {
         try {
             const { data } = await messagesApi.markAsViewed(conversationId, messageId);
+            // Show content in modal temporarily
+            setViewOnceContent(data);
+            setViewOnceModalOpen(true);
+            // Mark message as expired in local state
             setMessages((prev) =>
                 prev.map((m) =>
                     m._id === messageId
-                        ? { ...m, ...data } // Update with content/media
+                        ? { ...m, isExpired: true }
                         : m
                 )
             );
         } catch (err) {
             toast.error(getErrorMessage(err));
         }
+    };
+
+    const handleCloseViewOnceModal = () => {
+        setViewOnceModalOpen(false);
+        setViewOnceContent(null);
     };
 
     // Handle typing indicator
@@ -1490,6 +1508,15 @@ export function ChatView({
                     />
                 </>
             )}
+
+            <ViewOnceModal
+                isOpen={viewOnceModalOpen}
+                onClose={handleCloseViewOnceModal}
+                content={viewOnceContent?.content}
+                media={viewOnceContent?.media}
+                attachments={viewOnceContent?.attachments}
+                location={viewOnceContent?.location}
+            />
         </div>
     );
 }

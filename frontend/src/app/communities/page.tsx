@@ -52,6 +52,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import { Input } from "@/components/ui/Input";
+import { ViewOnceModal } from "@/components/messages/ViewOnceModal";
 
 const categories = [
   "Technology",
@@ -1117,17 +1118,35 @@ function ChatView({ community, onBack }: ChatViewProps) {
     }
   };
 
+  const [viewOnceModalOpen, setViewOnceModalOpen] = useState(false);
+  const [viewOnceContent, setViewOnceContent] = useState<{
+    content?: string;
+    media?: string[];
+    attachments?: any[];
+    location?: any;
+  } | null>(null);
+
   const handleViewOnceMessage = async (messageId: string) => {
-    setRevealedViewOnceIds(prev => {
-      const next = new Set(prev);
-      next.add(messageId);
-      return next;
-    });
     try {
-      await communitiesApi.markAsViewed(community.id, messageId);
+      const { data } = await communitiesApi.markAsViewed(community.id, messageId);
+      // Show content in modal temporarily
+      setViewOnceContent(data);
+      setViewOnceModalOpen(true);
+      // Mark message as expired in local state
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (getMessageId(msg) !== messageId) return msg;
+          return { ...msg, isExpired: true };
+        })
+      );
     } catch (err) {
       console.error("Failed to mark as viewed:", err);
     }
+  };
+
+  const handleCloseViewOnceModal = () => {
+    setViewOnceModalOpen(false);
+    setViewOnceContent(null);
   };
 
   // Handle typing indicator
@@ -1892,6 +1911,15 @@ function ChatView({ community, onBack }: ChatViewProps) {
             console.error("Failed to send location:", err);
           }
         }}
+      />
+
+      <ViewOnceModal
+        isOpen={viewOnceModalOpen}
+        onClose={handleCloseViewOnceModal}
+        content={viewOnceContent?.content}
+        media={viewOnceContent?.media}
+        attachments={viewOnceContent?.attachments}
+        location={viewOnceContent?.location}
       />
 
       {showReactionPicker && reactingToMessageId && (

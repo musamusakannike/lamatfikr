@@ -380,10 +380,20 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
     if (conversationParticipants) {
       conversationParticipants.participants.forEach((participantId) => {
         if (participantId.toString() !== userId) {
+          // For view-once messages, hide content from receivers until they click to view
+          let messageToEmit = populatedMessage;
+          if (populatedMessage && (populatedMessage as any).isViewOnce) {
+            messageToEmit = {
+              ...populatedMessage,
+              content: undefined,
+              media: [],
+              attachments: [],
+            };
+          }
           io.to(`user:${participantId}`).emit("message:new", {
             type: "conversation",
             conversationId,
-            message: populatedMessage,
+            message: messageToEmit,
           });
         }
       });
@@ -487,10 +497,12 @@ export const getMessages: RequestHandler = async (req, res, next) => {
           if ((msg.senderId as unknown as { _id: Types.ObjectId })._id.toString() === userId) {
             return { ...msg, content: undefined, media: [], attachments: [] };
           }
-          // Receiver can only view it once
+          // Receiver who has already viewed it
           if (hasViewed) {
             return { ...msg, content: undefined, media: [], attachments: [], isExpired: true };
           }
+          // Receiver who hasn't viewed it yet - hide content until they click to view
+          return { ...msg, content: undefined, media: [], attachments: [] };
         }
         return msg;
       }),
@@ -811,26 +823,29 @@ export const markAsViewed: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Add user to viewedBy if not already there
+    // Check if user has already viewed this message
     const viewedBy = (message.viewedBy as unknown as Types.ObjectId[]) || [];
-    if (!viewedBy.some(id => id.toString() === userId)) {
-      await MessageModel.updateOne(
-        { _id: messageId },
-        { $push: { viewedBy: userId } }
-      );
+    const alreadyViewed = viewedBy.some(id => id.toString() === userId);
+    
+    if (alreadyViewed) {
+      res.status(403).json({ message: "Message has already been viewed" });
+      return;
     }
 
-    // Return the message content one last time? Or just success?
-    // Usually the client already has the content (if hidden by CSS) or needs to fetch it.
-    // If we hid it in getMessages, we might need to return it here.
-    // Let's return the content here.
+    // Add user to viewedBy array
+    await MessageModel.updateOne(
+      { _id: messageId },
+      { $push: { viewedBy: userId } }
+    );
 
+    // Return the content only this one time
     res.json({
       message: "Message marked as viewed",
       data: {
         content: message.content,
         media: message.media,
         attachments: message.attachments,
+        location: message.location,
       }
     });
 

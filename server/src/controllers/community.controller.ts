@@ -528,21 +528,56 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
       .lean();
 
     // Emit real-time event to community members
-    io.to(`community:${communityId}`).emit("message:new", {
-      type: "community",
-      communityId,
-      message: {
-        id: populatedMessage?._id,
-        communityId: populatedMessage?.communityId,
-        sender: populatedMessage?.senderId,
-        content: populatedMessage?.content,
-        media: populatedMessage?.media,
-        attachments: (populatedMessage as unknown as { attachments?: unknown[] })?.attachments,
-        location: (populatedMessage as unknown as { location?: unknown })?.location,
-        reactions: (populatedMessage as unknown as { reactions?: unknown[] })?.reactions,
-        createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
-      },
-    });
+    const messageToEmit = {
+      id: populatedMessage?._id,
+      communityId: populatedMessage?.communityId,
+      sender: populatedMessage?.senderId,
+      isViewOnce: (populatedMessage as unknown as { isViewOnce?: boolean })?.isViewOnce,
+      content: populatedMessage?.content,
+      media: populatedMessage?.media,
+      attachments: (populatedMessage as unknown as { attachments?: unknown[] })?.attachments,
+      location: (populatedMessage as unknown as { location?: unknown })?.location,
+      reactions: (populatedMessage as unknown as { reactions?: unknown[] })?.reactions,
+      createdAt: (populatedMessage as unknown as { createdAt: Date })?.createdAt,
+    };
+
+    // For view-once messages, hide content from receivers (not sender) until they click to view
+    if ((populatedMessage as unknown as { isViewOnce?: boolean })?.isViewOnce) {
+      const members = await CommunityMemberModel.find({
+        communityId,
+        deletedAt: null,
+      }).select("userId").lean();
+
+      members.forEach((member) => {
+        if (member.userId.toString() === userId.toString()) {
+          // Send full message to sender
+          io.to(`user:${member.userId}`).emit("message:new", {
+            type: "community",
+            communityId,
+            message: messageToEmit,
+          });
+        } else {
+          // Send filtered message to other members
+          io.to(`user:${member.userId}`).emit("message:new", {
+            type: "community",
+            communityId,
+            message: {
+              ...messageToEmit,
+              content: undefined,
+              media: [],
+              attachments: [],
+            },
+          });
+        }
+      });
+    } else {
+      // Regular message - broadcast to all community members
+      io.to(`community:${communityId}`).emit("message:new", {
+        type: "community",
+        communityId,
+        message: messageToEmit,
+      });
+    }
 
     res.status(201).json({
       message: "Message sent",
@@ -804,6 +839,8 @@ export async function getMessages(req: Request, res: Response, next: NextFunctio
           if (hasViewed) {
             return { ...m, content: undefined, media: [], attachments: [], isViewOnce: true, isExpired: true };
           }
+          // Receiver who hasn't viewed it yet - hide content until they click to view
+          return { ...m, content: undefined, media: [], attachments: [], isViewOnce: true };
         }
         return {
           id: m._id,
@@ -835,8 +872,7 @@ export async function markAsViewed(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Check membership? Not strictly necessary if we just want to mark viewed, 
-    // but good for security.
+    // Check membership
     const membership = await CommunityMemberModel.findOne({
       communityId,
       userId,
@@ -864,13 +900,20 @@ export async function markAsViewed(req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    // Check if user has already viewed this message
     const viewedBy = (message.viewedBy as unknown as Types.ObjectId[]) || [];
-    if (!viewedBy.some(id => id.toString() === userId.toString())) {
-      await CommunityMessageModel.updateOne(
-        { _id: messageId },
-        { $push: { viewedBy: userId } }
-      );
+    const alreadyViewed = viewedBy.some(id => id.toString() === userId.toString());
+    
+    if (alreadyViewed) {
+      res.status(403).json({ message: "Message has already been viewed" });
+      return;
     }
+
+    // Add user to viewedBy array
+    await CommunityMessageModel.updateOne(
+      { _id: messageId },
+      { $push: { viewedBy: userId } }
+    );
 
     res.json({
       message: "Marked as viewed",
@@ -878,6 +921,7 @@ export async function markAsViewed(req: Request, res: Response, next: NextFuncti
         content: message.content,
         media: message.media,
         attachments: message.attachments,
+        location: message.location,
       }
     });
   } catch (error) {
