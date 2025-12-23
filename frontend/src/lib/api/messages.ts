@@ -40,6 +40,7 @@ export interface Message {
   reactions?: MessageReaction[];
   createdAt: string;
   updatedAt: string;
+  editedAt?: string;
 }
 
 export interface Conversation {
@@ -130,6 +131,13 @@ export const messagesApi = {
   deleteMessage: (conversationId: string, messageId: string) =>
     apiClient.delete<{ message: string }>(
       `/messages/conversations/${conversationId}/messages/${messageId}`
+    ),
+
+  // Edit a message
+  editMessage: (conversationId: string, messageId: string, content: string) =>
+    apiClient.patch<{ message: string; data: Message }>(
+      `/messages/conversations/${conversationId}/messages/${messageId}`,
+      { content }
     ),
 
   // Mark conversation as read

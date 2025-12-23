@@ -76,6 +76,7 @@ export interface RoomMessage {
   location?: RoomMessageLocation;
   reactions?: RoomMessageReaction[];
   createdAt: string;
+  editedAt?: string;
 }
 
 export interface CreateRoomData {
@@ -317,6 +318,19 @@ export const roomsApi = {
         currency?: string;
       };
     }>(`/rooms/invite/${token}/join`);
+  },
+
+  // Delete message
+  deleteMessage: (roomId: string, messageId: string) => {
+    return apiClient.delete<{ message: string }>(`/rooms/${roomId}/messages/${messageId}`);
+  },
+
+  // Edit message
+  editMessage: (roomId: string, messageId: string, content: string) => {
+    return apiClient.patch<{ message: string; data: RoomMessage }>(
+      `/rooms/${roomId}/messages/${messageId}`,
+      { content }
+    );
   },
 };
 

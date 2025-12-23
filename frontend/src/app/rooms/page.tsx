@@ -48,8 +48,18 @@ import {
   Mic,
   Camera,
   StopCircle,
+  Edit2,
+  MoreHorizontal,
 } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { Input } from "@/components/ui/Input";
 
 type MembershipType = "free" | "paid";
 
@@ -924,10 +934,14 @@ interface ChatViewProps {
 }
 
 function ChatView({ room, onBack }: ChatViewProps) {
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const { socket, joinRoom, leaveRoom, sendTyping } = useSocket();
   const [messages, setMessages] = useState<RoomMessage[]>([]);
   const [members, setMembers] = useState<RoomMember[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
@@ -1061,6 +1075,31 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
     socket.on("message:new", handleNewMessage);
 
+    const handleMessageUpdated = (data: { roomId: string; messageId: string; content: string; editedAt: string }) => {
+      if (data.roomId !== room.id) return;
+      setMessages((prev) =>
+        prev.map((m) => {
+          const msgId = getMessageId(m);
+          if (msgId !== data.messageId) return m;
+          return { ...m, content: data.content, editedAt: data.editedAt };
+        })
+      );
+    };
+
+    const handleMessageDeleted = (data: { roomId: string; messageId: string }) => {
+      if (data.roomId !== room.id) return;
+      setMessages((prev) =>
+        prev.map((m) => {
+          const msgId = getMessageId(m);
+          if (msgId !== data.messageId) return m;
+          return { ...m, deletedAt: new Date().toISOString() };
+        })
+      );
+    };
+
+    socket.on("message:updated", handleMessageUpdated);
+    socket.on("message:deleted", handleMessageDeleted);
+
     const handleReaction = (data: { type: string; roomId?: string; messageId: string; reactions: unknown[] }) => {
       if (data.roomId !== room.id) return;
       if (!data.messageId) return;
@@ -1076,9 +1115,41 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
     return () => {
       socket.off("message:new", handleNewMessage);
+      socket.off("message:updated", handleMessageUpdated);
+      socket.off("message:deleted", handleMessageDeleted);
       socket.off("message:reaction", handleReaction);
     };
   }, [socket, room.id, getMessageId]);
+
+  const handleEditClick = (msg: RoomMessage) => {
+    setEditingMessageId(getMessageId(msg));
+    setEditContent(msg.content || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = async (messageId: string) => {
+    if (!editContent.trim()) return;
+    try {
+      await roomsApi.editMessage(room.id, messageId, editContent);
+      setEditingMessageId(null);
+      setEditContent("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm(t("common", "confirmMessageDelete"))) return;
+    try {
+      await roomsApi.deleteMessage(room.id, messageId);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Handle typing indicator
   useEffect(() => {
@@ -1299,133 +1370,212 @@ function ChatView({ room, onBack }: ChatViewProps) {
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div key={getMessageId(msg) || msg.createdAt} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg) shrink-0">
-                    {msg.sender.avatar ? (
-                      <Image src={msg.sender.avatar} alt={msg.sender.username} width={32} height={32} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-medium text-(--text-muted)">
-                        {msg.sender.username.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-medium text-(--text) text-sm">
-                        {msg.sender.displayName || msg.sender.username}
-                      </span>
-                      <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
-                    </div>
-                    <div className="mt-0.5">
-                      {msg.content && (
-                        <p className="text-(--text) text-sm mt-0.5 wrap-break-word">{msg.content}</p>
+              messages.map((msg) => {
+                const messageId = getMessageId(msg);
+                const isOwnMessage = user?.id && msg.sender._id && user.id === msg.sender._id;
+                const isEditing = editingMessageId === messageId;
+                const isDeleted = !!msg.deletedAt;
+
+                return (
+                  <div key={messageId || msg.createdAt} className="flex gap-3 group relative hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-lg transition-colors">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-(--bg) shrink-0">
+                      {msg.sender.avatar ? (
+                        <Image src={msg.sender.avatar} alt={msg.sender.username} width={32} height={32} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs font-medium text-(--text-muted)">
+                          {msg.sender.username.charAt(0).toUpperCase()}
+                        </div>
                       )}
-                      {msg.media && msg.media.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {msg.media.map((url, i) => (
-                            <Image
-                              key={i}
-                              src={url}
-                              alt="Media"
-                              width={200}
-                              height={150}
-                              className="rounded-lg max-w-[200px] object-cover"
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-medium text-(--text) text-sm">
+                          {msg.sender.displayName || msg.sender.username}
+                        </span>
+                        <span className="text-xs text-(--text-muted)">{formatTime(msg.createdAt)}</span>
+                      </div>
+
+                      <div className="mt-0.5">
+                        {isDeleted ? (
+                          <p className="text-(--text-muted) italic text-sm mt-0.5">{t("common", "messageDeleted")}</p>
+                        ) : isEditing ? (
+                          <div className="flex flex-col gap-2 min-w-[200px] mt-1">
+                            <Input
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              className="h-8 text-sm"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEdit(messageId!);
+                                }
+                                if (e.key === "Escape") handleCancelEdit();
+                              }}
                             />
-                          ))}
-                        </div>
-                      )}
-
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="flex flex-col gap-2 mt-2">
-                          {msg.attachments.map((att, i) => (
-                            <div key={`${att.url}-${i}`}>
-                              {att.type === "video" ? (
-                                <video src={att.url} controls className="max-w-full rounded-lg" />
-                              ) : att.type === "audio" ? (
-                                <audio src={att.url} controls className="w-full" />
-                              ) : null}
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
+                                {t("common", "cancel")}
+                              </Button>
+                              <Button size="sm" variant="default" className="h-6 text-xs px-2" onClick={() => handleSaveEdit(messageId!)}>
+                                {t("common", "save")}
+                              </Button>
                             </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {msg.location && (
-                        <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
-                          <div className="h-32 w-full bg-(--bg)">
-                            {leafletMounted ? (
-                              <MapContainer
-                                center={[msg.location.lat, msg.location.lng]}
-                                zoom={15}
-                                scrollWheelZoom={false}
-                                dragging={false}
-                                doubleClickZoom={false}
-                                zoomControl={false}
-                                attributionControl={false}
-                                className="h-full w-full"
-                              >
-                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
-                              </MapContainer>
-                            ) : (
-                              <div className="h-full w-full" />
+                          </div>
+                        ) : (
+                          <>
+                            {msg.content && (
+                              <p className="text-(--text) text-sm mt-0.5 wrap-break-word">
+                                {msg.content}
+                                {msg.editedAt && (
+                                  <span className="text-[10px] text-(--text-muted) ml-1 italic whitespace-nowrap">
+                                    {t("common", "edited")}
+                                  </span>
+                                )}
+                              </p>
                             )}
-                          </div>
-                          <div className="p-2">
-                            <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
-                            <p className="text-xs text-(--text-muted)">
-                              {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
-                            </p>
-                            <a
-                              href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs underline text-primary-600"
-                            >
-                              Open in Maps
-                            </a>
-                          </div>
-                        </div>
-                      )}
 
-                      {(msg.reactions && msg.reactions.length > 0) && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {Array.from(
-                            (msg.reactions || []).reduce((acc, r) => {
-                              const emoji = r.emoji;
-                              acc.set(emoji, (acc.get(emoji) || 0) + 1);
-                              return acc;
-                            }, new Map<string, number>())
-                          ).map(([emoji, count]) => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              onClick={() => handleToggleReaction(getMessageId(msg), emoji)}
-                              className="px-2 py-0.5 rounded-full text-xs bg-(--bg-card) border border-(--border)"
-                            >
-                              {emoji} {count}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                            {msg.media && msg.media.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {msg.media.map((url, i) => (
+                                  <Image
+                                    key={i}
+                                    src={url}
+                                    alt="Media"
+                                    width={200}
+                                    height={150}
+                                    className="rounded-lg max-w-[200px] object-cover"
+                                  />
+                                ))}
+                              </div>
+                            )}
 
-                      <div className="mt-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setReactingToMessageId(getMessageId(msg));
-                            setShowReactionPicker(true);
-                          }}
-                          className="inline-flex items-center gap-1 text-xs text-(--text-muted) hover:text-primary-600"
-                        >
-                          <Smile size={14} />
-                          React
-                        </button>
+                            {msg.attachments && msg.attachments.length > 0 && (
+                              <div className="flex flex-col gap-2 mt-2">
+                                {msg.attachments.map((att, i) => (
+                                  <div key={`${att.url}-${i}`}>
+                                    {att.type === "video" ? (
+                                      <video src={att.url} controls className="max-w-full rounded-lg" />
+                                    ) : att.type === "audio" ? (
+                                      <audio src={att.url} controls className="w-full" />
+                                    ) : null}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {msg.location && (
+                              <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
+                                <div className="h-32 w-full bg-(--bg)">
+                                  {leafletMounted ? (
+                                    <MapContainer
+                                      center={[msg.location.lat, msg.location.lng]}
+                                      zoom={15}
+                                      scrollWheelZoom={false}
+                                      dragging={false}
+                                      doubleClickZoom={false}
+                                      zoomControl={false}
+                                      attributionControl={false}
+                                      className="h-full w-full"
+                                    >
+                                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                      <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
+                                    </MapContainer>
+                                  ) : (
+                                    <div className="h-full w-full" />
+                                  )}
+                                </div>
+                                <div className="p-2">
+                                  <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
+                                  <p className="text-xs text-(--text-muted)">
+                                    {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
+                                  </p>
+                                  <a
+                                    href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs underline text-primary-600"
+                                  >
+                                    Open in Maps
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+
+                            {(msg.reactions && msg.reactions.length > 0) && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {Array.from(
+                                  (msg.reactions || []).reduce((acc, r) => {
+                                    const emoji = r.emoji;
+                                    acc.set(emoji, (acc.get(emoji) || 0) + 1);
+                                    return acc;
+                                  }, new Map<string, number>())
+                                ).map(([emoji, count]) => (
+                                  <button
+                                    key={emoji}
+                                    type="button"
+                                    onClick={() => handleToggleReaction(getMessageId(msg), emoji)}
+                                    className="px-2 py-0.5 rounded-full text-xs bg-(--bg-card) border border-(--border)"
+                                  >
+                                    {emoji} {count}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="mt-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setReactingToMessageId(getMessageId(msg));
+                                  setShowReactionPicker(true);
+                                }}
+                                className="inline-flex items-center gap-1 text-xs text-(--text-muted) hover:text-primary-600"
+                              >
+                                <Smile size={14} />
+                                React
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
+
+                      {/* Action Menu */}
+                      {isOwnMessage && !isDeleted && !isEditing && (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-(--text-muted) hover:text-(--text) rounded-full"
+                              >
+                                <MoreHorizontal size={14} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {/* 1 hour limit */}
+                              {Date.now() - new Date(msg.createdAt).getTime() < 60 * 60 * 1000 && (
+                                <DropdownMenuItem onClick={() => handleEditClick(msg)}>
+                                  <Edit2 size={14} className="mr-2" />
+                                  {t("common", "edit")}
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteMessage(messageId!)}
+                                className="text-red-500 hover:text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 size={14} className="mr-2" />
+                                {t("common", "delete")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

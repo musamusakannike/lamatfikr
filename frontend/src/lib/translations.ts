@@ -119,6 +119,22 @@ export const translations = {
       ar: "و",
       en: "and",
     },
+    edited: {
+      ar: "(معدل)",
+      en: "(edited)",
+    },
+    messageDeleted: {
+      ar: "تم حذف الرسالة",
+      en: "Message deleted",
+    },
+    confirmMessageDelete: {
+      ar: "هل أنت متأكد من حذف هذه الرسالة؟",
+      en: "Are you sure you want to delete this message?",
+    },
+    editTimeLimit: {
+      ar: "يمكنك تعديل الرسائل فقط خلال ساعة واحدة من إرسالها",
+      en: "You can only edit messages within 1 hour of sending",
+    },
   },
 
   // Legal

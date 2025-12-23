@@ -72,6 +72,7 @@ export interface CommunityMessage {
   location?: CommunityMessageLocation;
   reactions?: CommunityMessageReaction[];
   createdAt: string;
+  editedAt?: string;
 }
 
 export interface CreateCommunityData {
@@ -204,6 +205,19 @@ export const communitiesApi = {
   // Mark community as read
   markAsRead: (communityId: string) => {
     return apiClient.post<{ message: string }>(`/communities/${communityId}/read`);
+  },
+
+  // Delete message
+  deleteMessage: (communityId: string, messageId: string) => {
+    return apiClient.delete<{ message: string }>(`/communities/${communityId}/messages/${messageId}`);
+  },
+
+  // Edit message
+  editMessage: (communityId: string, messageId: string, content: string) => {
+    return apiClient.patch<{ message: string; data: CommunityMessage }>(
+      `/communities/${communityId}/messages/${messageId}`,
+      { content }
+    );
   },
 };
 

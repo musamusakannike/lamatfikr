@@ -21,6 +21,9 @@ import {
     Clock,
     Flag,
     Ban,
+    Edit2,
+    Trash2,
+    MoreHorizontal,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -74,7 +77,7 @@ export function ChatView({
     onBack,
     onConversationUpdate,
 }: ChatViewProps) {
-    const { joinConversation, leaveConversation, sendTyping } = useSocket();
+    const { socket, joinConversation, leaveConversation, sendTyping } = useSocket();
     const { t } = useLanguage();
     const videoClient = useStreamVideoClient();
     const { addMessages } = useChat();
@@ -97,6 +100,8 @@ export function ChatView({
     const [showReactionPicker, setShowReactionPicker] = useState(false);
     // const [showReactionPicker, setShowReactionPicker] = useState(false);
     const [showMobileOptions, setShowMobileOptions] = useState(false);
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+    const [editContent, setEditContent] = useState("");
 
     const [showDisappearingMessagesModal, setShowDisappearingMessagesModal] = useState(false);
     const [customDuration, setCustomDuration] = useState("");
@@ -375,8 +380,68 @@ export function ChatView({
 
     // Listen for real-time messages
     useEffect(() => {
-        // Handled by chat context
-    }, []);
+        if (!socket) return;
+
+        const handleMessageUpdated = (data: any) => {
+            if (data.conversationId !== conversationId) return;
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m._id === data.messageId
+                        ? { ...m, content: data.content, editedAt: data.editedAt }
+                        : m
+                )
+            );
+        };
+
+        const handleMessageDeleted = (data: any) => {
+            if (data.conversationId !== conversationId) return;
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m._id === data.messageId
+                        ? { ...m, deletedAt: new Date().toISOString() } // Soft delete visual
+                        : m
+                )
+            );
+        };
+
+        socket.on("message:updated", handleMessageUpdated);
+        socket.on("message:deleted", handleMessageDeleted);
+
+        return () => {
+            socket.off("message:updated", handleMessageUpdated);
+            socket.off("message:deleted", handleMessageDeleted);
+        };
+    }, [socket, conversationId]);
+
+    const handleEditClick = (msg: Message) => {
+        setEditingMessageId(msg._id);
+        setEditContent(msg.content || "");
+    };
+
+    const handleCancelEdit = () => {
+        setEditingMessageId(null);
+        setEditContent("");
+    };
+
+    const handleSaveEdit = async (messageId: string) => {
+        if (!editContent.trim()) return;
+        try {
+            await messagesApi.editMessage(conversationId, messageId, editContent);
+            setEditingMessageId(null);
+            setEditContent("");
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+        }
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!confirm(t("common", "deleteConfirm") || "Are you sure you want to delete this message?")) return;
+        try {
+            await messagesApi.deleteMessage(conversationId, messageId);
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+        }
+    };
 
     // Handle typing indicator
     useEffect(() => {
@@ -805,7 +870,7 @@ export function ChatView({
                             >
                                 <div
                                     className={cn(
-                                        "max-w-[75%] rounded-2xl px-4 py-2 relative",
+                                        "max-w-[75%] rounded-2xl px-4 py-2 relative group",
                                         isOwnMessage
                                             ? "bg-primary-500 text-white rounded-br-md"
                                             : "bg-primary-100 dark:bg-primary-900/40 text-(--text) rounded-bl-md"
@@ -895,10 +960,45 @@ export function ChatView({
                                     )}
 
                                     {/* Content */}
-                                    {message.content && (
-                                        <p className="whitespace-pre-wrap wrap-break-word">
-                                            {message.content}
-                                        </p>
+                                    {/* Content */}
+                                    {editingMessageId === message._id ? (
+                                        <div className="flex flex-col gap-2 min-w-[200px]">
+                                            <Input
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                className={cn(
+                                                    "h-8 text-sm",
+                                                    isOwnMessage ? "bg-white/10 border-white/20 text-white placeholder:text-white/50" : "bg-white border-gray-200 text-black"
+                                                )}
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSaveEdit(message._id);
+                                                    }
+                                                    if (e.key === "Escape") handleCancelEdit();
+                                                }}
+                                            />
+                                            <div className="flex justify-end gap-2">
+                                                <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
+                                                    Cancel
+                                                </Button>
+                                                <Button size="sm" variant={isOwnMessage ? "secondary" : "default"} className="h-6 text-xs px-2" onClick={() => handleSaveEdit(message._id)}>
+                                                    Save
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        message.content && (
+                                            <p className="whitespace-pre-wrap wrap-break-word">
+                                                {message.content}
+                                                {message.editedAt && (
+                                                    <span className="text-[10px] opacity-70 ml-1 italic whitespace-nowrap">
+                                                        (edited)
+                                                    </span>
+                                                )}
+                                            </p>
+                                        )
                                     )}
 
                                     {/* Reactions */}
@@ -942,6 +1042,39 @@ export function ChatView({
                                     >
                                         <Smile size={14} />
                                     </button>
+
+                                    {/* Action Menu */}
+                                    {isOwnMessage && !message.deletedAt && editingMessageId !== message._id && (
+                                        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6 text-white/70 hover:text-white hover:bg-white/20 rounded-full"
+                                                    >
+                                                        <MoreHorizontal size={14} />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    {/* Check 1 hour limit */}
+                                                    {Date.now() - new Date(message.createdAt).getTime() < 60 * 60 * 1000 && (
+                                                        <DropdownMenuItem onClick={() => handleEditClick(message)}>
+                                                            <Edit2 size={14} className="mr-2" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleDeleteMessage(message._id)}
+                                                        className="text-red-500 hover:text-red-600 focus:text-red-600"
+                                                    >
+                                                        <Trash2 size={14} className="mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    )}
 
                                     {/* Time */}
                                     <p
