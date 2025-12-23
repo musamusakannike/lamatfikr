@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -67,11 +66,11 @@ export const StreamClientProvider = ({ children }: { children: ReactNode }) => {
     if (!client) return <>{children}</>;
 
     return (
-        <StreamVideo client={client}>
-            <StreamClientContext.Provider value={{ client }}>
+        <StreamClientContext.Provider value={{ client }}>
+            <StreamVideo client={client}>
                 {children}
-            </StreamClientContext.Provider>
-        </StreamVideo>
+            </StreamVideo>
+        </StreamClientContext.Provider>
     );
 };
 

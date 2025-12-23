@@ -11,8 +11,9 @@ import {
     CallControls,
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
+import { useStreamClientContext } from "@/contexts/StreamClientContext";
 
-export const CallOverlay = () => {
+const CallOverlayContent = () => {
     const client = useStreamVideoClient();
     const calls = useCalls();
 
@@ -43,4 +44,11 @@ export const CallOverlay = () => {
             )}
         </StreamCall>
     );
+};
+
+export const CallOverlay = () => {
+    const { client } = useStreamClientContext() || {};
+    if (!client) return null;
+
+    return <CallOverlayContent />;
 };
