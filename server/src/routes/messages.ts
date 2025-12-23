@@ -12,6 +12,7 @@ import {
   getUnreadCount,
   toggleReaction,
   updateConversationSettings,
+  editMessage,
 } from "../controllers/message.controller";
 
 export const messagesRouter = Router();
@@ -27,6 +28,7 @@ messagesRouter.patch("/conversations/:conversationId/settings", requireAuth, upd
 messagesRouter.post("/conversations/:conversationId/messages", requireAuth, sendMessage);
 messagesRouter.get("/conversations/:conversationId/messages", requireAuth, getMessages);
 messagesRouter.delete("/conversations/:conversationId/messages/:messageId", requireAuth, deleteMessage);
+messagesRouter.patch("/conversations/:conversationId/messages/:messageId", requireAuth, editMessage);
 messagesRouter.post(
   "/conversations/:conversationId/messages/:messageId/reactions",
   requireAuth,

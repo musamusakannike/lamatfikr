@@ -14,6 +14,7 @@ import {
   getMessagesSchema,
   toggleReactionSchema,
   updateConversationSettingsSchema,
+  editMessageSchema,
 } from "../validators/message.validator";
 
 // Get or create a private conversation with another user
@@ -485,6 +486,78 @@ export const getMessages: RequestHandler = async (req, res, next) => {
         total,
         pages: Math.ceil(total / limit),
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Edit a message
+export const editMessage: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+
+    const validation = editMessageSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { content } = validation.data;
+
+    const message = await MessageModel.findOne({
+      _id: messageId,
+      conversationId,
+      senderId: userId,
+      deletedAt: null,
+    });
+
+    if (!message) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    // Check if message is older than 1 hour
+    // Using createdAt. getTime() returns ms.
+    const ONE_HOUR = 60 * 60 * 1000;
+    const messageTime = (message as unknown as { createdAt: Date }).createdAt.getTime();
+    if (Date.now() - messageTime > ONE_HOUR) {
+      res.status(400).json({ message: "You can only edit messages within 1 hour of sending" });
+      return;
+    }
+
+    message.content = content;
+    message.editedAt = new Date();
+    await message.save();
+
+    // Emit message updated event
+    const payload = {
+      type: "conversation",
+      conversationId,
+      messageId,
+      content,
+      editedAt: message.editedAt,
+    };
+
+    io.to(`conversation:${conversationId}`).emit("message:updated", payload);
+
+    res.json({
+      message: "Message updated",
+      data: payload,
     });
   } catch (error) {
     next(error);

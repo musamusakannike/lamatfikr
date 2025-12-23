@@ -32,6 +32,7 @@ export interface Message {
   reactions?: MessageReaction[];
   deletedAt?: Date | null;
   expiresAt?: Date | null;
+  editedAt?: Date | null;
 }
 
 const MessageSchema = new Schema<Message>(
@@ -75,6 +76,7 @@ const MessageSchema = new Schema<Message>(
     },
     deletedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
+    editedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

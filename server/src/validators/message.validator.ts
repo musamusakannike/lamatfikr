@@ -45,3 +45,7 @@ export const toggleReactionSchema = z.object({
 export const updateConversationSettingsSchema = z.object({
   disappearingMessagesDuration: z.number().nullable(),
 });
+
+export const editMessageSchema = z.object({
+  content: z.string().trim().min(1, "Content cannot be empty"),
+});

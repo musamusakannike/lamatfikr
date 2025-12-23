@@ -7,6 +7,7 @@ import {
   CommunityMemberRole,
   CommunityMessageModel,
 } from "../models";
+import { editMessageSchema } from "../validators/message.validator";
 import { io } from "../realtime/socket";
 
 // Helper to get authenticated user ID
@@ -626,6 +627,130 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
     });
 
     res.json({ message: "Reaction updated", data: { messageId, reactions } });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Delete community message
+export async function deleteMessage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { communityId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(communityId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid community or message ID" });
+      return;
+    }
+
+    const message = await CommunityMessageModel.findOne({
+      _id: messageId,
+      communityId,
+      deletedAt: null,
+    });
+
+    if (!message) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    // Check permissions
+    // Sender can always delete their own message
+    if (message.senderId.toString() === userId.toString()) {
+      // Proceed
+    } else {
+      // Check if user is owner or admin of the community
+      const membership = await CommunityMemberModel.findOne({
+        communityId,
+        userId,
+        deletedAt: null,
+      });
+
+      if (!membership || (membership.role !== CommunityMemberRole.owner && membership.role !== CommunityMemberRole.admin)) {
+        res.status(403).json({ message: "You don't have permission to delete this message" });
+        return;
+      }
+    }
+
+    // Soft delete
+    message.deletedAt = new Date();
+    await message.save();
+
+    // Emit event
+    io.to(`community:${communityId}`).emit("message:deleted", {
+      type: "community",
+      communityId,
+      messageId,
+    });
+
+    res.json({ message: "Message deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Edit community message
+export async function editMessage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { communityId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(communityId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid community or message ID" });
+      return;
+    }
+
+    const validation = editMessageSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: validation.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { content } = validation.data;
+
+    const message = await CommunityMessageModel.findOne({
+      _id: messageId,
+      communityId,
+      senderId: userId,
+      deletedAt: null,
+    });
+
+    if (!message) {
+      // Either message doesn't exist or user is not the sender
+      res.status(404).json({ message: "Message not found or you are not the sender" });
+      return;
+    }
+
+    // Check if message is older than 1 hour
+    const ONE_HOUR = 60 * 60 * 1000;
+    const messageTime = (message as unknown as { createdAt: Date }).createdAt.getTime();
+    if (Date.now() - messageTime > ONE_HOUR) {
+      res.status(400).json({ message: "You can only edit messages within 1 hour of sending" });
+      return;
+    }
+
+    message.content = content;
+    message.editedAt = new Date();
+    await message.save();
+
+    // Emit event
+    const payload = {
+      type: "community",
+      communityId,
+      messageId,
+      content,
+      editedAt: message.editedAt,
+    };
+
+    io.to(`community:${communityId}`).emit("message:updated", payload);
+
+    res.json({
+      message: "Message updated successfully",
+      data: payload,
+    });
   } catch (error) {
     next(error);
   }

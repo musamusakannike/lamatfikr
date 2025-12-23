@@ -31,6 +31,7 @@ export interface CommunityMessage {
   location?: CommunityMessageLocation;
   reactions?: CommunityMessageReaction[];
   deletedAt?: Date | null;
+  editedAt?: Date | null;
 }
 
 const CommunityMessageSchema = new Schema<CommunityMessage>(
@@ -73,6 +74,7 @@ const CommunityMessageSchema = new Schema<CommunityMessage>(
       default: [],
     },
     deletedAt: { type: Date, default: null },
+    editedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

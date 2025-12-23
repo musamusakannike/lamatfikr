@@ -31,6 +31,7 @@ export interface RoomMessage {
   location?: RoomMessageLocation;
   reactions?: RoomMessageReaction[];
   deletedAt?: Date | null;
+  editedAt?: Date | null;
 }
 
 const RoomMessageSchema = new Schema<RoomMessage>(
@@ -73,6 +74,7 @@ const RoomMessageSchema = new Schema<RoomMessage>(
       default: [],
     },
     deletedAt: { type: Date, default: null },
+    editedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -23,6 +23,8 @@ import {
   revokeInviteLink,
   joinRoomViaInviteLink,
   getTotalUnreadCount,
+  deleteMessage,
+  editMessage,
 } from "../controllers/room.controller";
 
 export const roomsRouter = Router();
@@ -54,6 +56,8 @@ roomsRouter.post("/:roomId/messages", sendMessage);
 roomsRouter.get("/:roomId/messages", getMessages);
 roomsRouter.post("/:roomId/read", markRoomAsRead);
 roomsRouter.post("/:roomId/messages/:messageId/reactions", toggleReaction);
+roomsRouter.delete("/:roomId/messages/:messageId", deleteMessage);
+roomsRouter.patch("/:roomId/messages/:messageId", editMessage);
 
 // Invite links (private rooms)
 roomsRouter.post("/:roomId/invite-links", generateInviteLink);
