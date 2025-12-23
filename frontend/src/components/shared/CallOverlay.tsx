@@ -10,19 +10,19 @@ import {
     StreamTheme,
     useCallStateHooks,
     ParticipantView,
+    Call,
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useStreamClientContext } from "@/contexts/StreamClientContext";
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Loader2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ActiveCallUI = () => {
-    const { useCallCallingState, useParticipants, useLocalParticipant, useRemoteParticipants, useCall } = useCallStateHooks();
+const ActiveCallUI = ({ activeCall }: { activeCall: Call }) => {
+    const { useCallCallingState, useParticipants, useLocalParticipant, useRemoteParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
     const localParticipant = useLocalParticipant();
     const remoteParticipants = useRemoteParticipants();
-    const call = useCall();
 
     const [isMicOn, setIsMicOn] = useState(true);
     const [isCameraOn, setIsCameraOn] = useState(true);
@@ -40,19 +40,19 @@ const ActiveCallUI = () => {
 
     // Initialize camera/mic state
     useEffect(() => {
-        if (call) {
-            setIsMicOn(call.microphone.state.status !== "disabled");
-            setIsCameraOn(call.camera.state.status !== "disabled");
+        if (activeCall) {
+            setIsMicOn(activeCall.microphone.state.status !== "disabled");
+            setIsCameraOn(activeCall.camera.state.status !== "disabled");
         }
-    }, [call]);
+    }, [activeCall]);
 
     const toggleMic = async () => {
-        if (!call) return;
+        if (!activeCall) return;
         try {
             if (isMicOn) {
-                await call.microphone.disable();
+                await activeCall.microphone.disable();
             } else {
-                await call.microphone.enable();
+                await activeCall.microphone.enable();
             }
             setIsMicOn(!isMicOn);
         } catch (error) {
@@ -61,12 +61,12 @@ const ActiveCallUI = () => {
     };
 
     const toggleCamera = async () => {
-        if (!call) return;
+        if (!activeCall) return;
         try {
             if (isCameraOn) {
-                await call.camera.disable();
+                await activeCall.camera.disable();
             } else {
-                await call.camera.enable();
+                await activeCall.camera.enable();
             }
             setIsCameraOn(!isCameraOn);
         } catch (error) {
@@ -75,9 +75,9 @@ const ActiveCallUI = () => {
     };
 
     const leaveCall = async () => {
-        if (!call) return;
+        if (!activeCall) return;
         try {
-            await call.leave();
+            await activeCall.leave();
         } catch (error) {
             console.error("Failed to leave call:", error);
         }
@@ -100,9 +100,14 @@ const ActiveCallUI = () => {
         );
     }
 
-    const isVideoCall = call?.camera.state.status !== "disabled" || remoteParticipants.some(
-        (p) => p.publishedTracks.some(track => track === "video")
-    );
+    // Check if this is a video call by checking camera state or remote video tracks
+    const hasLocalVideo = activeCall?.camera.state.status !== "disabled";
+    const hasRemoteVideo = remoteParticipants.some((p) => {
+        // Type assertion to handle TrackType enum - convert through unknown first
+        const tracks = p.publishedTracks as unknown as string[];
+        return tracks.includes("video");
+    });
+    const isVideoCall = hasLocalVideo || hasRemoteVideo;
 
     return (
         <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -277,7 +282,7 @@ const CallOverlayContent = () => {
                         <RingingCall />
                     </div>
                 ) : (
-                    <ActiveCallUI />
+                    <ActiveCallUI activeCall={activeCall} />
                 )}
             </StreamTheme>
         </StreamCall>
