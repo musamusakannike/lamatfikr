@@ -18,6 +18,12 @@ export const updateProfileSchema = z.object({
   interests: z.array(z.string().max(50)).max(20).optional(),
   languagesSpoken: z.array(z.string().max(50)).max(20).optional(),
   phone: z.string().max(20).optional(),
+  location: z
+    .object({
+      type: z.literal("Point"),
+      coordinates: z.array(z.number()).length(2),
+    })
+    .optional(),
 });
 
 export const updateAvatarSchema = z.object({

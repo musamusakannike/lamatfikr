@@ -17,6 +17,10 @@ export interface ProfileData {
   school?: string;
   interests?: string[];
   languagesSpoken?: string[];
+  location?: {
+    type: "Point";
+    coordinates: number[];
+  };
 }
 
 export interface VerifiedTagInitiateResponse {

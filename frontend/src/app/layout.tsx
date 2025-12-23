@@ -11,6 +11,7 @@ import { ChatProvider } from "@/contexts/chat-context";
 import { CartDrawer } from "@/components/cart";
 import { StreamClientProvider } from "@/contexts/StreamClientContext";
 import { CallOverlay } from "@/components/shared/CallOverlay";
+import { LocationUpdater } from "@/components/shared/LocationUpdater";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
@@ -63,6 +64,7 @@ export default function RootLayout({
                         }}
                       />
                       <CallOverlay />
+                      <LocationUpdater />
                     </CartProvider>
                   </StreamClientProvider>
                 </ChatProvider>

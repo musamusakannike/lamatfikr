@@ -59,6 +59,10 @@ export interface User {
   passwordResetExpires?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  location?: {
+    type: "Point";
+    coordinates: number[];
+  };
 }
 
 const PrivacySettingsSchema = new Schema<PrivacySettings>(
@@ -197,6 +201,10 @@ const UserSchema = new Schema<User>(
     firebaseUid: { type: String, sparse: true },
     passwordResetToken: { type: String },
     passwordResetExpires: { type: Date },
+    location: {
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], default: [0, 0] },
+    },
   },
   { timestamps: true }
 );
@@ -205,6 +213,7 @@ UserSchema.index({ username: 1 }, { unique: true });
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ phone: 1 }, { unique: true, sparse: true });
 UserSchema.index({ firebaseUid: 1 }, { unique: true, sparse: true });
+UserSchema.index({ location: "2dsphere" });
 
 export const UserModel =
   (mongoose.models.User as mongoose.Model<User>) || mongoose.model<User>("User", UserSchema);

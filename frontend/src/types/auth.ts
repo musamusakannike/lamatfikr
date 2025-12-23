@@ -79,6 +79,10 @@ export interface User {
   authProvider?: AuthProvider;
   createdAt?: string;
   updatedAt?: string;
+  location?: {
+    type: "Point";
+    coordinates: number[];
+  };
 }
 
 export interface AuthUser {
