@@ -218,11 +218,10 @@ export default function VerificationRequestsPage() {
                   </tr>
                 );
               })}
-
               {(data?.requests?.length ?? 0) === 0 && (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-(--text-muted)">
-                    {t("adminVerification", "failedToLoad")}
+                    {t("adminVerification", "empty")}
                   </td>
                 </tr>
               )}

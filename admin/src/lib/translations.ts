@@ -221,6 +221,7 @@ export const translations = {
     notesPromptReject: { ar: "سبب الرفض (اختياري)", en: "Rejection reason (optional)" },
 
     loading: { ar: "جاري التحميل...", en: "Loading..." },
+    empty: { ar: "لا توجد طلبات", en: "No requests" },
     failedToLoad: { ar: "فشل تحميل طلبات التوثيق", en: "Failed to load verification requests" },
 
     paginationPrev: { ar: "السابق", en: "Prev" },
