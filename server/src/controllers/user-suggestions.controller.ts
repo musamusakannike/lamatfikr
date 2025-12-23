@@ -30,6 +30,7 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
       usersIBlocked,
       myRooms,
       myCommunities,
+      userWithLocation,
     ] = await Promise.all([
       FollowModel.find({
         followerId: userObjectId,
@@ -39,7 +40,11 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
       BlockModel.find({ blockerId: userObjectId }).distinct("blockedId"),
       RoomMemberModel.find({ userId: userObjectId }).distinct("roomId"),
       CommunityMemberModel.find({ userId: userObjectId }).distinct("communityId"),
+      UserModel.findById(userObjectId).select("location"),
     ]);
+
+    const user = userWithLocation as any;
+
 
     const excludedUserIds = [
       userObjectId,
@@ -53,21 +58,21 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
       status: FollowStatus.accepted,
       followingId: { $nin: excludedUserIds },
     }).distinct("followingId");
-    
+
     const followersOfMyFollowing = followersOfMyFollowingRaw.slice(0, 50);
 
     const usersInMyRoomsRaw = await RoomMemberModel.find({
       roomId: { $in: myRooms },
       userId: { $nin: excludedUserIds },
     }).distinct("userId");
-    
+
     const usersInMyRooms = usersInMyRoomsRaw.slice(0, 50);
 
     const usersInMyCommunitiesRaw = await CommunityMemberModel.find({
       communityId: { $in: myCommunities },
       userId: { $nin: excludedUserIds },
     }).distinct("userId");
-    
+
     const usersInMyCommunities = usersInMyCommunitiesRaw.slice(0, 50);
 
     const usersWhoLikedMyPosts = await PostModel.aggregate([
@@ -81,6 +86,22 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
       { $group: { _id: "$likes" } },
       { $limit: 50 },
     ]);
+
+    let nearbyUserIds: Types.ObjectId[] = [];
+    if (user?.location?.coordinates && user.location.coordinates.length === 2 && user.location.coordinates[0] !== 0) {
+      const nearbyUsers = await UserModel.find({
+        location: {
+          $near: {
+            $geometry: user.location,
+            $maxDistance: 50000, // 50km
+          },
+        },
+        _id: { $ne: userObjectId },
+      })
+        .limit(50)
+        .select("_id");
+      nearbyUserIds = nearbyUsers.map((u) => u._id as Types.ObjectId);
+    }
 
     const likedUserIds = usersWhoLikedMyPosts.map((doc) => doc._id);
 
@@ -104,6 +125,11 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
     likedUserIds.forEach((id) => {
       const key = id.toString();
       scoredUsers.set(key, (scoredUsers.get(key) || 0) + 1);
+    });
+
+    nearbyUserIds.forEach((id) => {
+      const key = id.toString();
+      scoredUsers.set(key, (scoredUsers.get(key) || 0) + 2); // Proximity score
     });
 
     const sortedUserIds = Array.from(scoredUsers.entries())
@@ -258,3 +284,64 @@ export const getMutualConnections: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getNearestUsers: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const user = await UserModel.findById(userId).select("location");
+
+    if (!user || !user.location || !user.location.coordinates || user.location.coordinates[0] === 0) {
+      res.json({ users: [], pagination: { page, limit, total: 0, pages: 0 } });
+      return;
+    }
+
+    // Get excluded users (same as suggestions)
+    const [usersIFollow, usersWhoBlockedMe, usersIBlocked] = await Promise.all([
+      FollowModel.find({
+        followerId: userId,
+        status: FollowStatus.accepted,
+      }).distinct("followingId"),
+      BlockModel.find({ blockedId: userId }).distinct("blockerId"),
+      BlockModel.find({ blockerId: userId }).distinct("blockedId"),
+    ]);
+
+    const excludedUserIds = [new Types.ObjectId(userId), ...usersIFollow, ...usersWhoBlockedMe, ...usersIBlocked];
+
+    const nearbyUsers = await UserModel.find({
+      location: {
+        $near: {
+          $geometry: user.location,
+        },
+      },
+      _id: { $nin: excludedUserIds },
+      isBanned: false,
+    })
+      .skip(skip)
+      .limit(limit)
+      .select("firstName lastName username avatar verified bio location");
+
+    // Count total for pagination (might be expensive with geo query, but OK for now)
+    // Note: countDocuments with $near is not supported directly in some versions, but usually fine with filters
+    // A safer way is checking if we got full limit.
+
+    // We can just return the list.
+
+    res.json({
+      users: nearbyUsers,
+      page,
+      hasMore: nearbyUsers.length === limit,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
