@@ -914,6 +914,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; preview?: string }>>([]);
   const [isViewOnce, setIsViewOnce] = useState(false);
+  const [revealedViewOnceIds, setRevealedViewOnceIds] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
@@ -1117,14 +1118,13 @@ function ChatView({ community, onBack }: ChatViewProps) {
   };
 
   const handleViewOnceMessage = async (messageId: string) => {
+    setRevealedViewOnceIds(prev => {
+      const next = new Set(prev);
+      next.add(messageId);
+      return next;
+    });
     try {
       await communitiesApi.markAsViewed(community.id, messageId);
-      setMessages((prev) =>
-        prev.map((msg) => {
-          if (getMessageId(msg) !== messageId) return msg;
-          return { ...msg, isExpired: true };
-        })
-      );
     } catch (err) {
       console.error("Failed to mark as viewed:", err);
     }

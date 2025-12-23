@@ -950,6 +950,7 @@ function ChatView({ room, onBack }: ChatViewProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; preview?: string }>>([]);
   const [isViewOnce, setIsViewOnce] = useState(false);
+  const [revealedViewOnceIds, setRevealedViewOnceIds] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPendingRequests, setShowPendingRequests] = useState(false);
