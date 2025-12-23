@@ -382,7 +382,14 @@ export function ChatView({
     useEffect(() => {
         if (!socket) return;
 
-        const handleMessageUpdated = (data: any) => {
+        interface MessageUpdatedData {
+            conversationId: string;
+            messageId: string;
+            content: string;
+            editedAt: string;
+        }
+
+        const handleMessageUpdated = (data: MessageUpdatedData) => {
             if (data.conversationId !== conversationId) return;
             setMessages((prev) =>
                 prev.map((m) =>
@@ -393,7 +400,12 @@ export function ChatView({
             );
         };
 
-        const handleMessageDeleted = (data: any) => {
+        interface MessageDeletedData {
+            conversationId: string;
+            messageId: string;
+        }
+
+        const handleMessageDeleted = (data: MessageDeletedData) => {
             if (data.conversationId !== conversationId) return;
             setMessages((prev) =>
                 prev.map((m) =>
@@ -981,10 +993,10 @@ export function ChatView({
                                             />
                                             <div className="flex justify-end gap-2">
                                                 <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
-                                                    Cancel
+                                                    {t("common", "cancel")}
                                                 </Button>
-                                                <Button size="sm" variant={isOwnMessage ? "secondary" : "default"} className="h-6 text-xs px-2" onClick={() => handleSaveEdit(message._id)}>
-                                                    Save
+                                                <Button size="sm" variant={isOwnMessage ? "secondary" : "primary"} className="h-6 text-xs px-2" onClick={() => handleSaveEdit(message._id)}>
+                                                    {t("common", "save")}
                                                 </Button>
                                             </div>
                                         </div>

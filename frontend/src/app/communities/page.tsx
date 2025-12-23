@@ -1361,7 +1361,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
                               <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
                                 {t("common", "cancel")}
                               </Button>
-                              <Button size="sm" variant="default" className="h-6 text-xs px-2" onClick={() => handleSaveEdit(messageId!)}>
+                              <Button size="sm" variant="primary" className="h-6 text-xs px-2" onClick={() => handleSaveEdit(messageId!)}>
                                 {t("common", "save")}
                               </Button>
                             </div>

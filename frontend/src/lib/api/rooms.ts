@@ -77,6 +77,7 @@ export interface RoomMessage {
   reactions?: RoomMessageReaction[];
   createdAt: string;
   editedAt?: string;
+  deletedAt?: string;
 }
 
 export interface CreateRoomData {

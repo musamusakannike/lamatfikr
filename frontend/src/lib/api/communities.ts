@@ -73,6 +73,7 @@ export interface CommunityMessage {
   reactions?: CommunityMessageReaction[];
   createdAt: string;
   editedAt?: string;
+  deletedAt?: string;
 }
 
 export interface CreateCommunityData {

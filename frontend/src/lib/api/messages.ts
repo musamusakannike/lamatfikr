@@ -41,6 +41,7 @@ export interface Message {
   createdAt: string;
   updatedAt: string;
   editedAt?: string;
+  deletedAt?: string;
 }
 
 export interface Conversation {
