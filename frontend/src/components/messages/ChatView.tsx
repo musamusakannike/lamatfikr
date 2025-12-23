@@ -220,7 +220,11 @@ export function ChatView({
         if (!videoClient || !otherParticipant) return;
 
         try {
+            toast.loading(video ? "Starting video call..." : "Starting audio call...", { id: "call-start" });
+
             const call = videoClient.call("default", conversationId);
+
+            // Join the call
             await call.join({
                 create: true,
                 ring: true,
@@ -235,12 +239,26 @@ export function ChatView({
                 }
             });
 
-            if (!video) {
+            // Configure camera and microphone based on call type
+            if (video) {
+                // For video calls, enable both camera and microphone
+                await call.camera.enable();
+                await call.microphone.enable();
+            } else {
+                // For audio calls, disable camera but enable microphone
                 await call.camera.disable();
+                await call.microphone.enable();
             }
+
+            toast.success("Call started", { id: "call-start" });
         } catch (error) {
             console.error("Failed to start call", error);
-            toast.error("Failed to start call");
+            toast.error(
+                error instanceof Error && error.message.includes("permission")
+                    ? "Camera/microphone permission denied. Please allow access and try again."
+                    : "Failed to start call. Please try again.",
+                { id: "call-start" }
+            );
         }
     };
 
