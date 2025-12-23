@@ -4156,6 +4156,14 @@ export const translations = {
       ar: "تحميل المزيد",
       en: "Load More",
     },
+    nearby: {
+      ar: "بالقرب مني",
+      en: "Nearby",
+    },
+    enableLocationCheck: {
+      ar: "يرجى تفعيل الموقع لرؤية المستخدمين القريبين",
+      en: "Please enable location to see nearby users",
+    },
   },
 
   // Reels
