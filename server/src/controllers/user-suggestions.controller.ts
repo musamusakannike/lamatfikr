@@ -178,10 +178,45 @@ export const getSuggestedUsers: RequestHandler = async (req, res, next) => {
       userFollowerCounts.map((item) => [item._id.toString(), item.count])
     );
 
+    const mutualFollowersData = await Promise.all(
+      suggestedUserIds.map(async (suggestedUserId) => {
+        const suggestedUserFollowers = await FollowModel.find({
+          followingId: suggestedUserId,
+          status: FollowStatus.accepted,
+        }).distinct("followerId");
+
+        const mutualFollowerIds = suggestedUserFollowers.filter((followerId) =>
+          usersIFollow.some((id) => id.toString() === followerId.toString())
+        );
+
+        if (mutualFollowerIds.length === 0) {
+          return { userId: suggestedUserId.toString(), mutualFollowers: [], count: 0 };
+        }
+
+        const mutualFollowers = await UserModel.find({
+          _id: { $in: mutualFollowerIds.slice(0, 3) },
+        })
+          .select("firstName lastName username avatar verified")
+          .lean();
+
+        return {
+          userId: suggestedUserId.toString(),
+          mutualFollowers,
+          count: mutualFollowerIds.length,
+        };
+      })
+    );
+
+    const mutualFollowersMap = new Map(
+      mutualFollowersData.map((item) => [item.userId, { mutualFollowers: item.mutualFollowers, count: item.count }])
+    );
+
     const usersWithMetadata = suggestedUsers.map((user) => ({
       ...user,
       followersCount: followerCountMap.get(user._id.toString()) || 0,
       suggestionScore: scoredUsers.get(user._id.toString()) || 0,
+      mutualFollowers: mutualFollowersMap.get(user._id.toString())?.mutualFollowers || [],
+      mutualFollowersCount: mutualFollowersMap.get(user._id.toString())?.count || 0,
     }));
 
     usersWithMetadata.sort((a, b) => {

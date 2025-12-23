@@ -11,6 +11,8 @@ export interface SuggestedUser {
   followersCount: number;
   suggestionScore: number;
   isFollowing?: boolean;
+  mutualFollowers?: MutualConnection[];
+  mutualFollowersCount?: number;
 }
 
 export interface MutualConnection {

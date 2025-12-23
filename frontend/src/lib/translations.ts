@@ -4180,6 +4180,14 @@ export const translations = {
       ar: "يرجى تفعيل الموقع لرؤية المستخدمين القريبين",
       en: "Please enable location to see nearby users",
     },
+    followedBy: {
+      ar: "يتابعه",
+      en: "Followed by",
+    },
+    others: {
+      ar: "آخرون",
+      en: "others",
+    },
   },
 
   // Reels

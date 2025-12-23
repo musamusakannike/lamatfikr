@@ -6,7 +6,7 @@ import { userSuggestionsApi, type SuggestedUser } from "@/lib/api/user-suggestio
 import { socialApi } from "@/lib/api/social";
 import { Avatar } from "@/components/ui";
 import { Navbar, Sidebar } from "@/components/layout";
-import { UserPlus, UserCheck, Loader2, ArrowLeft, Users } from "lucide-react";
+import { UserPlus, UserCheck, Loader2, ArrowLeft, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
@@ -24,6 +24,7 @@ export default function SuggestionsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"suggested" | "nearby">("suggested");
+  const [dismissedUsers, setDismissedUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setUsers([]);
@@ -108,6 +109,10 @@ export default function SuggestionsPage() {
     }
   };
 
+  const handleDismiss = (userId: string) => {
+    setDismissedUsers((prev) => new Set(prev).add(userId));
+  };
+
   return (
     <div className="min-h-screen bg-(--bg)">
       <Navbar
@@ -179,80 +184,100 @@ export default function SuggestionsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {users.map((user) => {
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {users.filter(user => !dismissedUsers.has(user._id)).map((user) => {
                   const isFollowing = followingStates[user._id] || false;
                   const isLoading = followingLoading[user._id] || false;
+                  const hasMutualFollowers = user.mutualFollowers && user.mutualFollowers.length > 0;
 
                   return (
                     <div
                       key={user._id}
-                      className="bg-(--bg-card) rounded-2xl p-6 border border-(--border) hover:shadow-lg transition-shadow"
+                      className="bg-(--bg-card) rounded-2xl p-6 border border-(--border) hover:shadow-lg transition-shadow relative"
                     >
-                      <div className="flex items-start gap-4">
-                        <a href={`/user/${user.username}`} className="shrink-0">
+                      <button
+                        onClick={() => handleDismiss(user._id)}
+                        className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Dismiss"
+                      >
+                        <X className="w-5 h-5 text-(--text-muted)" />
+                      </button>
+
+                      <div className="flex flex-col items-center text-center">
+                        <a href={`/user/${user.username}`} className="mb-4">
                           <Avatar
                             src={user.avatar || DEFAULT_AVATAR}
                             alt={user.firstName}
-                            size="lg"
+                            size="xl"
+                            className="w-24 h-24"
                           />
                         </a>
 
-                        <div className="flex-1 min-w-0">
-                          <a
-                            href={`/user/${user.username}`}
-                            className="block hover:underline mb-1"
-                          >
-                            <h3 className="font-bold text-lg flex items-center gap-1.5">
-                              {user.firstName} {user.lastName}
-                              {user.verified && (
-                                <VerifiedBadge size={20} />
+                        <a
+                          href={`/user/${user.username}`}
+                          className="block hover:underline mb-2"
+                        >
+                          <h3 className="font-bold text-lg flex items-center justify-center gap-1.5">
+                            {user.firstName} {user.lastName}
+                            {user.verified && (
+                              <VerifiedBadge size={20} />
+                            )}
+                          </h3>
+                          <p className="text-sm text-(--text-muted)">@{user.username}</p>
+                        </a>
+
+                        {hasMutualFollowers && (
+                          <div className="mb-3 flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {user.mutualFollowers!.slice(0, 3).map((mutual) => (
+                                <Avatar
+                                  key={mutual._id}
+                                  src={mutual.avatar || DEFAULT_AVATAR}
+                                  alt={mutual.firstName}
+                                  size="sm"
+                                  className="w-6 h-6 border-2 border-(--bg-card)"
+                                />
+                              ))}
+                            </div>
+                            <p className="text-xs text-(--text-muted)">
+                              {t("suggestions", "followedBy")} {user.mutualFollowers![0].username}
+                              {user.mutualFollowersCount! > 1 && (
+                                <span>
+                                  {" "}+ {user.mutualFollowersCount! - 1} {t("suggestions", "others")}
+                                </span>
                               )}
-                            </h3>
-                            <p className="text-sm text-(--text-muted)">@{user.username}</p>
-                          </a>
-
-                          {user.followersCount > 0 && (
-                            <p className="text-sm text-(--text-muted) mb-3">
-                              {user.followersCount} {t("suggestions", "followers")}
                             </p>
-                          )}
+                          </div>
+                        )}
 
-                          {user.bio && (
-                            <p className="text-sm text-(--text-muted) line-clamp-2 mb-4">
-                              {user.bio}
-                            </p>
+                        <button
+                          onClick={() => handleFollowToggle(user._id, isFollowing)}
+                          disabled={isLoading}
+                          className={cn(
+                            "w-full py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2",
+                            isFollowing
+                              ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              : "bg-primary-500 text-white hover:bg-primary-600"
                           )}
-
-                          <button
-                            onClick={() => handleFollowToggle(user._id, isFollowing)}
-                            disabled={isLoading}
-                            className={cn(
-                              "w-full py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2",
-                              isFollowing
-                                ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                : "bg-primary-500 text-white hover:bg-primary-600"
-                            )}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                              <>
-                                {isFollowing ? (
-                                  <>
-                                    <UserCheck className="w-5 h-5" />
-                                    <span>{t("suggestions", "following")}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserPlus className="w-5 h-5" />
-                                    <span>{t("suggestions", "follow")}</span>
-                                  </>
-                                )}
-                              </>
-                            )}
-                          </button>
-                        </div>
+                        >
+                          {isLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <>
+                              {isFollowing ? (
+                                <>
+                                  <UserCheck className="w-5 h-5" />
+                                  <span>{t("suggestions", "following")}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="w-5 h-5" />
+                                  <span>{t("suggestions", "follow")}</span>
+                                </>
+                              )}
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   );
