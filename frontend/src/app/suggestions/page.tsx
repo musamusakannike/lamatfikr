@@ -47,8 +47,18 @@ export default function SuggestionsPage() {
 
       if (pageNum === 1) {
         setUsers(response.users);
+        const newFollowingStates = response.users.reduce<Record<string, boolean>>((acc, user) => {
+          if (user.isFollowing) acc[user._id] = true;
+          return acc;
+        }, {});
+        setFollowingStates(newFollowingStates);
       } else {
         setUsers((prev) => [...prev, ...response.users]);
+        const newFollowingStates = response.users.reduce<Record<string, boolean>>((acc, user) => {
+          if (user.isFollowing) acc[user._id] = true;
+          return acc;
+        }, {});
+        setFollowingStates((prev) => ({ ...prev, ...newFollowingStates }));
       }
 
       // Handle different response structures if needed, but assuming they match for pagination

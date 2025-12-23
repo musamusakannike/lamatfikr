@@ -10,6 +10,7 @@ export interface SuggestedUser {
   bio?: string;
   followersCount: number;
   suggestionScore: number;
+  isFollowing?: boolean;
 }
 
 export interface MutualConnection {

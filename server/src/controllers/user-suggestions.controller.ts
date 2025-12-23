@@ -314,7 +314,7 @@ export const getNearestUsers: RequestHandler = async (req, res, next) => {
       BlockModel.find({ blockerId: userId }).distinct("blockedId"),
     ]);
 
-    const excludedUserIds = [new Types.ObjectId(userId), ...usersIFollow, ...usersWhoBlockedMe, ...usersIBlocked];
+    const excludedUserIds = [new Types.ObjectId(userId), ...usersWhoBlockedMe, ...usersIBlocked];
 
     const nearbyUsers = await UserModel.find({
       location: {
@@ -327,16 +327,18 @@ export const getNearestUsers: RequestHandler = async (req, res, next) => {
     })
       .skip(skip)
       .limit(limit)
-      .select("firstName lastName username avatar verified bio location");
+      .select("firstName lastName username avatar verified bio location")
+      .lean();
 
-    // Count total for pagination (might be expensive with geo query, but OK for now)
-    // Note: countDocuments with $near is not supported directly in some versions, but usually fine with filters
-    // A safer way is checking if we got full limit.
+    const usersIFollowSet = new Set(usersIFollow.map((id) => id.toString()));
 
-    // We can just return the list.
+    const usersWithFollowingStatus = nearbyUsers.map((u) => ({
+      ...u,
+      isFollowing: usersIFollowSet.has(u._id.toString()),
+    }));
 
     res.json({
-      users: nearbyUsers,
+      users: usersWithFollowingStatus,
       page,
       hasMore: nearbyUsers.length === limit,
     });
