@@ -25,6 +25,7 @@ export interface Community {
   name: string;
   description: string;
   image?: string;
+  coverImage?: string;
   category: string;
   ownerId: ObjectId;
   memberCount: number;
@@ -36,6 +37,7 @@ const CommunitySchema = new Schema<Community>(
     name: { type: String, required: true, trim: true, index: "text" },
     description: { type: String, required: true, index: "text" },
     image: { type: String },
+    coverImage: { type: String },
     category: { type: String, required: true, index: true },
     ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     memberCount: { type: Number, default: 0, min: 0 },

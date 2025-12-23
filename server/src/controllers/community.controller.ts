@@ -22,7 +22,7 @@ function getUserId(req: Request): Types.ObjectId {
 export async function createCommunity(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = getUserId(req);
-    const { name, description, image, category } = req.body;
+    const { name, description, image, coverImage, category } = req.body;
 
     if (!name || !description || !category) {
       res.status(400).json({ message: "Name, description, and category are required" });
@@ -33,6 +33,7 @@ export async function createCommunity(req: Request, res: Response, next: NextFun
       name,
       description,
       image,
+      coverImage,
       category,
       ownerId: userId,
       memberCount: 1,
@@ -52,6 +53,7 @@ export async function createCommunity(req: Request, res: Response, next: NextFun
         name: community.name,
         description: community.description,
         image: community.image,
+        coverImage: community.coverImage,
         category: community.category,
         memberCount: community.memberCount,
         createdAt: (community as unknown as { createdAt: Date }).createdAt,
@@ -131,15 +133,15 @@ export async function getCommunities(req: Request, res: Response, next: NextFunc
         deletedAt: null,
         senderId: { $ne: userId },
       };
-      
+
       if (lastReadAt) {
         matchQuery.createdAt = { $gt: lastReadAt };
       }
-      
+
       const count = await CommunityMessageModel.countDocuments(matchQuery);
       return { communityId: communityId.toString(), count };
     });
-    
+
     const unreadResults = await Promise.all(unreadCountPromises);
     const unreadMap = new Map(unreadResults.map((u) => [u.communityId, u.count]));
 
@@ -154,6 +156,7 @@ export async function getCommunities(req: Request, res: Response, next: NextFunc
         name: community.name,
         description: community.description,
         image: community.image,
+        coverImage: community.coverImage,
         category: community.category,
         memberCount: community.memberCount,
         owner: community.ownerId,
@@ -161,9 +164,9 @@ export async function getCommunities(req: Request, res: Response, next: NextFunc
         role,
         lastMessage: lastMsg
           ? {
-              content: lastMsg.content,
-              createdAt: lastMsg.createdAt,
-            }
+            content: lastMsg.content,
+            createdAt: lastMsg.createdAt,
+          }
           : null,
         unreadCount: isMember ? (unreadMap.get(communityIdStr) || 0) : 0,
         createdAt: (community as unknown as { createdAt: Date }).createdAt,
@@ -217,6 +220,7 @@ export async function getCommunity(req: Request, res: Response, next: NextFuncti
         name: community.name,
         description: community.description,
         image: community.image,
+        coverImage: community.coverImage,
         category: community.category,
         memberCount: community.memberCount,
         owner: community.ownerId,
@@ -235,7 +239,7 @@ export async function updateCommunity(req: Request, res: Response, next: NextFun
   try {
     const userId = getUserId(req);
     const { communityId } = req.params;
-    const { name, description, image, category } = req.body;
+    const { name, description, image, coverImage, category } = req.body;
 
     if (!Types.ObjectId.isValid(communityId)) {
       res.status(400).json({ message: "Invalid community ID" });
@@ -265,6 +269,7 @@ export async function updateCommunity(req: Request, res: Response, next: NextFun
     if (name) community.name = name;
     if (description) community.description = description;
     if (image !== undefined) community.image = image;
+    if (coverImage !== undefined) community.coverImage = coverImage;
     if (category) community.category = category;
 
     await community.save();
@@ -276,6 +281,7 @@ export async function updateCommunity(req: Request, res: Response, next: NextFun
         name: community.name,
         description: community.description,
         image: community.image,
+        coverImage: community.coverImage,
         category: community.category,
         memberCount: community.memberCount,
       },
@@ -593,8 +599,8 @@ export async function toggleReaction(req: Request, res: Response, next: NextFunc
 
     const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
       ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
-          (r) => r.emoji === emoji && r.userId.toString() === userIdStr
-        )
+        (r) => r.emoji === emoji && r.userId.toString() === userIdStr
+      )
       : false;
 
     if (hasReaction) {
@@ -739,14 +745,14 @@ export async function getTotalUnreadCount(req: Request, res: Response, next: Nex
         deletedAt: null,
         senderId: { $ne: userId },
       };
-      
+
       if (membership.lastReadAt) {
         matchQuery.createdAt = { $gt: membership.lastReadAt };
       }
-      
+
       return CommunityMessageModel.countDocuments(matchQuery);
     });
-    
+
     const unreadCounts = await Promise.all(unreadCountPromises);
     const totalUnreadCount = unreadCounts.reduce((sum, count) => sum + count, 0);
 
