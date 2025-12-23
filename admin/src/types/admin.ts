@@ -58,3 +58,8 @@ export interface AdminAnalyticsResponse {
   transactions: AdminAnalyticsPoint[];
   generatedAt: string;
 }
+
+export interface AdminNavStatsResponse {
+  pendingReports: number;
+  pendingVerifications: number;
+}

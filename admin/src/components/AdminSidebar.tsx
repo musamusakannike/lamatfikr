@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { LanguageSwitcher } from "@/components/ui";
 
@@ -31,6 +31,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { apiClient } from "@/lib/api";
+import type { AdminNavStatsResponse } from "@/types/admin";
 
 type NavItem =
   | {
@@ -57,6 +59,32 @@ export default function AdminSidebar({
 }) {
   const pathname = usePathname();
   const { t, isRTL } = useLanguage();
+  const [stats, setStats] = useState<AdminNavStatsResponse | null>(null);
+
+  useEffect(() => {
+    // Initial fetch
+    fetchStats();
+
+    // Poll every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await apiClient.get<AdminNavStatsResponse>("/admin/nav-stats");
+      setStats(res);
+    } catch (error) {
+      console.error("Failed to fetch admin nav stats", error);
+    }
+  };
+
+  const getBadgeCount = (key: string) => {
+    if (key === "reports") return stats?.pendingReports;
+    if (key === "verificationRequests") return stats?.pendingVerifications;
+    if (key === "verification") return stats?.pendingVerifications; // Show dot/count for group too if desired
+    return 0;
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -226,7 +254,12 @@ export default function AdminSidebar({
         )}
       >
         {Icon ? <Icon size={18} className="shrink-0" /> : null}
-        <span className="truncate">{t("adminNav", labelKey)}</span>
+        <span className="truncate flex-1">{t("adminNav", labelKey)}</span>
+        {getBadgeCount(labelKey) ? (
+          <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+            {getBadgeCount(labelKey)}
+          </span>
+        ) : null}
       </Link>
     );
   };
@@ -281,7 +314,12 @@ export default function AdminSidebar({
                   )}
                 >
                   <Icon size={18} className="shrink-0" />
-                  <span className="truncate">{t("adminNav", item.key)}</span>
+                  <span className="truncate flex-1">{t("adminNav", item.key)}</span>
+                  {getBadgeCount(item.key) ? (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                      {getBadgeCount(item.key)}
+                    </span>
+                  ) : null}
                 </Link>
               );
             }
@@ -299,6 +337,9 @@ export default function AdminSidebar({
                   <div className="flex items-center gap-2">
                     <item.icon size={14} className="opacity-80" />
                     <span>{t("adminNav", item.key)}</span>
+                    {getBadgeCount(item.key) ? (
+                      <div className="w-2 h-2 rounded-full bg-red-500 ml-2" />
+                    ) : null}
                   </div>
                   <ChevronDown size={14} className={cn("opacity-60", anyChildActive ? "rotate-180" : "")} />
                 </div>

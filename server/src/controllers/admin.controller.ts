@@ -8,6 +8,9 @@ import { RoomMessageModel } from "../models/room-message.model";
 import { TransactionModel, TransactionStatus } from "../models/transaction.model";
 import { WalletModel } from "../models/wallet.model";
 import { AppVisitModel } from "../models/app-visit.model";
+import { ReportModel } from "../models/report.model";
+import { VerificationRequestModel } from "../models/verification-request.model";
+import { ReportStatus, VerificationStatus } from "../models/common";
 import { getTotalOnlineUsers } from "../services/presence";
 
 function startOfTodayUTC() {
@@ -251,6 +254,22 @@ export const getAdminAnalytics: RequestHandler = async (req, res, next) => {
       users,
       transactions,
       generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminNavStats: RequestHandler = async (_req, res, next) => {
+  try {
+    const [pendingReports, pendingVerifications] = await Promise.all([
+      ReportModel.countDocuments({ status: ReportStatus.open }),
+      VerificationRequestModel.countDocuments({ status: VerificationStatus.pending }),
+    ]);
+
+    res.json({
+      pendingReports,
+      pendingVerifications,
     });
   } catch (error) {
     next(error);

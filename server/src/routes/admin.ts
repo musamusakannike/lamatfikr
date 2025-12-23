@@ -9,6 +9,7 @@ import {
   getAdminTransactions,
   getAllWallets,
   getAllTransactions,
+  getAdminNavStats,
 } from "../controllers/admin.controller";
 import { batchAdminUsers, listAdminUsers, updateAdminUser, getAdminUserProfile, updateAdminUserProfile } from "../controllers/admin-users.controller";
 import { getAdminRolesSummary } from "../controllers/admin-roles.controller";
@@ -68,6 +69,7 @@ export const adminRouter = Router();
 
 adminRouter.get("/overview", requireAuth, requireAdmin, getAdminOverview);
 adminRouter.get("/analytics", requireAuth, requireAdmin, getAdminAnalytics);
+adminRouter.get("/nav-stats", requireAuth, requireAdmin, getAdminNavStats);
 
 adminRouter.get("/users", requireAuth, requireAdmin, listAdminUsers);
 adminRouter.patch("/users/:userId", requireAuth, requireAdmin, updateAdminUser);
