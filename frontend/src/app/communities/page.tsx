@@ -71,66 +71,91 @@ function CommunityChatCard({ community, onClick }: { community: Community; onCli
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) return "now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
   };
 
   return (
-    <Card hover className="overflow-hidden cursor-pointer">
-      <div className="flex gap-4 p-4" onClick={onClick}>
-        <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-(--bg)">
-          {community.image ? (
+    <Card hover className="overflow-hidden cursor-pointer h-full flex flex-col group border-0 shadow-md transition-shadow hover:shadow-lg md:w-[48%] h-full mx-auto">
+      <div className="flex flex-col h-full" onClick={onClick}>
+        {/* Cover Image */}
+        <div className="relative h-28 bg-(--bg-muted)">
+          {community.coverImage ? (
             <Image
-              src={community.image}
+              src={community.coverImage}
               alt={community.name}
-              width={64}
-              height={64}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Users size={24} className="text-(--text-muted)" />
+            <div className="w-full h-full bg-linear-to-r from-primary-500/10 to-primary-600/10 flex items-center justify-center">
+              <Users size={32} className="text-primary-500/20" />
             </div>
           )}
+          <div className="absolute inset-0 bg-black/5 dark:bg-black/20" />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-(--text) truncate">{community.name}</h3>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                {community.role && (
-                  <Badge variant={community.role === "owner" ? "primary" : community.role === "admin" ? "secondary" : "default"} className="text-xs">
-                    {community.role}
-                  </Badge>
-                )}
-                <span className="text-xs text-(--text-muted)">{community.category}</span>
-              </div>
+        <div className="px-4 pb-4 flex-1 flex flex-col relative">
+          {/* Avatar - overlaps cover */}
+          <div className="-mt-10 mb-3 flex justify-between items-end">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-(--bg) border-4 border-(--bg-card) shadow-sm mx-auto">
+              {community.image ? (
+                <Image
+                  src={community.image}
+                  alt={community.name}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-(--bg-muted)">
+                  <Users size={28} className="text-(--text-muted)" />
+                </div>
+              )}
             </div>
+
             {community.unreadCount > 0 && (
-              <div className="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center shrink-0">
-                <span className="text-xs text-white font-medium">{community.unreadCount}</span>
+              <div className="mb-2 px-2 py-1 bg-primary-600 rounded-full shadow-sm">
+                <span className="text-xs text-white font-bold">{community.unreadCount}</span>
               </div>
             )}
           </div>
 
-          {community.lastMessage && (
-            <p className="text-sm text-(--text-muted) mt-2 truncate">
-              {community.lastMessage.content}
-            </p>
-          )}
+          <div className="flex-1 min-w-0">
+            <div className="mb-2">
+              <h3 className="font-bold text-lg text-(--text) truncate leading-tight group-hover:text-primary-600 transition-colors">
+                {community.name}
+              </h3>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-xs font-medium text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded-full">
+                  {community.category}
+                </span>
+                {community.role && (
+                  <Badge variant={community.role === "owner" ? "primary" : community.role === "admin" ? "secondary" : "default"} className="text-[10px] px-1.5 h-5">
+                    {community.role}
+                  </Badge>
+                )}
+              </div>
+            </div>
 
-          <div className="flex items-center gap-4 mt-2 text-xs text-(--text-muted)">
-            <span className="flex items-center gap-1">
-              <Users size={12} />
-              {community.memberCount.toLocaleString()}
-            </span>
-            {community.lastMessage && (
-              <span className="ml-auto">{formatTime(community.lastMessage.createdAt)}</span>
+            <p className="text-sm text-(--text-muted) line-clamp-3 mb-4 leading-relaxed">
+              {community.description}
+            </p>
+          </div>
+
+          <div className="pt-3 mt-auto border-t border-(--border) flex items-center justify-between text-xs text-(--text-muted)">
+            {community.lastMessage ? (
+              <div className="flex items-center gap-1.5 max-w-[70%]">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
+                <span className="truncate">{community.lastMessage.content || "Media"}</span>
+              </div>
+            ) : (
+              <span>No messages yet</span>
             )}
+            <span className="flex items-center gap-1 shrink-0 ml-auto">
+              {community.lastMessage ? formatTime(community.lastMessage.createdAt) : ""}
+            </span>
           </div>
         </div>
       </div>
@@ -150,6 +175,8 @@ function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: CreateCom
   const [category, setCategory] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,6 +186,15 @@ function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: CreateCom
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setImagePreview(url);
+    }
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverImageFile(file);
+      const url = URL.createObjectURL(file);
+      setCoverImagePreview(url);
     }
   };
 
@@ -174,10 +210,17 @@ function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: CreateCom
         imageUrl = uploadResult.url;
       }
 
+      let coverImageUrl: string | undefined;
+      if (coverImageFile) {
+        const uploadResult = await uploadApi.uploadImage(coverImageFile, "communities");
+        coverImageUrl = uploadResult.url;
+      }
+
       await communitiesApi.createCommunity({
         name,
         description,
         image: imageUrl,
+        coverImage: coverImageUrl,
         category,
       });
 
@@ -197,6 +240,8 @@ function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: CreateCom
     setCategory("");
     setImageFile(null);
     setImagePreview(null);
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
     setError(null);
   };
 
@@ -217,44 +262,93 @@ function CreateCommunityModal({ isOpen, onClose, onCommunityCreated }: CreateCom
         {/* Community Image */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Community Image
+            Community Images
           </label>
-          <div className="flex items-center gap-4">
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
-              {imagePreview ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imagePreview} alt="Community preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setImagePreview(null)}
-                    className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
-                  >
-                    <X size={14} className="text-white" />
-                  </button>
-                </>
-              ) : (
-                <ImageIcon size={32} className="text-(--text-muted)" />
-              )}
-            </div>
+          <div className="flex gap-4">
+            {/* Avatar */}
             <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="community-image"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => document.getElementById("community-image")?.click()}
-              >
-                <span>Upload Image</span>
-              </Button>
-              <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
+              <p className="text-xs text-(--text-muted) mb-1.5">Avatar</p>
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
+                  {imagePreview ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imagePreview} alt="Community preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImagePreview(null)}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </>
+                  ) : (
+                    <ImageIcon size={32} className="text-(--text-muted)" />
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="community-image"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById("community-image")?.click()}
+                  >
+                    <span>Upload Icon</span>
+                  </Button>
+                  <p className="text-xs text-(--text-muted) mt-1">Rec: 300x300px</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cover */}
+            <div className="flex-1">
+              <p className="text-xs text-(--text-muted) mb-1.5">Cover Image</p>
+              <div className="flex items-center gap-4">
+                <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
+                  {coverImagePreview ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={coverImagePreview} alt="Cover preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setCoverImagePreview(null)}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </>
+                  ) : (
+                    <ImageIcon size={32} className="text-(--text-muted)" />
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageChange}
+                    className="hidden"
+                    id="community-cover-image"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById("community-cover-image")?.click()}
+                  >
+                    <span>Upload Cover</span>
+                  </Button>
+                  <p className="text-xs text-(--text-muted) mt-1">Rec: 800x300px</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -341,6 +435,8 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
   const [category, setCategory] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -350,7 +446,9 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
       setDescription(community.description);
       setCategory(community.category);
       setImagePreview(community.image || null);
+      setCoverImagePreview(community.coverImage || null);
       setImageFile(null);
+      setCoverImageFile(null);
       setError(null);
     }
   }, [community, isOpen]);
@@ -361,6 +459,15 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setImagePreview(url);
+    }
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverImageFile(file);
+      const url = URL.createObjectURL(file);
+      setCoverImagePreview(url);
     }
   };
 
@@ -378,10 +485,17 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
         imageUrl = uploadResult.url;
       }
 
+      let coverImageUrl: string | undefined;
+      if (coverImageFile) {
+        const uploadResult = await uploadApi.uploadImage(coverImageFile, "communities");
+        coverImageUrl = uploadResult.url;
+      }
+
       await communitiesApi.updateCommunity(community.id, {
         name,
         description,
         image: imageUrl,
+        coverImage: coverImageUrl,
         category,
       });
 
@@ -397,6 +511,8 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
   const handleClose = () => {
     setImageFile(null);
     setImagePreview(null);
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
     setError(null);
     onClose();
   };
@@ -415,47 +531,99 @@ function EditCommunityModal({ isOpen, community, onClose, onCommunityUpdated }: 
         {/* Community Image */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
-            Community Image
+            Community Images
           </label>
-          <div className="flex items-center gap-4">
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
-              {imagePreview ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imagePreview} alt="Community preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setImagePreview(null);
-                      setImageFile(null);
-                    }}
-                    className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
-                  >
-                    <X size={14} className="text-white" />
-                  </button>
-                </>
-              ) : (
-                <ImageIcon size={32} className="text-(--text-muted)" />
-              )}
-            </div>
+          <div className="flex gap-4">
+            {/* Avatar */}
             <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="edit-community-image"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => document.getElementById("edit-community-image")?.click()}
-              >
-                <span>Change Image</span>
-              </Button>
-              <p className="text-xs text-(--text-muted) mt-1">Recommended: 300x200px</p>
+              <p className="text-xs text-(--text-muted) mb-1.5">Avatar</p>
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
+                  {imagePreview ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imagePreview} alt="Community preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setImageFile(null);
+                        }}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </>
+                  ) : (
+                    <ImageIcon size={32} className="text-(--text-muted)" />
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="edit-community-image"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById("edit-community-image")?.click()}
+                  >
+                    <span>Change Icon</span>
+                  </Button>
+                  <p className="text-xs text-(--text-muted) mt-1">Rec: 300x300px</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cover */}
+            <div className="flex-1">
+              <p className="text-xs text-(--text-muted) mb-1.5">Cover Image</p>
+              <div className="flex items-center gap-4">
+                <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-(--bg) border-2 border-dashed border-(--border) flex items-center justify-center">
+                  {coverImagePreview ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={coverImagePreview} alt="Cover preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCoverImagePreview(null);
+                          setCoverImageFile(null);
+                        }}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </>
+                  ) : (
+                    <ImageIcon size={32} className="text-(--text-muted)" />
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageChange}
+                    className="hidden"
+                    id="edit-community-cover-image"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById("edit-community-cover-image")?.click()}
+                  >
+                    <span>Change Cover</span>
+                  </Button>
+                  <p className="text-xs text-(--text-muted) mt-1">Rec: 800x300px</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -572,28 +740,24 @@ function CommunityDetailsModal({ community, isOpen, onClose, onJoin, onLeave, on
     <Modal isOpen={isOpen} onClose={onClose} title={community.name} size="md">
       <div className="p-4">
         {/* Community Header */}
-        <div className="relative h-40 rounded-xl overflow-hidden mb-4 bg-(--bg)">
-          {community.image ? (
+        <div className="relative h-32 rounded-xl overflow-hidden mb-4 bg-(--bg-muted)">
+          {community.coverImage ? (
             <Image
-              src={community.image}
+              src={community.coverImage}
               alt={community.name}
-              width={500}
-              height={200}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Users size={48} className="text-(--text-muted)" />
+            <div className="w-full h-full bg-linear-to-r from-primary-500/10 to-primary-600/10 flex items-center justify-center">
+              <Users size={48} className="text-primary-500/20" />
             </div>
           )}
-          <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
-            <p className="text-white/80 text-sm">{community.category}</p>
-          </div>
+          <div className="absolute inset-0 bg-black/5 dark:bg-black/20" />
 
           {/* Menu button */}
           {community.isMember && (
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 z-10">
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
@@ -601,7 +765,7 @@ function CommunityDetailsModal({ community, isOpen, onClose, onJoin, onLeave, on
                 <MoreVertical size={18} className="text-white" />
               </button>
               {showMenu && (
-                <div className="absolute top-10 right-0 w-48 bg-(--bg-card) border border-(--border) rounded-xl shadow-lg overflow-hidden z-10">
+                <div className="absolute top-10 right-0 w-48 bg-(--bg-card) border border-(--border) rounded-xl shadow-lg overflow-hidden z-20">
                   {(community.role === "owner" || community.role === "admin") && (
                     <button
                       onClick={() => {
@@ -638,6 +802,31 @@ function CommunityDetailsModal({ community, isOpen, onClose, onJoin, onLeave, on
               )}
             </div>
           )}
+        </div>
+
+        <div className="px-2 mb-4">
+          {/* Avatar and Title Row */}
+          <div className="flex items-end gap-4 -mt-12 mb-3 relative z-10">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-(--bg-card) border-4 border-(--bg-card) shadow-sm shrink-0">
+              {community.image ? (
+                <Image
+                  src={community.image}
+                  alt={community.name}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-(--bg-muted)">
+                  <Users size={32} className="text-(--text-muted)" />
+                </div>
+              )}
+            </div>
+            <div className="mb-1">
+              <h2 className="text-xl font-bold text-(--text)">{community.name}</h2>
+              <p className="text-sm text-(--text-muted)">{community.category}</p>
+            </div>
+          </div>
         </div>
 
         {/* Description */}
@@ -1684,7 +1873,7 @@ export default function CommunitiesPage() {
               <Loader2 size={32} className="animate-spin text-primary-600" />
             </div>
           ) : communities.length > 0 ? (
-            <div className="space-y-3">
+            <div className="gap-3 flex flex-wrap w-full">
               {communities.map((community) => (
                 <CommunityChatCard
                   key={community.id}

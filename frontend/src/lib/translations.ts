@@ -3189,6 +3189,22 @@ export const translations = {
       ar: "الموصى به: 300x200 بكسل",
       en: "Recommended: 300x200px",
     },
+    recommendedCover: {
+      ar: "الموصى به: 800x300 بكسل",
+      en: "Recommended: 800x300px",
+    },
+    communityCoverImage: {
+      ar: "صورة الغلاف",
+      en: "Cover Image",
+    },
+    uploadCoverImage: {
+      ar: "رفع صورة الغلاف",
+      en: "Upload Cover Image",
+    },
+    changeCoverImage: {
+      ar: "تغيير صورة الغلاف",
+      en: "Change Cover Image",
+    },
     communityName: {
       ar: "اسم المجتمع",
       en: "Community Name",

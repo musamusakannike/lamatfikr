@@ -32,6 +32,7 @@ export interface Community {
   name: string;
   description: string;
   image?: string;
+  coverImage?: string;
   category: string;
   memberCount: number;
   owner: CommunityOwner;
@@ -77,6 +78,7 @@ export interface CreateCommunityData {
   name: string;
   description: string;
   image?: string;
+  coverImage?: string;
   category: string;
 }
 

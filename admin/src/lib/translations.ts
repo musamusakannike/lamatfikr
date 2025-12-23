@@ -529,6 +529,7 @@ export const translations = {
     colRoomType: { ar: "النوع", en: "Type" },
     colPrivate: { ar: "خاص", en: "Private" },
     colStatus: { ar: "الحالة", en: "Status" },
+    colCoverImage: { ar: "صورة الغلاف", en: "Cover Image" },
     colDeleted: { ar: "محذوف", en: "Deleted" },
     colCreatedAt: { ar: "تاريخ الإنشاء", en: "Created" },
     colActions: { ar: "إجراءات", en: "Actions" },
