@@ -70,60 +70,62 @@ export function UserCard({
     };
 
     return (
-        <Card
-            className="hover:shadow-md transition-shadow cursor-pointer"
+        <div
+            className="cursor-pointer"
             onClick={handleCardClick}
         >
-            <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 dark:bg-primary-900">
-                        <Image
-                            src={user.avatar || DEFAULT_AVATAR}
-                            alt={`${user.firstName} ${user.lastName}`}
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base truncate">
-                                {user.firstName} {user.lastName}
-                            </h3>
-                            {user.verified && <VerifiedBadge size={16} />}
+            <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                        {/* Avatar */}
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 dark:bg-primary-900">
+                            <Image
+                                src={user.avatar || DEFAULT_AVATAR}
+                                alt={`${user.firstName} ${user.lastName}`}
+                                fill
+                                className="object-cover"
+                            />
                         </div>
-                        <p className="text-sm text-(--text-muted) truncate">
-                            @{user.username}
-                        </p>
-                        {user.bio && (
-                            <p className="text-sm text-(--text-muted) line-clamp-1 mt-1">
-                                {user.bio}
+
+                        {/* User Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-base truncate">
+                                    {user.firstName} {user.lastName}
+                                </h3>
+                                {user.verified && <VerifiedBadge size={16} />}
+                            </div>
+                            <p className="text-sm text-(--text-muted) truncate">
+                                @{user.username}
                             </p>
+                            {user.bio && (
+                                <p className="text-sm text-(--text-muted) line-clamp-1 mt-1">
+                                    {user.bio}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Follow Button */}
+                        {showFollowButton && (
+                            <Button
+                                variant={isFollowing ? "secondary" : "primary"}
+                                size="sm"
+                                onClick={handleFollowToggle}
+                                disabled={isLoading}
+                                className="flex-shrink-0"
+                            >
+                                {isLoading ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : isFollowing ? (
+                                    t.following[language]
+                                ) : (
+                                    t.follow[language]
+                                )}
+                            </Button>
                         )}
                     </div>
-
-                    {/* Follow Button */}
-                    {showFollowButton && (
-                        <Button
-                            variant={isFollowing ? "secondary" : "primary"}
-                            size="sm"
-                            onClick={handleFollowToggle}
-                            disabled={isLoading}
-                            className="flex-shrink-0"
-                        >
-                            {isLoading ? (
-                                <Loader2 size={16} className="animate-spin" />
-                            ) : isFollowing ? (
-                                t.following[language]
-                            ) : (
-                                t.follow[language]
-                            )}
-                        </Button>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+        </div>
     );
 }

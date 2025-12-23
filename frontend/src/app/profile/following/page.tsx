@@ -162,7 +162,7 @@ export default function FollowingPage() {
                                     key={user._id}
                                     user={user}
                                     isFollowing={true}
-                                    showFollowButton={user._id !== authUser?._id}
+                                    showFollowButton={user._id !== authUser?.id}
                                     onFollowChange={handleFollowChange}
                                 />
                             ))}
