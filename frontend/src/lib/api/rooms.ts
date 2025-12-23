@@ -78,6 +78,8 @@ export interface RoomMessage {
   createdAt: string;
   editedAt?: string;
   deletedAt?: string;
+  isViewOnce?: boolean;
+  isExpired?: boolean;
 }
 
 export interface CreateRoomData {
@@ -261,7 +263,7 @@ export const roomsApi = {
   },
 
   // Send message
-  sendMessage: (roomId: string, data: { content?: string; media?: string[]; attachments?: RoomMessageAttachment[]; location?: RoomMessageLocation }) => {
+  sendMessage: (roomId: string, data: { content?: string; media?: string[]; attachments?: RoomMessageAttachment[]; location?: RoomMessageLocation; isViewOnce?: boolean }) => {
     return apiClient.post<{ message: string; data: RoomMessage }>(`/rooms/${roomId}/messages`, data);
   },
 
@@ -331,6 +333,13 @@ export const roomsApi = {
     return apiClient.patch<{ message: string; data: RoomMessage }>(
       `/rooms/${roomId}/messages/${messageId}`,
       { content }
+    );
+  },
+
+  // Mark message as viewed (View Once)
+  markAsViewed: (roomId: string, messageId: string) => {
+    return apiClient.post<{ message: string; data: { content?: string; media?: string[]; attachments?: RoomMessageAttachment[] } }>(
+      `/rooms/${roomId}/messages/${messageId}/view`
     );
   },
 };

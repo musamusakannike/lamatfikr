@@ -74,6 +74,8 @@ export interface CommunityMessage {
   createdAt: string;
   editedAt?: string;
   deletedAt?: string;
+  isViewOnce?: boolean;
+  isExpired?: boolean;
 }
 
 export interface CreateCommunityData {
@@ -182,7 +184,7 @@ export const communitiesApi = {
   },
 
   // Send message
-  sendMessage: (communityId: string, data: { content?: string; media?: string[]; attachments?: CommunityMessageAttachment[]; location?: CommunityMessageLocation }) => {
+  sendMessage: (communityId: string, data: { content?: string; media?: string[]; attachments?: CommunityMessageAttachment[]; location?: CommunityMessageLocation; isViewOnce?: boolean }) => {
     return apiClient.post<{ message: string; data: CommunityMessage }>(`/communities/${communityId}/messages`, data);
   },
 
@@ -218,6 +220,13 @@ export const communitiesApi = {
     return apiClient.patch<{ message: string; data: CommunityMessage }>(
       `/communities/${communityId}/messages/${messageId}`,
       { content }
+    );
+  },
+
+  // Mark message as viewed (View Once)
+  markAsViewed: (communityId: string, messageId: string) => {
+    return apiClient.post<{ message: string; data: { content?: string; media?: string[]; attachments?: CommunityMessageAttachment[] } }>(
+      `/communities/${communityId}/messages/${messageId}/view`
     );
   },
 };

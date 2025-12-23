@@ -25,6 +25,7 @@ import {
   getTotalUnreadCount,
   deleteMessage,
   editMessage,
+  markAsViewed,
 } from "../controllers/room.controller";
 
 export const roomsRouter = Router();
@@ -58,6 +59,7 @@ roomsRouter.post("/:roomId/read", markRoomAsRead);
 roomsRouter.post("/:roomId/messages/:messageId/reactions", toggleReaction);
 roomsRouter.delete("/:roomId/messages/:messageId", deleteMessage);
 roomsRouter.patch("/:roomId/messages/:messageId", editMessage);
+roomsRouter.post("/:roomId/messages/:messageId/view", markAsViewed);
 
 // Invite links (private rooms)
 roomsRouter.post("/:roomId/invite-links", generateInviteLink);

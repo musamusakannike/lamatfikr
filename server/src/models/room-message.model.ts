@@ -32,6 +32,8 @@ export interface RoomMessage {
   reactions?: RoomMessageReaction[];
   deletedAt?: Date | null;
   editedAt?: Date | null;
+  isViewOnce?: boolean;
+  viewedBy?: ObjectId[];
 }
 
 const RoomMessageSchema = new Schema<RoomMessage>(
@@ -75,6 +77,8 @@ const RoomMessageSchema = new Schema<RoomMessage>(
     },
     deletedAt: { type: Date, default: null },
     editedAt: { type: Date, default: null },
+    isViewOnce: { type: Boolean, default: false },
+    viewedBy: { type: [{ type: Schema.Types.ObjectId, ref: "User" }], default: [] },
   },
   { timestamps: true }
 );

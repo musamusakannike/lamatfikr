@@ -33,6 +33,8 @@ export interface Message {
   deletedAt?: Date | null;
   expiresAt?: Date | null;
   editedAt?: Date | null;
+  isViewOnce?: boolean;
+  viewedBy?: ObjectId[];
 }
 
 const MessageSchema = new Schema<Message>(
@@ -77,6 +79,8 @@ const MessageSchema = new Schema<Message>(
     deletedAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
     editedAt: { type: Date, default: null },
+    isViewOnce: { type: Boolean, default: false },
+    viewedBy: { type: [{ type: Schema.Types.ObjectId, ref: "User" }], default: [] },
   },
   { timestamps: true }
 );

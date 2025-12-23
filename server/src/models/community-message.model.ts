@@ -32,6 +32,8 @@ export interface CommunityMessage {
   reactions?: CommunityMessageReaction[];
   deletedAt?: Date | null;
   editedAt?: Date | null;
+  isViewOnce?: boolean;
+  viewedBy?: ObjectId[];
 }
 
 const CommunityMessageSchema = new Schema<CommunityMessage>(
@@ -75,6 +77,8 @@ const CommunityMessageSchema = new Schema<CommunityMessage>(
     },
     deletedAt: { type: Date, default: null },
     editedAt: { type: Date, default: null },
+    isViewOnce: { type: Boolean, default: false },
+    viewedBy: { type: [{ type: Schema.Types.ObjectId, ref: "User" }], default: [] },
   },
   { timestamps: true }
 );

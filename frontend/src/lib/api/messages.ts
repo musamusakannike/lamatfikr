@@ -42,6 +42,8 @@ export interface Message {
   updatedAt: string;
   editedAt?: string;
   deletedAt?: string;
+  isViewOnce?: boolean;
+  isExpired?: boolean;
 }
 
 export interface Conversation {
@@ -88,6 +90,7 @@ export interface SendMessageData {
   media?: string[];
   attachments?: MessageAttachment[];
   location?: MessageLocation;
+  isViewOnce?: boolean;
 }
 
 export const messagesApi = {
@@ -139,6 +142,12 @@ export const messagesApi = {
     apiClient.patch<{ message: string; data: Message }>(
       `/messages/conversations/${conversationId}/messages/${messageId}`,
       { content }
+    ),
+
+  // Mark message as viewed (View Once)
+  markAsViewed: (conversationId: string, messageId: string) =>
+    apiClient.post<{ message: string; data: { content?: string; media?: string[]; attachments?: MessageAttachment[] } }>(
+      `/messages/conversations/${conversationId}/messages/${messageId}/view`
     ),
 
   // Mark conversation as read

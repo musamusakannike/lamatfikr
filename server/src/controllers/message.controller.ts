@@ -361,6 +361,7 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       attachments: attachments || [],
       location,
       expiresAt,
+      isViewOnce: validation.data.isViewOnce,
     });
 
     // Update conversation's lastMessageId
@@ -479,7 +480,20 @@ export const getMessages: RequestHandler = async (req, res, next) => {
     }
 
     res.json({
-      messages: messages.reverse(), // Return in chronological order
+      messages: messages.reverse().map((msg) => {
+        if (msg.isViewOnce) {
+          const hasViewed = (msg.viewedBy as unknown as Types.ObjectId[])?.some(id => id.toString() === userId);
+          // Sender cannot view their own view once message
+          if ((msg.senderId as unknown as { _id: Types.ObjectId })._id.toString() === userId) {
+            return { ...msg, content: undefined, media: [], attachments: [] };
+          }
+          // Receiver can only view it once
+          if (hasViewed) {
+            return { ...msg, content: undefined, media: [], attachments: [], isExpired: true };
+          }
+        }
+        return msg;
+      }),
       pagination: {
         page,
         limit,
@@ -761,6 +775,65 @@ export const updateConversationSettings: RequestHandler = async (req, res, next)
       message: "Settings updated",
       data: { disappearingMessagesDuration },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markAsViewed: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+
+    const message = await MessageModel.findOne({
+      _id: messageId,
+      conversationId,
+      deletedAt: null,
+    });
+
+    if (!message) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    if (!message.isViewOnce) {
+      res.status(400).json({ message: "Not a view once message" });
+      return;
+    }
+
+    // Add user to viewedBy if not already there
+    const viewedBy = (message.viewedBy as unknown as Types.ObjectId[]) || [];
+    if (!viewedBy.some(id => id.toString() === userId)) {
+      await MessageModel.updateOne(
+        { _id: messageId },
+        { $push: { viewedBy: userId } }
+      );
+    }
+
+    // Return the message content one last time? Or just success?
+    // Usually the client already has the content (if hidden by CSS) or needs to fetch it.
+    // If we hid it in getMessages, we might need to return it here.
+    // Let's return the content here.
+
+    res.json({
+      message: "Message marked as viewed",
+      data: {
+        content: message.content,
+        media: message.media,
+        attachments: message.attachments,
+      }
+    });
+
   } catch (error) {
     next(error);
   }

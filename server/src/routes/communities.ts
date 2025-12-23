@@ -17,6 +17,7 @@ import {
   toggleReaction,
   deleteMessage,
   editMessage,
+  markAsViewed,
 } from "../controllers/community.controller";
 
 export const communitiesRouter = Router();
@@ -46,3 +47,4 @@ communitiesRouter.post("/:communityId/read", markCommunityAsRead);
 communitiesRouter.post("/:communityId/messages/:messageId/reactions", toggleReaction);
 communitiesRouter.delete("/:communityId/messages/:messageId", deleteMessage);
 communitiesRouter.patch("/:communityId/messages/:messageId", editMessage);
+communitiesRouter.post("/:communityId/messages/:messageId/view", markAsViewed);

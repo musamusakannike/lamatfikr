@@ -988,6 +988,7 @@ export async function sendMessage(req: Request, res: Response, next: NextFunctio
       media: media || [],
       attachments: attachments || [],
       location,
+      isViewOnce: req.body.isViewOnce || false,
     });
 
     const populatedMessage = await RoomMessageModel.findById(message._id)
@@ -1140,18 +1141,90 @@ export async function getMessages(req: Request, res: Response, next: NextFunctio
       .lean();
 
     res.json({
-      messages: messages.reverse().map((m) => ({
-        id: m._id,
-        roomId: m.roomId,
-        sender: m.senderId,
-        content: m.content,
-        media: m.media,
-        attachments: (m as unknown as { attachments?: unknown[] })?.attachments,
-        location: (m as unknown as { location?: unknown })?.location,
-        reactions: (m as unknown as { reactions?: unknown[] })?.reactions,
-        createdAt: (m as unknown as { createdAt: Date }).createdAt,
-      })),
+      messages: messages.reverse().map((m) => {
+        if (m.isViewOnce) {
+          const hasViewed = (m.viewedBy as unknown as Types.ObjectId[])?.some(id => id.toString() === userId.toString());
+          if ((m.senderId as any)._id.toString() === userId.toString()) {
+            return { ...m, content: undefined, media: [], attachments: [], isViewOnce: true };
+          }
+          if (hasViewed) {
+            return { ...m, content: undefined, media: [], attachments: [], isViewOnce: true, isExpired: true };
+          }
+        }
+        return {
+          id: m._id,
+          roomId: m.roomId,
+          sender: m.senderId,
+          isViewOnce: m.isViewOnce,
+          content: m.content,
+          media: m.media,
+          attachments: (m as unknown as { attachments?: unknown[] })?.attachments,
+          location: (m as unknown as { location?: unknown })?.location,
+          reactions: (m as unknown as { reactions?: unknown[] })?.reactions,
+          createdAt: (m as unknown as { createdAt: Date }).createdAt,
+        };
+      }),
       hasMore: messages.length === Number(limit),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function markAsViewed(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId, messageId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(messageId)) {
+      res.status(400).json({ message: "Invalid ID" });
+      return;
+    }
+
+    // Check membership
+    const membership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!membership) {
+      res.status(403).json({ message: "You must be a member" });
+      return;
+    }
+
+    const message = await RoomMessageModel.findOne({
+      _id: messageId,
+      roomId,
+      deletedAt: null,
+    });
+
+    if (!message) {
+      res.status(404).json({ message: "Message not found" });
+      return;
+    }
+
+    if (!message.isViewOnce) {
+      res.status(400).json({ message: "Not a view once message" });
+      return;
+    }
+
+    const viewedBy = (message.viewedBy as unknown as Types.ObjectId[]) || [];
+    if (!viewedBy.some(id => id.toString() === userId.toString())) {
+      await RoomMessageModel.updateOne(
+        { _id: messageId },
+        { $push: { viewedBy: userId } }
+      );
+    }
+
+    res.json({
+      message: "Marked as viewed",
+      data: {
+        content: message.content,
+        media: message.media,
+        attachments: message.attachments,
+      }
     });
   } catch (error) {
     next(error);

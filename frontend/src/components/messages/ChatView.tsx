@@ -24,6 +24,8 @@ import {
     Edit2,
     Trash2,
     MoreHorizontal,
+    Eye,
+    EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -102,6 +104,7 @@ export function ChatView({
     const [showMobileOptions, setShowMobileOptions] = useState(false);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editContent, setEditContent] = useState("");
+    const [isViewOnce, setIsViewOnce] = useState(false);
 
     const [showDisappearingMessagesModal, setShowDisappearingMessagesModal] = useState(false);
     const [customDuration, setCustomDuration] = useState("");
@@ -455,6 +458,21 @@ export function ChatView({
         }
     };
 
+    const handleViewOnceMessage = async (messageId: string) => {
+        try {
+            const { data } = await messagesApi.markAsViewed(conversationId, messageId);
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m._id === messageId
+                        ? { ...m, ...data } // Update with content/media
+                        : m
+                )
+            );
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+        }
+    };
+
     // Handle typing indicator
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -511,6 +529,7 @@ export function ChatView({
                 .map((f) => ({ url: f.preview as string, type: f.file.type.startsWith("video/") ? "video" : "audio" })),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            isViewOnce: isViewOnce,
         };
 
         // Optimistic update
@@ -547,7 +566,10 @@ export function ChatView({
                 content: savedMessageText.trim() || undefined,
                 media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
                 attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
+                isViewOnce: isViewOnce,
             });
+
+            if (isViewOnce) setIsViewOnce(false);
 
             // Replace temp message with real one
             setMessages((prev) =>
@@ -888,129 +910,161 @@ export function ChatView({
                                             : "bg-primary-100 dark:bg-primary-900/40 text-(--text) rounded-bl-md"
                                     )}
                                 >
-                                    {/* Media */}
-                                    {message.media && message.media.length > 0 && (
-                                        <div className="mb-2 space-y-2">
-                                            {message.media.map((url, i) => (
-                                                <Image
-                                                    key={i}
-                                                    src={url}
-                                                    alt="Media"
-                                                    width={300}
-                                                    height={200}
-                                                    className="rounded-lg max-w-full"
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Attachments */}
-                                    {message.attachments && message.attachments.length > 0 && (
-                                        <div className="mb-2 space-y-2">
-                                            {message.attachments.map((att, i) => (
-                                                <div key={`${att.url}-${i}`}>
-                                                    {att.type === "video" ? (
-                                                        <video src={att.url} controls className="max-w-full rounded-lg" />
-                                                    ) : att.type === "audio" ? (
-                                                        <audio src={att.url} controls className="w-full" />
-                                                    ) : null}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Location */}
-                                    {message.location && (
-                                        <div
-                                            className={cn(
-                                                "mb-2 rounded-lg border overflow-hidden",
-                                                isOwnMessage ? "border-white/30" : "border-(--border)"
-                                            )}
-                                        >
-                                            <div className="h-36 w-full bg-(--bg)">
-                                                {leafletMounted ? (
-                                                    <MapContainer
-                                                        center={[message.location.lat, message.location.lng]}
-                                                        zoom={15}
-                                                        scrollWheelZoom={false}
-                                                        dragging={false}
-                                                        doubleClickZoom={false}
-                                                        zoomControl={false}
-                                                        attributionControl={false}
-                                                        className="h-full w-full"
-                                                    >
-                                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                                        <Marker
-                                                            position={[message.location.lat, message.location.lng]}
-                                                            icon={leafletMarkerIcon}
-                                                        />
-                                                    </MapContainer>
+                                    {/* View Once Logic */}
+                                    {message.isViewOnce && !message.content && (!message.media || message.media.length === 0) && (!message.attachments || message.attachments.length === 0) && !message.location ? (
+                                        <div className="flex items-center gap-3 p-2 min-w-[200px]">
+                                            <div className="bg-white/20 p-2 rounded-full">
+                                                <EyeOff size={24} className={isOwnMessage ? "text-white" : "text-primary-600"} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className={cn("font-medium text-sm", isOwnMessage ? "text-white" : "text-gray-900 dark:text-gray-100")}>
+                                                    {t("common", "viewOnceMessage") || "View Once Message"}
+                                                </span>
+                                                {isOwnMessage ? (
+                                                    <span className={cn("text-xs", "text-white/70")}>
+                                                        {t("common", "sent") || "Sent"}
+                                                    </span>
+                                                ) : message.isExpired ? (
+                                                    <span className="text-xs text-gray-500 italic">
+                                                        {t("common", "opened") || "Opened"}
+                                                    </span>
                                                 ) : (
-                                                    <div className="h-full w-full" />
+                                                    <button
+                                                        onClick={() => handleViewOnceMessage(message._id)}
+                                                        className={cn("text-xs underline text-left", "text-primary-600 dark:text-primary-400")}
+                                                    >
+                                                        {t("common", "tapToView") || "Tap to view"}
+                                                    </button>
                                                 )}
-                                            </div>
-                                            <div className="p-2">
-                                                <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}>
-                                                    {message.location.label || "Location"}
-                                                </p>
-                                                <p className={cn("text-xs", isOwnMessage ? "text-white/80" : "text-(--text-muted)")}>
-                                                    {message.location.lat.toFixed(6)}, {message.location.lng.toFixed(6)}
-                                                </p>
-                                                <a
-                                                    href={`https://www.google.com/maps?q=${message.location.lat},${message.location.lng}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className={cn(
-                                                        "text-xs underline",
-                                                        isOwnMessage ? "text-white/80" : "text-primary-600"
-                                                    )}
-                                                >
-                                                    Open in Maps
-                                                </a>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Content */}
-                                    {/* Content */}
-                                    {editingMessageId === message._id ? (
-                                        <div className="flex flex-col gap-2 min-w-[200px]">
-                                            <Input
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                className={cn(
-                                                    "h-8 text-sm",
-                                                    isOwnMessage ? "bg-white/10 border-white/20 text-white placeholder:text-white/50" : "bg-white border-gray-200 text-black"
-                                                )}
-                                                autoFocus
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter" && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        handleSaveEdit(message._id);
-                                                    }
-                                                    if (e.key === "Escape") handleCancelEdit();
-                                                }}
-                                            />
-                                            <div className="flex justify-end gap-2">
-                                                <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
-                                                    {t("common", "cancel")}
-                                                </Button>
-                                                <Button size="sm" variant={isOwnMessage ? "secondary" : "primary"} className="h-6 text-xs px-2" onClick={() => handleSaveEdit(message._id)}>
-                                                    {t("common", "save")}
-                                                </Button>
                                             </div>
                                         </div>
                                     ) : (
-                                        message.content && (
-                                            <p className="whitespace-pre-wrap wrap-break-word">
-                                                {message.content}
-                                                {message.editedAt && (
-                                                    <span className="text-[10px] opacity-70 ml-1 italic whitespace-nowrap">
-                                                        (edited)
-                                                    </span>
-                                                )}
-                                            </p>
-                                        )
+                                        <>
+                                            {/* Media */}
+                                            {message.media && message.media.length > 0 && (
+                                                <div className="mb-2 space-y-2">
+                                                    {message.media.map((url, i) => (
+                                                        <Image
+                                                            key={i}
+                                                            src={url}
+                                                            alt="Media"
+                                                            width={300}
+                                                            height={200}
+                                                            className="rounded-lg max-w-full"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Attachments */}
+                                            {message.attachments && message.attachments.length > 0 && (
+                                                <div className="mb-2 space-y-2">
+                                                    {message.attachments.map((att, i) => (
+                                                        <div key={`${att.url}-${i}`}>
+                                                            {att.type === "video" ? (
+                                                                <video src={att.url} controls className="max-w-full rounded-lg" />
+                                                            ) : att.type === "audio" ? (
+                                                                <audio src={att.url} controls className="w-full" />
+                                                            ) : null}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Location */}
+                                            {message.location && (
+                                                <div
+                                                    className={cn(
+                                                        "mb-2 rounded-lg border overflow-hidden",
+                                                        isOwnMessage ? "border-white/30" : "border-(--border)"
+                                                    )}
+                                                >
+                                                    <div className="h-36 w-full bg-(--bg)">
+                                                        {leafletMounted ? (
+                                                            <MapContainer
+                                                                center={[message.location.lat, message.location.lng]}
+                                                                zoom={15}
+                                                                scrollWheelZoom={false}
+                                                                dragging={false}
+                                                                doubleClickZoom={false}
+                                                                zoomControl={false}
+                                                                attributionControl={false}
+                                                                className="h-full w-full"
+                                                            >
+                                                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                                                <Marker
+                                                                    position={[message.location.lat, message.location.lng]}
+                                                                    icon={leafletMarkerIcon}
+                                                                />
+                                                            </MapContainer>
+                                                        ) : (
+                                                            <div className="h-full w-full" />
+                                                        )}
+                                                    </div>
+                                                    <div className="p-2">
+                                                        <p className={cn("text-sm", isOwnMessage ? "text-white" : "text-(--text)")}>
+                                                            {message.location.label || "Location"}
+                                                        </p>
+                                                        <p className={cn("text-xs", isOwnMessage ? "text-white/80" : "text-(--text-muted)")}>
+                                                            {message.location.lat.toFixed(6)}, {message.location.lng.toFixed(6)}
+                                                        </p>
+                                                        <a
+                                                            href={`https://www.google.com/maps?q=${message.location.lat},${message.location.lng}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className={cn(
+                                                                "text-xs underline",
+                                                                isOwnMessage ? "text-white/80" : "text-primary-600"
+                                                            )}
+                                                        >
+                                                            Open in Maps
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Content */}
+                                            {/* Content */}
+                                            {editingMessageId === message._id ? (
+                                                <div className="flex flex-col gap-2 min-w-[200px]">
+                                                    <Input
+                                                        value={editContent}
+                                                        onChange={(e) => setEditContent(e.target.value)}
+                                                        className={cn(
+                                                            "h-8 text-sm",
+                                                            isOwnMessage ? "bg-white/10 border-white/20 text-white placeholder:text-white/50" : "bg-white border-gray-200 text-black"
+                                                        )}
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter" && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                handleSaveEdit(message._id);
+                                                            }
+                                                            if (e.key === "Escape") handleCancelEdit();
+                                                        }}
+                                                    />
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={handleCancelEdit}>
+                                                            {t("common", "cancel")}
+                                                        </Button>
+                                                        <Button size="sm" variant={isOwnMessage ? "secondary" : "primary"} className="h-6 text-xs px-2" onClick={() => handleSaveEdit(message._id)}>
+                                                            {t("common", "save")}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                message.content && (
+                                                    <p className="whitespace-pre-wrap wrap-break-word">
+                                                        {message.content}
+                                                        {message.editedAt && (
+                                                            <span className="text-[10px] opacity-70 ml-1 italic whitespace-nowrap">
+                                                                (edited)
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                )
+                                            )}
+                                        </>
                                     )}
 
                                     {/* Reactions */}
@@ -1311,6 +1365,22 @@ export function ChatView({
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         >
                             <Smile size={20} />
+                        </Button>
+
+                        {/* View Once Toggle */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "shrink-0",
+                                isViewOnce
+                                    ? "text-primary-600 dark:text-primary-400"
+                                    : "text-(--text-muted)"
+                            )}
+                            onClick={() => setIsViewOnce(!isViewOnce)}
+                            title="View Once"
+                        >
+                            {isViewOnce ? <Eye size={20} /> : <EyeOff size={20} />}
                         </Button>
                     </div>
 

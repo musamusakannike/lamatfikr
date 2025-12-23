@@ -40,6 +40,8 @@ import {
   StopCircle,
   Edit2,
   MoreHorizontal,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
@@ -911,6 +913,7 @@ function ChatView({ community, onBack }: ChatViewProps) {
   const [showMembers, setShowMembers] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Array<{ file: File; preview?: string }>>([]);
+  const [isViewOnce, setIsViewOnce] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null);
@@ -1113,6 +1116,20 @@ function ChatView({ community, onBack }: ChatViewProps) {
     }
   };
 
+  const handleViewOnceMessage = async (messageId: string) => {
+    try {
+      await communitiesApi.markAsViewed(community.id, messageId);
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (getMessageId(msg) !== messageId) return msg;
+          return { ...msg, isExpired: true };
+        })
+      );
+    } catch (err) {
+      console.error("Failed to mark as viewed:", err);
+    }
+  };
+
   // Handle typing indicator
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -1162,7 +1179,9 @@ function ChatView({ community, onBack }: ChatViewProps) {
         content: savedMessage.trim() || undefined,
         media: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined,
         attachments: uploadedAttachments.length > 0 ? uploadedAttachments : undefined,
+        isViewOnce,
       });
+      setIsViewOnce(false);
       const sentId = getMessageId(response.data);
       setMessages((prev) => {
         if (!sentId) return prev;
@@ -1368,82 +1387,114 @@ function ChatView({ community, onBack }: ChatViewProps) {
                           </div>
                         ) : (
                           <>
-                            {msg.content && (
-                              <p className="text-(--text) text-sm mt-0.5 wrap-break-word">
-                                {msg.content}
-                                {msg.editedAt && (
-                                  <span className="text-[10px] text-(--text-muted) ml-1 italic whitespace-nowrap">
-                                    {t("common", "edited")}
+                            {/* View Once Logic */}
+                            {msg.isViewOnce && !msg.content && (!msg.media || msg.media.length === 0) && (!msg.attachments || msg.attachments.length === 0) && !msg.location ? (
+                              <div className="flex items-center gap-3 p-2 min-w-[200px]">
+                                <div className="bg-white/20 p-2 rounded-full">
+                                  <EyeOff size={24} className={isOwnMessage ? "text-white" : "text-primary-600"} />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className={cn("font-medium text-sm", isOwnMessage ? "text-white" : "text-gray-900 dark:text-gray-100")}>
+                                    {t("common", "viewOnceMessage")}
                                   </span>
-                                )}
-                              </p>
-                            )}
-
-                            {msg.media && msg.media.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {msg.media.map((url, i) => (
-                                  <Image
-                                    key={i}
-                                    src={url}
-                                    alt="Media"
-                                    width={200}
-                                    height={150}
-                                    className="rounded-lg max-w-[200px] object-cover"
-                                  />
-                                ))}
-                              </div>
-                            )}
-
-                            {msg.attachments && msg.attachments.length > 0 && (
-                              <div className="flex flex-col gap-2 mt-2">
-                                {msg.attachments.map((att, i) => (
-                                  <div key={`${att.url}-${i}`}>
-                                    {att.type === "video" ? (
-                                      <video src={att.url} controls className="max-w-full rounded-lg" />
-                                    ) : att.type === "audio" ? (
-                                      <audio src={att.url} controls className="w-full" />
-                                    ) : null}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {msg.location && (
-                              <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
-                                <div className="h-32 w-full bg-(--bg)">
-                                  {leafletMounted ? (
-                                    <MapContainer
-                                      center={[msg.location.lat, msg.location.lng]}
-                                      zoom={15}
-                                      scrollWheelZoom={false}
-                                      dragging={false}
-                                      doubleClickZoom={false}
-                                      zoomControl={false}
-                                      attributionControl={false}
-                                      className="h-full w-full"
-                                    >
-                                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                      <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
-                                    </MapContainer>
+                                  {isOwnMessage ? (
+                                    <span className={cn("text-xs", "text-white/70")}>
+                                      {t("common", "sent")}
+                                    </span>
+                                  ) : msg.isExpired ? (
+                                    <span className="text-xs text-gray-500 italic">
+                                      {t("common", "opened")}
+                                    </span>
                                   ) : (
-                                    <div className="h-full w-full" />
+                                    <button
+                                      onClick={() => handleViewOnceMessage(messageId!)}
+                                      className={cn("text-xs underline text-left", "text-primary-600 dark:text-primary-400")}
+                                    >
+                                      {t("common", "tapToView")}
+                                    </button>
                                   )}
                                 </div>
-                                <div className="p-2">
-                                  <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
-                                  <p className="text-xs text-(--text-muted)">
-                                    {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
-                                  </p>
-                                  <a
-                                    href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-xs underline text-primary-600"
-                                  >
-                                    Open in Maps
-                                  </a>
-                                </div>
                               </div>
+                            ) : (
+                              <>
+                                {msg.content && (
+                                  <p className="text-(--text) text-sm mt-0.5 wrap-break-word">
+                                    {msg.content}
+                                    {msg.editedAt && (
+                                      <span className="text-[10px] text-(--text-muted) ml-1 italic whitespace-nowrap">
+                                        {t("common", "edited")}
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+
+                                {msg.media && msg.media.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {msg.media.map((url, i) => (
+                                      <Image
+                                        key={i}
+                                        src={url}
+                                        alt="Media"
+                                        width={200}
+                                        height={150}
+                                        className="rounded-lg max-w-[200px] object-cover"
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+
+                                {msg.attachments && msg.attachments.length > 0 && (
+                                  <div className="flex flex-col gap-2 mt-2">
+                                    {msg.attachments.map((att, i) => (
+                                      <div key={`${att.url}-${i}`}>
+                                        {att.type === "video" ? (
+                                          <video src={att.url} controls className="max-w-full rounded-lg" />
+                                        ) : att.type === "audio" ? (
+                                          <audio src={att.url} controls className="w-full" />
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {msg.location && (
+                                  <div className="mt-2 rounded-lg border border-(--border) overflow-hidden">
+                                    <div className="h-32 w-full bg-(--bg)">
+                                      {leafletMounted ? (
+                                        <MapContainer
+                                          center={[msg.location.lat, msg.location.lng]}
+                                          zoom={15}
+                                          scrollWheelZoom={false}
+                                          dragging={false}
+                                          doubleClickZoom={false}
+                                          zoomControl={false}
+                                          attributionControl={false}
+                                          className="h-full w-full"
+                                        >
+                                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                          <Marker position={[msg.location.lat, msg.location.lng]} icon={leafletMarkerIcon} />
+                                        </MapContainer>
+                                      ) : (
+                                        <div className="h-full w-full" />
+                                      )}
+                                    </div>
+                                    <div className="p-2">
+                                      <p className="text-sm text-(--text)">{msg.location.label || "Location"}</p>
+                                      <p className="text-xs text-(--text-muted)">
+                                        {msg.location.lat.toFixed(6)}, {msg.location.lng.toFixed(6)}
+                                      </p>
+                                      <a
+                                        href={`https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-xs underline text-primary-600"
+                                      >
+                                        Open in Maps
+                                      </a>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
                             )}
 
                             {(msg.reactions && msg.reactions.length > 0) && (
@@ -1638,6 +1689,23 @@ function ChatView({ community, onBack }: ChatViewProps) {
                       <MapPin size={20} />
                     </button>
 
+                    {/* View Once Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsViewOnce(!isViewOnce);
+                        setShowMobileOptions(false);
+                      }}
+                      className={cn(
+                        "p-2.5 rounded-lg transition-colors",
+                        isViewOnce
+                          ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                          : "text-(--text-muted) hover:bg-(--bg)"
+                      )}
+                    >
+                      {isViewOnce ? <Eye size={20} /> : <EyeOff size={20} />}
+                    </button>
+
                     {/* Emoji */}
                     <button
                       type="button"
@@ -1727,6 +1795,21 @@ function ChatView({ community, onBack }: ChatViewProps) {
                   )}
                 >
                   <Smile size={20} />
+                </button>
+
+                {/* View Once Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsViewOnce(!isViewOnce)}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-colors",
+                    isViewOnce
+                      ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/30"
+                      : "text-(--text-muted) hover:bg-(--bg)"
+                  )}
+                  title={t("common", "viewOnceMessage")}
+                >
+                  {isViewOnce ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
 
                 {showEmojiPicker && (

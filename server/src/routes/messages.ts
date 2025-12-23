@@ -13,6 +13,7 @@ import {
   toggleReaction,
   updateConversationSettings,
   editMessage,
+  markAsViewed,
 } from "../controllers/message.controller";
 
 export const messagesRouter = Router();
@@ -33,6 +34,11 @@ messagesRouter.post(
   "/conversations/:conversationId/messages/:messageId/reactions",
   requireAuth,
   toggleReaction
+);
+messagesRouter.post(
+  "/conversations/:conversationId/messages/:messageId/view",
+  requireAuth,
+  markAsViewed
 );
 
 // Unread count

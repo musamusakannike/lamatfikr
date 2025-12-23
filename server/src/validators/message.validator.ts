@@ -24,6 +24,7 @@ export const sendMessageSchema = z.object({
       label: z.string().optional(),
     })
     .optional(),
+  isViewOnce: z.boolean().default(false),
 }).refine(
   (data) =>
     !!data.content ||

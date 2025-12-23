@@ -135,6 +135,22 @@ export const translations = {
       ar: "يمكنك تعديل الرسائل فقط خلال ساعة واحدة من إرسالها",
       en: "You can only edit messages within 1 hour of sending",
     },
+    viewOnceMessage: {
+      ar: "رسالة تُعرض لمرة واحدة",
+      en: "View Once Message",
+    },
+    tapToView: {
+      ar: "اضغط للعرض",
+      en: "Tap to view",
+    },
+    opened: {
+      ar: "تم الفتح",
+      en: "Opened",
+    },
+    sent: {
+      ar: "تم الإرسال",
+      en: "Sent",
+    },
   },
 
   // Legal
