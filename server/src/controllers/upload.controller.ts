@@ -27,6 +27,17 @@ const ALLOWED_AUDIO_TYPES = [
   "audio/ogg",
 ];
 
+const ALLOWED_DOCUMENT_TYPES = [
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-rar-compressed",
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "text/plain",
+  "application/epub+zip",
+];
+
 export const uploadImage: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.userId;
@@ -89,20 +100,21 @@ export const uploadMedia: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const allowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_AUDIO_TYPES];
+    const allowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_AUDIO_TYPES, ...ALLOWED_DOCUMENT_TYPES];
     if (!allowedTypes.includes(file.mimetype)) {
       res.status(400).json({
-        message: "Invalid file type. Allowed: images (JPEG, PNG, GIF, WebP, SVG), videos (MP4, WebM, MOV), and audio (WebM, MP3, WAV, OGG)",
+        message: "Invalid file type. Allowed: images, videos, audio, and documents (PDF, DOC, ZIP)",
       });
       return;
     }
 
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.mimetype);
     const isAudio = ALLOWED_AUDIO_TYPES.includes(file.mimetype);
-    const folder = (req.query.folder as string) || (isVideo ? "videos" : isAudio ? "audio" : "images");
+    const isDocument = ALLOWED_DOCUMENT_TYPES.includes(file.mimetype);
+    const folder = (req.query.folder as string) || (isVideo ? "videos" : isAudio ? "audio" : isDocument ? "documents" : "images");
 
     const optimized =
-      !isVideo && !isAudio && ALLOWED_IMAGE_TYPES.includes(file.mimetype)
+      !isVideo && !isAudio && !isDocument && ALLOWED_IMAGE_TYPES.includes(file.mimetype)
         ? await optimizeImageBuffer(file)
         : { buffer: file.buffer };
 
@@ -126,7 +138,7 @@ export const uploadMedia: RequestHandler = async (req, res, next) => {
       message: "File uploaded successfully",
       url: result.url,
       key: result.key,
-      type: isVideo ? "video" : isAudio ? "audio" : "image",
+      type: isVideo ? "video" : isAudio ? "audio" : isDocument ? "document" : "image",
     });
   } catch (error) {
     next(error);

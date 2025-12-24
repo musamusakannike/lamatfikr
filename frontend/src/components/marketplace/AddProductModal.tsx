@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon, Laptop, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatCurrency, getCurrencySymbol } from "@/lib/utils/formatCurrency";
-import { uploadApi } from "@/lib/api";
+import { getCurrencySymbol } from "@/lib/utils/formatCurrency";
+import { uploadApi } from "@/lib/api/upload";
+import Image from "next/image";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -173,7 +174,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       // errors state definition: const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
       // So yes, I can use digitalFile.
       // But the value is string.
-      (newErrors as any).digitalFile = t("marketplace", "digitalFileRequired");
+      newErrors.digitalFile = t("marketplace", "digitalFileRequired");
     }
 
     setErrors(newErrors);
@@ -257,6 +258,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                   type="file"
                   id="digital-file-upload"
                   className="hidden"
+                  accept=".pdf,.doc,.docx,.zip,.rar,.epub,.txt,image/*"
                   onChange={handleFileChange}
                 />
                 <label htmlFor="digital-file-upload" className="cursor-pointer flex flex-col items-center">
@@ -285,8 +287,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
                 </button>
               </div>
             )}
-            {(errors as any).digitalFile && ( // Casting errors to access dynamic key
-              <p className="text-red-500 text-sm mt-1">{(errors as any).digitalFile}</p>
+            {errors.digitalFile && (
+              <p className="text-red-500 text-sm mt-1">{errors.digitalFile}</p>
             )}
           </div>
         )}
@@ -300,7 +302,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           <div className="grid grid-cols-4 gap-3">
             {formData.images.map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-(--border)">
-                <img src={image} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                <Image src={image} alt={`Product ${index + 1}`} fill className="object-cover" />
                 <button
                   type="button"
                   onClick={() => handleImageRemove(index)}

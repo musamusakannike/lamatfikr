@@ -2501,6 +2501,10 @@ export const translations = {
       ar: "لا توجد طلبات بعد",
       en: "No orders yet",
     },
+    supportedFiles: {
+      ar: "الصور، PDF، مستندات (DOC, DOCX)، ملفات مضغوطة (ZIP, RAR)",
+      en: "Images, PDF, Documents (DOC, DOCX), Archives (ZIP, RAR)",
+    },
     download: {
       ar: "تحميل",
       en: "Download",
