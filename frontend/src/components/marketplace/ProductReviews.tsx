@@ -1,5 +1,5 @@
 "use client";
-
+import NextImage from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -303,12 +303,13 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
             >
               <div className="flex gap-3">
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
                   {review.userId.avatar ? (
-                    <img
+                    <NextImage
                       src={review.userId.avatar}
                       alt={review.userId.displayName || review.userId.username}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -364,12 +365,13 @@ export function ProductReviews({ productId, productTitle }: ProductReviewsProps)
                       {review.images.map((image, index) => (
                         <div
                           key={index}
-                          className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
+                          className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
                         >
-                          <img
+                          <NextImage
                             src={image}
                             alt={`Review image ${index + 1}`}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                         </div>
                       ))}

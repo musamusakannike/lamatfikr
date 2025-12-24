@@ -10,6 +10,7 @@ import { useState } from "react";
 import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
@@ -60,6 +61,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToCart }: ProductCardProps) {
+  const { t } = useLanguage();
   const [isLiked, setIsLiked] = useState(product.isFavorited || false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -70,11 +72,12 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
     : 0;
 
   const productImage = product.image || product.images?.[0] || "https://via.placeholder.com/400";
-  const sellerName = product.seller?.displayName || product.seller?.username || product.seller?.name || "Unknown Seller";
+  const sellerName = product.seller?.displayName || product.seller?.username || product.seller?.name || t("marketplace", "unknownSeller");
   const sellerAvatar = product.seller?.avatar || "https://via.placeholder.com/100";
   const isVerified = product.seller?.isVerified || product.seller?.verified || false;
   const reviewCount = product.reviewCount || product.reviews || 0;
   const inStock = product.inStock !== undefined ? product.inStock : product.quantity > 0;
+  // Use current date for "New" calculation if createdAt exists
   const isNew = product.createdAt ? (Date.now() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
@@ -86,9 +89,9 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
       const response = await marketplaceApi.toggleFavorite(product._id);
       setIsLiked(response.isFavorited);
       onFavoriteChange?.(product._id, response.isFavorited);
-      toast.success(response.isFavorited ? "Added to favorites" : "Removed from favorites");
+      toast.success(response.isFavorited ? t("marketplace", "addedToFavorites") : t("marketplace", "removedFromFavorites"));
     } catch {
-      toast.error("Failed to update favorites");
+      toast.error(t("marketplace", "failedToUpdateFavorites"));
     } finally {
       setIsTogglingFavorite(false);
     }
@@ -124,18 +127,18 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {isNew && (
-            <Badge variant="primary" size="sm">New</Badge>
+            <Badge variant="primary" size="sm">{t("marketplace", "new")}</Badge>
           )}
           {discount > 0 && (
             <Badge variant="danger" size="sm">-{discount}%</Badge>
           )}
           {product.isFeatured && (
-            <Badge variant="warning" size="sm">Featured</Badge>
+            <Badge variant="warning" size="sm">{t("marketplace", "featured")}</Badge>
           )}
           {product.type === "digital" && (
             <Badge variant="default" size="sm" className="bg-purple-500 text-white flex items-center gap-1">
               <Laptop size={10} />
-              Digital
+              {t("marketplace", "digitalProduct")}
             </Badge>
           )}
         </div>
@@ -170,7 +173,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
         {/* Out of Stock Overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <span className="text-white font-semibold text-lg">Out of Stock</span>
+            <span className="text-white font-semibold text-lg">{t("marketplace", "outOfStock")}</span>
           </div>
         )}
       </div>
@@ -256,7 +259,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
           ) : (
             <ShoppingCart size={18} />
           )}
-          {isAddingToCart ? "Adding..." : "Add to Cart"}
+          {isAddingToCart ? t("marketplace", "adding") : t("marketplace", "addToCart")}
         </button>
       </div>
     </Card>

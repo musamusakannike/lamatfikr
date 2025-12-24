@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon, Laptop, Box } from "lucide-react";
+import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon, Laptop, Box, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCurrencySymbol } from "@/lib/utils/formatCurrency";
@@ -36,16 +36,16 @@ export interface ProductFormData {
 }
 
 const categories = [
-  "Electronics",
-  "Clothing",
-  "Books",
-  "Home & Garden",
-  "Sports",
-  "Beauty",
-  "Toys",
-  "Automotive",
-  "Food & Beverages",
-  "Other",
+  { value: "Electronics", key: "cat_Electronics" },
+  { value: "Clothing", key: "cat_Clothing" },
+  { value: "Books", key: "cat_Books" },
+  { value: "Home & Garden", key: "cat_HomeGarden" },
+  { value: "Sports", key: "cat_Sports" },
+  { value: "Beauty", key: "cat_Beauty" },
+  { value: "Toys", key: "cat_Toys" },
+  { value: "Automotive", key: "cat_Automotive" },
+  { value: "Food & Beverages", key: "cat_FoodBeverages" },
+  { value: "Other", key: "cat_Other" },
 ];
 
 export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalProps) {
@@ -470,8 +470,9 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           >
             <option value="">{t("marketplace", "selectCategoryPlaceholder")}</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
+              <option key={cat.value} value={cat.value}>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {t("marketplace", cat.key as any)}
               </option>
             ))}
           </select>
@@ -539,7 +540,7 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           <Button type="submit" variant="primary" className="flex-1" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <span className="animate-spin mr-2">⏳</span>
+                <Loader2 size={18} className="animate-spin mr-2" />
                 {t("marketplace", "adding")}
               </>
             ) : (

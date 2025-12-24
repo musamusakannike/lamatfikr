@@ -2547,7 +2547,7 @@ export const translations = {
     },
     ordersNeedAttention: {
       ar: "طلبات تحتاج متابعة",
-      en: "orders need attention",
+      en: "Orders need attention",
     },
     manageListings: {
       ar: "إدارة الإعلانات",
@@ -2649,7 +2649,95 @@ export const translations = {
     },
     productImageAlt: {
       ar: "صورة المنتج",
-      en: "Product image",
+      en: "Product Image",
+    },
+    reviewSingular: {
+      ar: "تقييم",
+      en: "Review",
+    },
+    reviewsPlural: {
+      ar: "تقييمات",
+      en: "Reviews",
+    },
+    poor: {
+      ar: "سيء",
+      en: "Poor",
+    },
+    fair: {
+      ar: "مقبول",
+      en: "Fair",
+    },
+    good: {
+      ar: "جيد",
+      en: "Good",
+    },
+    veryGood: {
+      ar: "جيد جداً",
+      en: "Very Good",
+    },
+    excellent: {
+      ar: "ممتاز",
+      en: "Excellent",
+    },
+    reviewPlaceholder: {
+      ar: "شارك رايك مع الآخرين...",
+      en: "Share your thoughts with other customers...",
+    },
+    submitting: {
+      ar: "جاري الإرسال...",
+      en: "Submitting...",
+    },
+    submitReview: {
+      ar: "إرسال التقييم",
+      en: "Submit Review",
+    },
+    noReviewsYet: {
+      ar: "لا يوجد تقييمات بعد",
+      en: "No reviews yet",
+    },
+    beFirstToReview: {
+      ar: "كن أول من يقيم هذا المنتج",
+      en: "Be the first to review this product",
+    },
+    verifiedPurchase: {
+      ar: "شراء مؤكد",
+      en: "Verified Purchase",
+    },
+    foundHelpful: {
+      ar: "وجدوا هذا مفيداً",
+      en: "found this helpful",
+    },
+    pleaseLoginToReview: {
+      ar: "يرجى تسجيل الدخول لكتابة تقييم",
+      en: "Please login to write a review",
+    },
+    pleaseSelectRating: {
+      ar: "يرجى اختيار تقييم",
+      en: "Please select a rating",
+    },
+    reviewSubmitted: {
+      ar: "تم إرسال التقييم بنجاح",
+      en: "Review submitted successfully",
+    },
+    failedToSubmitReview: {
+      ar: "فشل إرسال التقييم",
+      en: "Failed to submit review",
+    },
+    writeAReview: {
+      ar: "اكتب تقييماً",
+      en: "Write a Review",
+    },
+    writeYourReview: {
+      ar: "اكتب تقييمك",
+      en: "Write Your Review",
+    },
+    yourRating: {
+      ar: "تقييمك",
+      en: "Your Rating",
+    },
+    yourReviewOptional: {
+      ar: "مراجعتك (اختياري)",
+      en: "Your Review (Optional)",
     },
     descriptionTab: {
       ar: "الوصف",
@@ -2687,95 +2775,18 @@ export const translations = {
       ar: "غير معروف",
       en: "Unknown",
     },
+    digitalFileRequired: { ar: "ملف رقمي مطلوب للمنتجات الرقمية", en: "Digital file is required for digital products" },
+    cat_Electronics: { ar: "إلكترونيات", en: "Electronics" },
+    cat_Clothing: { ar: "ملابس", en: "Clothing" },
+    cat_Books: { ar: "كتب", en: "Books" },
+    cat_HomeGarden: { ar: "المنزل والحديقة", en: "Home & Garden" },
+    cat_Sports: { ar: "رياضة", en: "Sports" },
+    cat_Beauty: { ar: "تجميل", en: "Beauty" },
+    cat_Toys: { ar: "ألعاب", en: "Toys" },
+    cat_Automotive: { ar: "سيارات", en: "Automotive" },
+    cat_FoodBeverages: { ar: "طعام ومشروبات", en: "Food & Beverages" },
+    cat_Other: { ar: "أخرى", en: "Other" },
 
-    writeAReview: {
-      ar: "اكتب تقييماً",
-      en: "Write a Review",
-    },
-    writeYourReview: {
-      ar: "اكتب تقييمك",
-      en: "Write Your Review",
-    },
-    yourRating: {
-      ar: "تقييمك",
-      en: "Your Rating",
-    },
-    yourReviewOptional: {
-      ar: "مراجعتك (اختياري)",
-      en: "Your Review (Optional)",
-    },
-    reviewPlaceholder: {
-      ar: "شارك تجربتك مع هذا المنتج...",
-      en: "Share your experience with this product...",
-    },
-    submitReview: {
-      ar: "إرسال التقييم",
-      en: "Submit Review",
-    },
-    submitting: {
-      ar: "جاري الإرسال...",
-      en: "Submitting...",
-    },
-    pleaseLoginToReview: {
-      ar: "يرجى تسجيل الدخول لإرسال تقييم",
-      en: "Please login to submit a review",
-    },
-    pleaseSelectRating: {
-      ar: "يرجى اختيار تقييم",
-      en: "Please select a rating",
-    },
-    reviewSubmitted: {
-      ar: "تم إرسال التقييم بنجاح!",
-      en: "Review submitted successfully!",
-    },
-    failedToSubmitReview: {
-      ar: "فشل إرسال التقييم",
-      en: "Failed to submit review",
-    },
-    reviewSingular: {
-      ar: "تقييم",
-      en: "review",
-    },
-    reviewsPlural: {
-      ar: "تقييمات",
-      en: "reviews",
-    },
-    noReviewsYet: {
-      ar: "لا توجد تقييمات بعد",
-      en: "No reviews yet",
-    },
-    beFirstToReview: {
-      ar: "كن أول من يقيّم هذا المنتج!",
-      en: "Be the first to review this product!",
-    },
-    verifiedPurchase: {
-      ar: "شراء موثق",
-      en: "Verified Purchase",
-    },
-    foundHelpful: {
-      ar: "وجدوا هذا مفيداً",
-      en: "found this helpful",
-    },
-    poor: {
-      ar: "سيئ",
-      en: "Poor",
-    },
-    fair: {
-      ar: "مقبول",
-      en: "Fair",
-    },
-    good: {
-      ar: "جيد",
-      en: "Good",
-    },
-    veryGood: {
-      ar: "جيد جداً",
-      en: "Very Good",
-    },
-    excellent: {
-      ar: "ممتاز",
-      en: "Excellent",
-    },
   },
 
   // Profile Page
