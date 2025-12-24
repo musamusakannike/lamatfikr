@@ -2501,6 +2501,34 @@ export const translations = {
       ar: "لا توجد طلبات بعد",
       en: "No orders yet",
     },
+    download: {
+      ar: "تحميل",
+      en: "Download",
+    },
+    digitalFiles: {
+      ar: "ملفات رقمية",
+      en: "Digital Files",
+    },
+    digitalProduct: {
+      ar: "منتج رقمي",
+      en: "Digital Product",
+    },
+    physicalProduct: {
+      ar: "منتج مادي",
+      en: "Physical Product",
+    },
+    instantDownload: {
+      ar: "تحميل فوري",
+      en: "Instant Download",
+    },
+    verifiedFile: {
+      ar: "ملف موثوق",
+      en: "Verified File",
+    },
+    trackingNumberAutoSet: {
+      ar: "يتم استخدام رقم الطلب تلقائياً كرقم تتبع عند الشحن",
+      en: "Order number is automatically used as tracking number when shipped",
+    },
     quickActions: {
       ar: "إجراءات سريعة",
       en: "Quick Actions",

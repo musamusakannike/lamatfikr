@@ -6,6 +6,7 @@ import { env } from "../config/env.js";
 import {
   ProductModel,
   ProductStatus,
+  ProductType,
   ProductCondition,
   ProductFavoriteModel,
   ProductReviewModel,
@@ -49,6 +50,9 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
       quantity,
       isNegotiable,
       tags,
+      type,
+      digitalFile,
+      digitalInstructions,
     } = req.body;
 
     if (!title || !description || price === undefined || !category) {
@@ -58,6 +62,11 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 
     if (!images || images.length === 0) {
       res.status(400).json({ message: "At least one image is required" });
+      return;
+    }
+
+    if (type === ProductType.digital && !digitalFile) {
+      res.status(400).json({ message: "Digital file is required for digital products" });
       return;
     }
 
@@ -76,6 +85,9 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
       quantity: quantity ?? 1,
       isNegotiable: isNegotiable || false,
       tags,
+      type: type || ProductType.physical,
+      digitalFile,
+      digitalInstructions,
     });
 
     res.status(201).json({
@@ -663,6 +675,7 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
         price: product.price,
         image: product.images[0],
         quantity: item.quantity,
+        type: product.type, // Add type
         seller: sellerInfo ? {
           _id: sellerInfo._id,
           username: sellerInfo.username,
@@ -688,6 +701,7 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
             price: prod.price,
             image: prod.images[0],
             quantity: item.quantity,
+            type: prod.type, // Add type
             seller: sellerInfo ? {
               _id: sellerInfo._id,
               username: sellerInfo.username,
@@ -896,6 +910,12 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    const isDigital = product.type === ProductType.digital;
+    if (!isDigital && !shippingAddress) {
+      res.status(400).json({ message: "Shipping address is required for physical products" });
+      return;
+    }
+
     const subtotal = product.price * quantity;
     const shippingFee = 0; // Free shipping for now
     const serviceFee = 0;
@@ -912,6 +932,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
           price: product.price,
           quantity,
           image: product.images[0],
+          type: product.type, // Add type
         },
       ],
       subtotal,
@@ -989,6 +1010,17 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
       return;
     }
 
+    // Check if shipping address is required
+    const hasPhysicalItems = validItems.some((item) => {
+      const product = item.productId as any;
+      return product.type !== ProductType.digital;
+    });
+
+    if (hasPhysicalItems && !shippingAddress) {
+      res.status(400).json({ message: "Shipping address is required for physical products" });
+      return;
+    }
+
     // Create separate orders for each seller
     const orders = [];
 
@@ -1008,6 +1040,7 @@ export async function createOrderFromCart(req: Request, res: Response, next: Nex
           price: item.product.price,
           quantity: item.quantity,
           image: item.product.images[0],
+          type: item.product.type, // Add type
         })),
         subtotal,
         shippingFee,
@@ -1314,6 +1347,21 @@ export async function verifyOrderPayment(req: Request, res: Response, next: Next
       await ProductModel.updateOne(
         { _id: item.productId, quantity: { $lte: 0 } },
         { status: ProductStatus.sold }
+      );
+    }
+
+    // Check if order is digital-only and auto-complete
+    const productIds = order.items.map((i: any) => i.productId);
+    const products = await ProductModel.find({ _id: { $in: productIds } });
+    const isAllDigital = products.every((p) => p.type === ProductType.digital);
+
+    if (isAllDigital) {
+      await OrderModel.updateOne(
+        { _id: orderId },
+        {
+          status: OrderStatus.completed,
+          completedAt: new Date()
+        }
       );
     }
 
@@ -1647,6 +1695,56 @@ export async function getSellerStats(req: Request, res: Response, next: NextFunc
           completedOrders: revenueStats[0]?.orderCount || 0,
         },
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function downloadProduct(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { orderId, productId } = req.params;
+
+    if (!Types.ObjectId.isValid(orderId) || !Types.ObjectId.isValid(productId)) {
+      res.status(400).json({ message: "Invalid IDs" });
+      return;
+    }
+
+    // Verify order exists and user is buyer
+    const order = await OrderModel.findOne({
+      _id: orderId,
+      buyerId: userId,
+      status: { $in: [OrderStatus.paid, OrderStatus.processing, OrderStatus.completed, OrderStatus.delivered] }
+    });
+
+    if (!order) {
+      res.status(404).json({ message: "Order not found or not paid" });
+      return;
+    }
+
+    // Verify product is in order
+    const orderItem = order.items.find((item) => item.productId.toString() === productId);
+    if (!orderItem) {
+      res.status(400).json({ message: "Product not found in this order" });
+      return;
+    }
+
+    // Get product details
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+
+    if (product.type !== ProductType.digital || !product.digitalFile) {
+      res.status(400).json({ message: "This product is not a digital download" });
+      return;
+    }
+
+    res.json({
+      file: product.digitalFile,
+      instructions: product.digitalInstructions,
     });
   } catch (error) {
     next(error);

@@ -1,9 +1,11 @@
 "use client";
 
+import NextImage from "next/image";
+
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui";
 import { Badge } from "@/components/ui/Badge";
-import { Heart, ShoppingCart, Star, Eye, Loader2 } from "lucide-react";
+import { Heart, ShoppingCart, Star, Eye, Loader2, Laptop } from "lucide-react";
 import { useState } from "react";
 import { marketplaceApi } from "@/lib/api/marketplace";
 import toast from "react-hot-toast";
@@ -27,6 +29,7 @@ export interface Product {
   rating: number;
   reviewCount: number;
   reviews?: number;
+  type?: "physical" | "digital";
   seller: {
     _id?: string;
     username?: string;
@@ -111,14 +114,15 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
     <Card hover className="overflow-hidden group">
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
-        <img
+        <NextImage
           src={productImage}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {isNew && (
             <Badge variant="primary" size="sm">New</Badge>
           )}
@@ -128,10 +132,16 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
           {product.isFeatured && (
             <Badge variant="warning" size="sm">Featured</Badge>
           )}
+          {product.type === "digital" && (
+            <Badge variant="default" size="sm" className="bg-purple-500 text-white flex items-center gap-1">
+              <Laptop size={10} />
+              Digital
+            </Badge>
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={handleToggleFavorite}
             disabled={isTogglingFavorite}
@@ -159,7 +169,7 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
 
         {/* Out of Stock Overlay */}
         {!inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
             <span className="text-white font-semibold text-lg">Out of Stock</span>
           </div>
         )}
@@ -214,11 +224,14 @@ export function ProductCard({ product, onViewDetails, onFavoriteChange, onAddToC
 
         {/* Seller */}
         <div className="flex items-center gap-2 pt-2 border-t border-(--border)">
-          <img
-            src={sellerAvatar}
-            alt={sellerName}
-            className="w-6 h-6 rounded-full object-cover"
-          />
+          <div className="relative w-6 h-6 rounded-full overflow-hidden">
+            <NextImage
+              src={sellerAvatar}
+              alt={sellerName}
+              fill
+              className="object-cover"
+            />
+          </div>
           <span className="text-xs text-(--text-muted) truncate">
             {sellerName}
           </span>

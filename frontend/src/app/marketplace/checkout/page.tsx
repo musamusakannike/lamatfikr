@@ -66,7 +66,11 @@ export default function CheckoutPage() {
     setShippingAddress((prev) => ({ ...prev, [field]: value }));
   };
 
+  const isAllDigital = cart?.items.every(item => item.type === "digital");
+
   const validateForm = () => {
+    if (isAllDigital) return true;
+
     if (!shippingAddress.fullName.trim()) {
       toast.error(t("marketplace", "pleaseEnterFullName"));
       return false;
@@ -193,123 +197,125 @@ export default function CheckoutPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column - Forms */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Shipping Address */}
-              <Card className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
-                    <MapPin size={20} className="text-primary-600" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-(--text)">
-                    {t("marketplace", "shippingAddress")}
-                  </h2>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "fullName")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.fullName}
-                      onChange={(e) => handleInputChange("fullName", e.target.value)}
-                      placeholder={t("marketplace", "fullNamePlaceholder")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
+              {/* Shipping Address - Only show if has physical items */}
+              {!isAllDigital && (
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+                      <MapPin size={20} className="text-primary-600" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-(--text)">
+                      {t("marketplace", "shippingAddress")}
+                    </h2>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "phoneNumber")} *
-                    </label>
-                    <input
-                      type="tel"
-                      value={shippingAddress.phone}
-                      onChange={(e) => handleInputChange("phone", e.target.value)}
-                      placeholder={t("marketplace", "phonePlaceholder")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "fullName")} *
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.fullName}
+                        onChange={(e) => handleInputChange("fullName", e.target.value)}
+                        placeholder={t("marketplace", "fullNamePlaceholder")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "country")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.country}
-                      onChange={(e) => handleInputChange("country", e.target.value)}
-                      placeholder={t("marketplace", "countryPlaceholder")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "phoneNumber")} *
+                      </label>
+                      <input
+                        type="tel"
+                        value={shippingAddress.phone}
+                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        placeholder={t("marketplace", "phonePlaceholder")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "addressLine1")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.addressLine1}
-                      onChange={(e) => handleInputChange("addressLine1", e.target.value)}
-                      placeholder={t("marketplace", "addressLine1Placeholder")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "country")} *
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.country}
+                        onChange={(e) => handleInputChange("country", e.target.value)}
+                        placeholder={t("marketplace", "countryPlaceholder")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "addressLine2")}
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.addressLine2}
-                      onChange={(e) => handleInputChange("addressLine2", e.target.value)}
-                      placeholder={t("marketplace", "addressLine2Placeholder")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "addressLine1")} *
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.addressLine1}
+                        onChange={(e) => handleInputChange("addressLine1", e.target.value)}
+                        placeholder={t("marketplace", "addressLine1Placeholder")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "city")} *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder={t("marketplace", "city")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "addressLine2")}
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.addressLine2}
+                        onChange={(e) => handleInputChange("addressLine2", e.target.value)}
+                        placeholder={t("marketplace", "addressLine2Placeholder")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "stateOrProvince")}
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.state}
-                      onChange={(e) => handleInputChange("state", e.target.value)}
-                      placeholder={t("marketplace", "stateOrProvince")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "city")} *
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.city}
+                        onChange={(e) => handleInputChange("city", e.target.value)}
+                        placeholder={t("marketplace", "city")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-(--text) mb-1.5">
-                      {t("marketplace", "postalCode")}
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingAddress.postalCode}
-                      onChange={(e) => handleInputChange("postalCode", e.target.value)}
-                      placeholder={t("marketplace", "postalCode")}
-                      className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "stateOrProvince")}
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.state}
+                        onChange={(e) => handleInputChange("state", e.target.value)}
+                        placeholder={t("marketplace", "stateOrProvince")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-(--text) mb-1.5">
+                        {t("marketplace", "postalCode")}
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingAddress.postalCode}
+                        onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                        placeholder={t("marketplace", "postalCode")}
+                        className="w-full px-4 py-2.5 rounded-lg border border-(--border) bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              )}
 
               {/* Payment Method */}
               <Card className="p-6">

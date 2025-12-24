@@ -50,6 +50,14 @@ export interface Product {
   isFavorited?: boolean;
   createdAt: string;
   updatedAt: string;
+  type: "physical" | "digital";
+  digitalFile?: {
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+  };
+  digitalInstructions?: string;
 }
 
 export interface ProductFormData {
@@ -68,6 +76,14 @@ export interface ProductFormData {
   quantity?: number;
   isNegotiable?: boolean;
   tags?: string[];
+  type: "physical" | "digital";
+  digitalFile?: {
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+  };
+  digitalInstructions?: string;
 }
 
 export interface Review {
@@ -96,6 +112,7 @@ export interface CartItem {
   quantity: number;
   seller: Seller;
   inStock: boolean;
+  type?: "physical" | "digital";
 }
 
 export interface Cart {
@@ -122,6 +139,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image?: string;
+  type?: "physical" | "digital";
 }
 
 export interface Order {
@@ -396,6 +414,12 @@ export const marketplaceApi = {
 
   cancelOrder: (orderId: string, reason?: string) => {
     return apiClient.post<{ message: string }>(`/marketplace/orders/${orderId}/cancel`, { reason });
+  },
+
+  downloadProduct: (orderId: string, productId: string) => {
+    return apiClient.get<{ file: { url: string; name: string; size: number; type: string }; instructions?: string }>(
+      `/marketplace/orders/${orderId}/items/${productId}/download`
+    );
   },
 };
 

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Plus, DollarSign, Tag, Package, FileText, Image as ImageIcon, Laptop, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatCurrency, getCurrencySymbol } from "@/lib/utils/formatCurrency";
+import { uploadApi } from "@/lib/api";
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -23,6 +24,14 @@ export interface ProductFormData {
   images: string[];
   quantity: number;
   currency: "SAR" | "USD" | "OMR";
+  type: "physical" | "digital";
+  digitalFile?: {
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+  };
+  digitalInstructions?: string;
 }
 
 const categories = [
@@ -49,6 +58,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     images: [],
     quantity: 1,
     currency: "OMR",
+    type: "physical",
+    digitalInstructions: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
@@ -101,6 +112,32 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     }));
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Show loading state if needed
+      const response = await uploadApi.uploadMedia(file, "digital-products");
+
+      setFormData(prev => ({
+        ...prev,
+        digitalFile: {
+          url: response.url,
+          name: file.name,
+          size: file.size,
+          type: file.type
+        }
+      }));
+
+      // Clear error if any
+      if (errors.images) setErrors(prev => ({ ...prev, images: "" })); // Using images error key for file too or add new key
+    } catch (error) {
+      console.error("File upload failed", error);
+      alert(t("marketplace", "uploadFailed"));
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
 
@@ -119,11 +156,24 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
     if (formData.images.length === 0) {
       newErrors.images = t("marketplace", "atLeastOneImageRequired");
     }
-    if (!Number.isFinite(formData.quantity) || formData.quantity < 0) {
+    if (formData.type === "physical" && (!Number.isFinite(formData.quantity) || formData.quantity < 0)) {
       newErrors.quantity = t("marketplace", "validQuantityRequired");
     }
     if (!formData.currency) {
       newErrors.currency = t("marketplace", "currencyRequired");
+    }
+    if (formData.type === "digital" && !formData.digitalFile) {
+      // Use a generic error or specific one. Reusing description or creating new?
+      // Let's add specific check, but store in 'images' or new 'digitalFile' error? 
+      // Since state is specific, I'll allow adding new keys dynamically or just reuse 'images' field for generalized media error if needed.
+      // But type definition of errors is Record<keyof ProductFormData, string>. So I can use 'digitalFile'.
+      // Wait, digitalFile is object in FormData, but keyof ProductFormData includes 'digitalFile'.
+      // So I can set errors.digitalFile.
+      // However, I need to cast or update state type. state is Partial<Record<keyof ProductFormData, string>>.
+      // errors state definition: const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
+      // So yes, I can use digitalFile.
+      // But the value is string.
+      (newErrors as any).digitalFile = t("marketplace", "digitalFileRequired");
     }
 
     setErrors(newErrors);
@@ -153,6 +203,8 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
       images: [],
       quantity: 1,
       currency: "OMR",
+      type: "physical",
+      digitalInstructions: "",
     });
 
     onClose();
@@ -161,6 +213,84 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" title={t("marketplace", "addNewProduct")}>
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        {/* Product Type */}
+        <div className="flex gap-4 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, type: "physical" }))}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all",
+              formData.type === "physical"
+                ? "bg-white dark:bg-gray-700 shadow-sm text-primary-600"
+                : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            )}
+          >
+            <Box size={18} />
+            {t("marketplace", "physicalProduct")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, type: "digital" }))}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all",
+              formData.type === "digital"
+                ? "bg-white dark:bg-gray-700 shadow-sm text-primary-600"
+                : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            )}
+          >
+            <Laptop size={18} />
+            {t("marketplace", "digitalProduct")}
+          </button>
+        </div>
+
+        {/* Digital File Upload */}
+        {formData.type === "digital" && (
+          <div>
+            <label className="block text-sm font-medium text-(--text) mb-2">
+              <FileText size={16} className="inline mr-2" />
+              {t("marketplace", "digitalFile")}
+            </label>
+
+            {!formData.digitalFile ? (
+              <div className="border-2 border-dashed border-(--border) rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                <input
+                  type="file"
+                  id="digital-file-upload"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="digital-file-upload" className="cursor-pointer flex flex-col items-center">
+                  <Upload size={32} className="text-gray-400 mb-2" />
+                  <span className="text-sm font-medium text-primary-600">{t("marketplace", "uploadFile")}</span>
+                  <span className="text-xs text-gray-500 mt-1">{t("marketplace", "supportedFiles")}</span>
+                </label>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-100 dark:border-primary-800">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="p-2 bg-white dark:bg-gray-800 rounded-md">
+                    <FileText size={20} className="text-primary-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{formData.digitalFile.name}</p>
+                    <p className="text-xs text-gray-500">{(formData.digitalFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, digitalFile: undefined }))}
+                  className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 rounded-full transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+            {(errors as any).digitalFile && ( // Casting errors to access dynamic key
+              <p className="text-red-500 text-sm mt-1">{(errors as any).digitalFile}</p>
+            )}
+          </div>
+        )}
+
         {/* Images Section */}
         <div>
           <label className="block text-sm font-medium text-(--text) mb-2">
@@ -348,32 +478,56 @@ export function AddProductModal({ isOpen, onClose, onSubmit }: AddProductModalPr
           )}
         </div>
 
-        {/* Quantity */}
-        <div>
-          <label className="block text-sm font-medium text-(--text) mb-2">
-            <Package size={16} className="inline mr-2" />
-            {t("marketplace", "quantityInStock")}
-          </label>
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={String(formData.quantity)}
-            onChange={(e) => {
-              const next = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
-              setFormData((prev) => ({ ...prev, quantity: Number.isFinite(next) ? next : 0 }));
-              if (errors.quantity) {
-                setErrors((prev) => ({ ...prev, quantity: "" }));
-              }
-            }}
-            className={cn(
-              "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
-              "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-              errors.quantity ? "border-red-500" : "border-(--border)"
-            )}
-          />
-          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
-        </div>
+        {/* Quantity (Physical Only) */}
+        {formData.type === "physical" && (
+          <div>
+            <label className="block text-sm font-medium text-(--text) mb-2">
+              <Package size={16} className="inline mr-2" />
+              {t("marketplace", "quantityInStock")}
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={String(formData.quantity)}
+              onChange={(e) => {
+                const next = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+                setFormData((prev) => ({ ...prev, quantity: Number.isFinite(next) ? next : 0 }));
+                if (errors.quantity) {
+                  setErrors((prev) => ({ ...prev, quantity: "" }));
+                }
+              }}
+              className={cn(
+                "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted)",
+                "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+                errors.quantity ? "border-red-500" : "border-(--border)"
+              )}
+            />
+            {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
+          </div>
+        )}
+
+        {/* Digital Instructions */}
+        {formData.type === "digital" && (
+          <div>
+            <label className="block text-sm font-medium text-(--text) mb-2">
+              <FileText size={16} className="inline mr-2" />
+              {t("marketplace", "digitalInstructions")}
+            </label>
+            <textarea
+              name="digitalInstructions"
+              value={formData.digitalInstructions}
+              onChange={handleInputChange}
+              placeholder={t("marketplace", "digitalInstructionsPlaceholder")}
+              rows={3}
+              className={cn(
+                "w-full px-4 py-3 rounded-lg border bg-(--bg-card) text-(--text) placeholder:text-(--text-muted) resize-none",
+                "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              )}
+            />
+            <p className="text-xs text-(--text-muted) mt-1">{t("marketplace", "digitalInstructionsHelp")}</p>
+          </div>
+        )}
 
         {/* Submit Buttons */}
         <div className="flex gap-3 pt-4 border-t border-(--border)">

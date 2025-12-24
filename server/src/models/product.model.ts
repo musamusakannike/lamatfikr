@@ -34,6 +34,12 @@ export const ProductStatus = {
 } as const;
 export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus];
 
+export const ProductType = {
+  physical: "physical",
+  digital: "digital",
+} as const;
+export type ProductType = (typeof ProductType)[keyof typeof ProductType];
+
 export interface Product {
   title: string;
   description: string;
@@ -60,6 +66,14 @@ export interface Product {
   isNegotiable: boolean;
   tags?: string[];
   deletedAt?: Date | null;
+  type: ProductType;
+  digitalFile?: {
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+  };
+  digitalInstructions?: string;
 }
 
 const ProductSchema = new Schema<Product>(
@@ -100,6 +114,19 @@ const ProductSchema = new Schema<Product>(
     isNegotiable: { type: Boolean, default: false },
     tags: [{ type: String }],
     deletedAt: { type: Date, default: null },
+    type: {
+      type: String,
+      enum: Object.values(ProductType),
+      default: ProductType.physical,
+      required: true,
+    },
+    digitalFile: {
+      url: { type: String },
+      name: { type: String },
+      size: { type: Number },
+      type: { type: String },
+    },
+    digitalInstructions: { type: String },
   },
   { timestamps: true }
 );

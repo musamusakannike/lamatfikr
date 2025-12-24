@@ -399,6 +399,16 @@ export default function OrderDetailsPage() {
                         <p className="font-semibold text-(--text)">
                           ${(item.quantity * item.price).toFixed(2)}
                         </p>
+                        {order.status === "completed" && item.type === "digital" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/orders/${order._id}/items/${item.productId}/download`, '_blank')}
+                            className="mt-2 text-primary-600 border-primary-600 hover:bg-primary-50"
+                          >
+                            {t("marketplace", "download")}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

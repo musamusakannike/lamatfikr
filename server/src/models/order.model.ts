@@ -28,6 +28,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image?: string;
+  type?: "physical" | "digital";
 }
 
 export interface ShippingAddress {
@@ -76,6 +77,7 @@ const OrderItemSchema = new Schema<OrderItem>(
     price: { type: Number, required: true },
     quantity: { type: Number, required: true, min: 1 },
     image: { type: String },
+    type: { type: String, enum: ["physical", "digital"], default: "physical" },
   },
   { _id: false }
 );
@@ -120,7 +122,7 @@ const OrderSchema = new Schema<Order>(
     },
     tapChargeId: { type: String, sparse: true },
     paidAt: { type: Date },
-    shippingAddress: ShippingAddressSchema,
+    shippingAddress: { type: ShippingAddressSchema, required: false },
     trackingNumber: { type: String },
     notes: { type: String },
     buyerNotes: { type: String },

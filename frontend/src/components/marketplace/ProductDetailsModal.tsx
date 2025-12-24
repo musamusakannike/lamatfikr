@@ -1,5 +1,5 @@
 "use client";
-
+import NextImage from "next/image";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
@@ -17,6 +17,7 @@ import {
   Minus,
   Plus,
   MessageCircle,
+  Laptop,
   CheckCircle,
   Loader2,
   ChevronLeft,
@@ -126,16 +127,23 @@ export function ProductDetailsModal({
           {/* Image Section */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 group">
-              <img
+              <NextImage
                 src={product.images?.[currentImageIndex] || product.image || "https://via.placeholder.com/400"}
                 alt={product.title || t("marketplace", "productImageAlt")}
-                className="w-full h-full object-cover transition-opacity duration-300"
+                fill
+                className="object-cover transition-opacity duration-300"
               />
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                 {isNew && <Badge variant="primary">{t("marketplace", "new")}</Badge>}
                 {discount > 0 && <Badge variant="danger">-{discount}%</Badge>}
                 {product.isFeatured && <Badge variant="warning">{t("marketplace", "featured")}</Badge>}
+                {product.type === "digital" && (
+                  <Badge variant="default" className="bg-purple-500 text-white flex items-center gap-1">
+                    <Laptop size={12} />
+                    {t("marketplace", "digitalProduct")}
+                  </Badge>
+                )}
               </div>
 
               {/* Navigation Arrows */}
@@ -254,27 +262,31 @@ export function ProductDetailsModal({
               )}
             </div>
 
-            {/* Quantity Selector */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-(--text)">{t("marketplace", "quantityLabel")}</span>
-              <div className="flex items-center border border-(--border) rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
-                >
-                  <Minus size={18} />
-                </button>
-                <span className="px-4 py-2 font-medium min-w-[50px] text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
-                >
-                  <Plus size={18} />
-                </button>
+            {/* Quantity Selector - Show only for Physical or check if digital allows multiple */}
+            {/* Usually digital downloads are 1, but keys might be multiple. Assuming 1 for simplicity or let user choose if logic supports it. Existing modal shows it. Keeping it unless specifically hidden. */}
+            {/* But if type is digital, maybe hide? Let's hide if digital for now as 1 copy is enough for files. */}
+            {product.type !== "digital" && (
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-(--text)">{t("marketplace", "quantityLabel")}</span>
+                <div className="flex items-center border border-(--border) rounded-lg">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <span className="px-4 py-2 font-medium min-w-[50px] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="p-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3">
@@ -312,27 +324,49 @@ export function ProductDetailsModal({
 
             {/* Features */}
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-(--border)">
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
-                <Truck size={24} className="text-primary-600 mb-1" />
-                <span className="text-xs font-medium">{t("marketplace", "freeShippingShort")}</span>
-              </div>
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
-                <Shield size={24} className="text-primary-600 mb-1" />
-                <span className="text-xs font-medium">{t("marketplace", "securePayment")}</span>
-              </div>
-              <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
-                <RefreshCw size={24} className="text-primary-600 mb-1" />
-                <span className="text-xs font-medium">{t("marketplace", "easyReturns")}</span>
-              </div>
+              {product.type === "digital" ? (
+                <>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <Laptop size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "instantDownload")}</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <Shield size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "securePayment")}</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <CheckCircle size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "verifiedFile")}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <Truck size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "freeShippingShort")}</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <Shield size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "securePayment")}</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20">
+                    <RefreshCw size={24} className="text-primary-600 mb-1" />
+                    <span className="text-xs font-medium">{t("marketplace", "easyReturns")}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Seller Info */}
             <div className="flex items-center gap-3 p-3 rounded-lg border border-(--border)">
-              <img
-                src={product.seller?.avatar || "https://via.placeholder.com/100"}
-                alt={product.seller?.displayName || product.seller?.username || t("marketplace", "seller")}
-                className="w-12 h-12 rounded-full object-cover"
-              />
+              <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                <NextImage
+                  src={product.seller?.avatar || "https://via.placeholder.com/100"}
+                  alt={product.seller?.displayName || product.seller?.username || t("marketplace", "seller")}
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-(--text)">
@@ -403,7 +437,7 @@ export function ProductDetailsModal({
                 <div className="mt-6 grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
                     <span className="text-sm font-medium text-(--text-muted)">{t("marketplace", "condition")}</span>
-                    <p className="text-(--text) capitalize">{product.condition || t("marketplace", "notSpecified")}</p>
+                    <p className="text-(--text) capitalize">{product.type === "digital" ? t("marketplace", "digitalFiles") : (product.condition || t("marketplace", "notSpecified"))}</p>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-(--text-muted)">{t("marketplace", "category")}</span>
@@ -414,10 +448,8 @@ export function ProductDetailsModal({
                     <p className="text-(--text) capitalize">{product.status || t("marketplace", "active")}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-(--text-muted)">{t("marketplace", "listed")}</span>
-                    <p className="text-(--text)">
-                      {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : t("marketplace", "unknown")}
-                    </p>
+                    <span className="text-sm font-medium text-(--text-muted)">{t("marketplace", "type")}</span>
+                    <p className="text-(--text) capitalize">{product.type === "digital" ? t("marketplace", "digitalProduct") : t("marketplace", "physicalProduct")}</p>
                   </div>
                 </div>
               </div>

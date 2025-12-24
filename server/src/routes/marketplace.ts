@@ -33,6 +33,7 @@ import {
   // Stats
   getMarketplaceStats,
   getSellerStats,
+  downloadProduct,
 } from "../controllers/marketplace.controller";
 
 export const marketplaceRouter = Router();
@@ -76,3 +77,4 @@ marketplaceRouter.post("/orders/:orderId/pay", initiateOrderPayment);
 marketplaceRouter.get("/orders/:orderId/verify", verifyOrderPayment);
 marketplaceRouter.patch("/orders/:orderId/status", updateOrderStatus);
 marketplaceRouter.post("/orders/:orderId/cancel", cancelOrder);
+marketplaceRouter.get("/orders/:orderId/items/:productId/download", downloadProduct);
