@@ -585,6 +585,19 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
       return;
     }
 
+    // Validation: 30 words minimum
+    const wordCount = content.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (wordCount < 30) {
+      alert(`Post is too short. Please write at least 30 words (currently ${wordCount}).`);
+      return;
+    }
+
+    // Validation: At least one media file
+    if (mediaAttachments.length === 0 && !audioAttachment) {
+      alert("Please add at least one media file (image, video, or voice recording).");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -893,6 +906,16 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
 
             {/* Visibility & Post button */}
             <div className="flex items-center gap-2 justify-end sm:justify-start">
+              {/* Word Count Indicator */}
+              <div className={cn(
+                "text-xs px-2",
+                content.trim().split(/\s+/).filter(w => w.length > 0).length < 30
+                  ? "text-red-500 font-medium"
+                  : "text-green-500 font-medium"
+              )}>
+                {content.trim().split(/\s+/).filter(w => w.length > 0).length}/30 words
+              </div>
+
               {/* Visibility dropdown */}
               <div className="relative">
                 <button
