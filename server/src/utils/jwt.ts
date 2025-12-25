@@ -15,7 +15,7 @@ const REFRESH_SECRET = env.JWT_REFRESH_SECRET || env.JWT_ACCESS_SECRET;
 
 export function signAccessToken(userId: string) {
   return jwt.sign({ sub: userId } satisfies AccessTokenPayload, env.JWT_ACCESS_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "30d",
   });
 }
 
@@ -23,7 +23,7 @@ export function signRefreshToken(userId: string) {
   return jwt.sign(
     { sub: userId, type: "refresh" } satisfies RefreshTokenPayload,
     REFRESH_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "150d" }
   );
 }
 
