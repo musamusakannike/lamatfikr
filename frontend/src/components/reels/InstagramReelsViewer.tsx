@@ -282,7 +282,7 @@ export function InstagramReelsViewer({
     return (
         <div
             ref={containerRef}
-            className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-black"
+            className="h-full w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth bg-black"
             style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
@@ -297,7 +297,7 @@ export function InstagramReelsViewer({
             {reels.map((reel, index) => (
                 <div
                     key={reel._id}
-                    className="relative h-screen w-full snap-start snap-always flex items-center justify-center"
+                    className="relative h-full w-full snap-start snap-always flex items-center justify-center"
                 >
                     {/* Video Player */}
                     <InstagramReelPlayer
