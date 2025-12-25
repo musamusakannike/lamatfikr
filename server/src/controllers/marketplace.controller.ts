@@ -101,6 +101,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 
 export async function getProducts(req: Request, res: Response, next: NextFunction) {
   try {
+    const userId = getUserId(req);
     const {
       page = "1",
       limit = "20",
@@ -177,18 +178,25 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
 
     // Get average ratings for products
     const productIds = products.map((p) => p._id);
-    const ratings = await ProductReviewModel.aggregate([
-      { $match: { productId: { $in: productIds }, deletedAt: null } },
-      {
-        $group: {
-          _id: "$productId",
-          avgRating: { $avg: "$rating" },
-          reviewCount: { $sum: 1 },
+    const [ratings, userFavorites] = await Promise.all([
+      ProductReviewModel.aggregate([
+        { $match: { productId: { $in: productIds }, deletedAt: null } },
+        {
+          $group: {
+            _id: "$productId",
+            avgRating: { $avg: "$rating" },
+            reviewCount: { $sum: 1 },
+          },
         },
-      },
+      ]),
+      ProductFavoriteModel.find({
+        userId,
+        productId: { $in: productIds },
+      }).select("productId"),
     ]);
 
     const ratingsMap = new Map(ratings.map((r) => [r._id.toString(), r]));
+    const favoritesSet = new Set(userFavorites.map((f) => f.productId.toString()));
 
     const productsWithRatings = products.map((product) => {
       const ratingData = ratingsMap.get(product._id.toString());
@@ -197,6 +205,7 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
         ...product,
         rating: ratingData?.avgRating || 0,
         reviewCount: ratingData?.reviewCount || 0,
+        isFavorited: favoritesSet.has(product._id.toString()),
         seller: sellerData ? {
           _id: sellerData._id,
           username: sellerData.username,
@@ -481,6 +490,9 @@ export async function getFavorites(req: Request, res: Response, next: NextFuncti
         const sellerData = product?.sellerId;
         return {
           ...product,
+          rating: 0, // Favorites endpoint doesn't currently aggregate ratings, TODO if needed
+          reviewCount: 0,
+          isFavorited: true,
           seller: sellerData ? {
             _id: sellerData._id,
             username: sellerData.username,

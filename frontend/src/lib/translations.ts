@@ -1748,6 +1748,14 @@ export const translations = {
       ar: "السوق",
       en: "Marketplace",
     },
+    favorites: {
+      ar: "المفضلة",
+      en: "Favorites",
+    },
+    myFavorites: {
+      ar: "مفضلاتي",
+      en: "My Favorites",
+    },
     discoverProducts: {
       ar: "اكتشف منتجات رائعة من مجتمعنا",
       en: "Discover amazing products from our community",

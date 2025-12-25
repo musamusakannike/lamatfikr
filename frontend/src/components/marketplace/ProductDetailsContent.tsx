@@ -36,11 +36,13 @@ import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 interface ProductDetailsContentProps {
     product: Product;
     onClose?: () => void;
+    onFavoriteChange?: (productId: string, isFavorited: boolean) => void;
 }
 
 export function ProductDetailsContent({
     product,
     onClose,
+    onFavoriteChange,
 }: ProductDetailsContentProps) {
     const router = useRouter();
     const { t } = useLanguage();
@@ -88,6 +90,7 @@ export function ProductDetailsContent({
         try {
             const response = await marketplaceApi.toggleFavorite(product._id);
             setIsLiked(response.isFavorited);
+            onFavoriteChange?.(product._id, response.isFavorited);
             toast.success(
                 response.isFavorited
                     ? t("marketplace", "addedToFavorites")

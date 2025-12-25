@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { ProductFormData as AddProductFormData } from "@/components/marketplace/AddProductModal";
 
-const categories = ["All", "Electronics", "Clothing", "Accessories", "Home & Garden", "Sports", "Books", "Beauty", "Toys", "Automotive", "Food & Beverages", "Other"];
+const categories = ["All", "Favorites", "Electronics", "Clothing", "Accessories", "Home & Garden", "Sports", "Books", "Beauty", "Toys", "Automotive", "Food & Beverages", "Other"];
 
 export default function MarketplacePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,14 +55,22 @@ export default function MarketplacePage() {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await marketplaceApi.getProducts({
-        page: pagination.page,
-        limit: pagination.limit,
-        category: selectedCategory !== "All" ? selectedCategory : undefined,
-        search: searchQuery || undefined,
-        sortBy: sortBy === "featured" ? "createdAt" : sortBy === "price-low" || sortBy === "price-high" ? "price" : sortBy,
-        sortOrder: sortBy === "price-low" ? "asc" : sortBy === "price-high" ? "desc" : sortOrder,
-      });
+      let response;
+      if (selectedCategory === "Favorites") {
+        response = await marketplaceApi.getFavorites({
+          page: pagination.page,
+          limit: pagination.limit,
+        });
+      } else {
+        response = await marketplaceApi.getProducts({
+          page: pagination.page,
+          limit: pagination.limit,
+          category: selectedCategory !== "All" ? selectedCategory : undefined,
+          search: searchQuery || undefined,
+          sortBy: sortBy === "featured" ? "createdAt" : sortBy === "price-low" || sortBy === "price-high" ? "price" : sortBy,
+          sortOrder: sortBy === "price-low" ? "asc" : sortBy === "price-high" ? "desc" : sortOrder,
+        });
+      }
       setProducts(response.products as unknown as Product[]);
       setPagination(response.pagination);
     } catch {
@@ -129,6 +137,13 @@ export default function MarketplacePage() {
   const handleSortChange = (value: string) => {
     setSortBy(value);
     setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleFavoriteChange = (productId: string, isFavorited: boolean) => {
+    if (selectedCategory === "Favorites" && !isFavorited) {
+      setProducts((prev) => prev.filter((p) => p._id !== productId));
+      setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
+    }
   };
 
   return (
@@ -236,7 +251,7 @@ export default function MarketplacePage() {
                         : "bg-primary-50 dark:bg-primary-900/30 text-(--text) hover:bg-primary-100 dark:hover:bg-primary-900/50"
                     )}
                   >
-                    {category}
+                    {category === "Favorites" ? t("marketplace", "favorites") : category === "All" ? t("common", "all") : t("marketplace", `cat_${category.replace(/ & /g, '').replace(/ /g, '')}` as any) || category}
                   </button>
                 ))}
               </div>
@@ -309,6 +324,7 @@ export default function MarketplacePage() {
                     key={product._id}
                     product={product}
                     onViewDetails={handleViewDetails}
+                    onFavoriteChange={handleFavoriteChange}
                   />
                 ))}
               </div>
@@ -358,6 +374,7 @@ export default function MarketplacePage() {
         isOpen={showProductDetails}
         onClose={() => setShowProductDetails(false)}
         product={selectedProduct}
+        onFavoriteChange={handleFavoriteChange}
       />
 
       {/* Add Product Modal */}
