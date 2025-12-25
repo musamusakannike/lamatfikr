@@ -398,11 +398,7 @@ function MediaPreview({
         "grid gap-2 rounded-xl overflow-hidden",
         attachments.length === 1
           ? "grid-cols-1"
-          : attachments.length === 2
-            ? "grid-cols-2"
-            : attachments.length === 3
-              ? "grid-cols-2"
-              : "grid-cols-2"
+          : "grid-cols-2 sm:grid-cols-2"
       )}
     >
       {attachments.map((attachment, index) => (
@@ -421,7 +417,7 @@ function MediaPreview({
               height={300}
               className={cn(
                 "w-full object-cover rounded-lg",
-                attachments.length === 1 ? "max-h-80" : "h-40"
+                attachments.length === 1 ? "max-h-60 sm:max-h-80" : "h-32 sm:h-40"
               )}
             />
           ) : (
@@ -430,7 +426,7 @@ function MediaPreview({
                 src={attachment.preview}
                 className={cn(
                   "w-full object-cover rounded-lg",
-                  attachments.length === 1 ? "max-h-80" : "h-40"
+                  attachments.length === 1 ? "max-h-60 sm:max-h-80" : "h-32 sm:h-40"
                 )}
               />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -723,7 +719,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
 
   return (
     <Card className={cn(inModal && "border-0 shadow-none")}>
-      <CardContent className={cn("p-4", inModal && "p-0")}>
+      <CardContent className={cn("p-3 sm:p-4", inModal && "p-0")}>
         <div {...getRootProps()} className="relative">
           {/* Drag overlay */}
           {isDragActive && (
@@ -738,7 +734,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           )}
 
           {/* Header */}
-          <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-start gap-2 sm:gap-3 mb-3">
             <Avatar
               src={user?.avatar || DEFAULT_AVATAR}
               alt={user?.firstName || "User"}
@@ -750,7 +746,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={t("home", "whatsOnMind")}
-                className="w-full resize-none bg-transparent text-(--text) placeholder:text-(--text-muted) focus:outline-none text-base min-h-[80px]"
+                className="w-full resize-none bg-transparent text-(--text) placeholder:text-(--text-muted) focus:outline-none text-sm sm:text-base min-h-[60px] sm:min-h-[80px]"
                 rows={3}
               />
             </div>
@@ -802,14 +798,14 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
           />
 
           {/* Actions Bar */}
-          <div className="flex items-center justify-between pt-3 border-t border-(--border)">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0 pt-3 border-t border-(--border)">
             {/* Attachment buttons */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               <div className="relative">
                 <button
                   onClick={() => setShowEmojiPicker((prev) => !prev)}
                   className={cn(
-                    "p-2 rounded-lg transition-colors",
+                    "p-1.5 sm:p-2 rounded-lg transition-colors",
                     showEmojiPicker
                       ? "text-primary-600 bg-primary-100 dark:bg-primary-900/50"
                       : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
@@ -817,7 +813,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                   title="Add emoji"
                   type="button"
                 >
-                  <Smile size={20} />
+                  <Smile size={18} className="sm:w-5 sm:h-5" />
                 </button>
 
                 {showEmojiPicker && (
@@ -826,11 +822,11 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                       className="fixed inset-0 z-10"
                       onClick={() => setShowEmojiPicker(false)}
                     />
-                    <div className="absolute left-0 bottom-full mb-2 z-20 bg-(--bg-card) rounded-xl border border-(--border) shadow-lg p-2">
+                    <div className="fixed sm:absolute left-2 right-2 sm:left-0 sm:right-auto bottom-16 sm:bottom-full mb-0 sm:mb-2 z-20 bg-(--bg-card) rounded-xl border border-(--border) shadow-lg p-2">
                       <EmojiPicker
                         onEmojiClick={handleEmojiClick}
                         height={350}
-                        width={320}
+                        width="100%"
                         searchPlaceHolder="Search"
                         lazyLoadEmojis={true}
                       />
@@ -843,27 +839,27 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                 onClick={handleMediaButtonClick}
                 disabled={mediaAttachments.length >= 4}
                 className={cn(
-                  "p-2 rounded-lg transition-colors",
+                  "p-1.5 sm:p-2 rounded-lg transition-colors",
                   mediaAttachments.length >= 4
                     ? "text-(--text-muted) opacity-50 cursor-not-allowed"
                     : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
                 )}
                 title="Add images"
               >
-                <ImageIcon size={20} />
+                <ImageIcon size={18} className="sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={handleMediaButtonClick}
                 disabled={mediaAttachments.length >= 4}
                 className={cn(
-                  "p-2 rounded-lg transition-colors",
+                  "p-1.5 sm:p-2 rounded-lg transition-colors",
                   mediaAttachments.length >= 4
                     ? "text-(--text-muted) opacity-50 cursor-not-allowed"
                     : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
                 )}
                 title="Add video"
               >
-                <Video size={20} />
+                <Video size={18} className="sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={() => {
@@ -872,36 +868,36 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                   }
                 }}
                 className={cn(
-                  "p-2 rounded-lg transition-colors",
+                  "p-1.5 sm:p-2 rounded-lg transition-colors",
                   audioAttachment || showAudioRecorder
                     ? "text-primary-600 bg-primary-100 dark:bg-primary-900/50"
                     : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
                 )}
                 title="Record audio"
               >
-                <Mic size={20} />
+                <Mic size={18} className="sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={togglePoll}
                 className={cn(
-                  "p-2 rounded-lg transition-colors",
+                  "p-1.5 sm:p-2 rounded-lg transition-colors",
                   showPoll
                     ? "text-primary-600 bg-primary-100 dark:bg-primary-900/50"
                     : "text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600"
                 )}
                 title="Create poll"
               >
-                <BarChart3 size={20} />
+                <BarChart3 size={18} className="sm:w-5 sm:h-5" />
               </button>
             </div>
 
             {/* Visibility & Post button */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-end sm:justify-start">
               {/* Visibility dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm text-(--text-muted) hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                 >
                   {getVisibilityIcon()}
                   <span className="hidden sm:inline">{getVisibilityLabel()}</span>
@@ -921,7 +917,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                       className="fixed inset-0 z-10"
                       onClick={() => setShowVisibilityDropdown(false)}
                     />
-                    <div className="absolute right-0 bottom-full mb-2 w-72 bg-(--bg-card) rounded-xl border border-(--border) shadow-lg z-20 p-3 space-y-2">
+                    <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 bottom-16 sm:bottom-full mb-0 sm:mb-2 w-auto sm:w-72 bg-(--bg-card) rounded-xl border border-(--border) shadow-lg z-20 p-3 space-y-2">
                       <p className="text-sm font-medium mb-2">Who can see this post?</p>
                       <VisibilityCheckbox
                         label="Only me"
