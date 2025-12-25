@@ -96,6 +96,7 @@ export default function SellerDashboardPage() {
         images: formData.images,
         category: formData.category,
         quantity: formData.quantity,
+        type: formData.type,
       });
       toast.success(t("marketplace", "productCreatedSuccessfully"));
       fetchStats();
