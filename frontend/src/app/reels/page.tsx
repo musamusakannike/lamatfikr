@@ -108,7 +108,7 @@ export default function ReelsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-(--bg-card)/95">
       {/* Only show Navbar and Sidebar in grid mode */}
       {viewMode === "grid" && (
         <>
@@ -157,7 +157,7 @@ export default function ReelsPage() {
             {/* Header - Only show in grid view */}
             {viewMode === "grid" && (
               <div className="sticky top-16 z-30 bg-black/80 backdrop-blur-md border-b border-white/10">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between bg-(--bg-card)/95">
                   {/* Left Side: Back & Title */}
                   <div className="flex items-center gap-3">
                     <Link

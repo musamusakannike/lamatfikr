@@ -13,6 +13,8 @@ import { PostCard } from "@/components/shared/PostCard";
 import { AnnouncementCard } from "@/components/home/AnnouncementCard";
 import { postsApi, type Post } from "@/lib/api/posts";
 import { announcementsApi, type Announcement } from "@/lib/api/announcements";
+import { reelsApi, type Reel } from "@/lib/api/reels"; // Import reels API
+import { ReelsMasonryGrid } from "@/components/reels/ReelsMasonryGrid"; // Import Masonry Grid
 import { getErrorMessage } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -56,11 +58,14 @@ export function PostFeed() {
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [reels, setReels] = useState<Reel[]>([]); // New state for reels
   const [filter, setFilter] = useState<FilterType>("all");
   const [page, setPage] = useState(1);
   const [announcementPage, setAnnouncementPage] = useState(1);
+  const [reelsPage, setReelsPage] = useState(1); // New state for reels page
   const [hasMore, setHasMore] = useState(true);
   const [hasMoreAnnouncements, setHasMoreAnnouncements] = useState(true);
+  const [hasMoreReels, setHasMoreReels] = useState(true); // New state for hasMoreReels
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +127,32 @@ export function PostFeed() {
     }
   }, []);
 
+  const fetchReels = useCallback(async (pageNum: number, append = false) => {
+    try {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const response = await reelsApi.getReelsFeed(pageNum, 20);
+
+      if (append) {
+        setReels((prev) => [...prev, ...response.reels]);
+      } else {
+        setReels(response.reels);
+      }
+
+      setHasMoreReels(pageNum < response.pagination.pages);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
   // Fetch unread count on mount
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -141,17 +172,24 @@ export function PostFeed() {
     } else if (filter === "announcements") {
       fetchAnnouncements(1);
       setAnnouncementPage(1);
+    } else if (filter === "images") { // Fetch reels when filter is images
+      fetchReels(1);
+      setReelsPage(1);
     } else {
       fetchFeed(1);
       setPage(1);
     }
-  }, [filter, fetchFeed, fetchAnnouncements, router]);
+  }, [filter, fetchFeed, fetchAnnouncements, fetchReels, router]);
 
   const handleLoadMore = () => {
     if (filter === "announcements") {
       const nextPage = announcementPage + 1;
       setAnnouncementPage(nextPage);
       fetchAnnouncements(nextPage, true);
+    } else if (filter === "images") { // Load more reels
+      const nextPage = reelsPage + 1;
+      setReelsPage(nextPage);
+      fetchReels(nextPage, true);
     } else {
       const nextPage = page + 1;
       setPage(nextPage);
@@ -226,7 +264,10 @@ export function PostFeed() {
   }
 
   const displayPosts = filter === "announcements" ? [] : posts;
-  const currentHasMore = filter === "announcements" ? hasMoreAnnouncements : hasMore;
+
+  let currentHasMore = hasMore;
+  if (filter === "announcements") currentHasMore = hasMoreAnnouncements;
+  if (filter === "images") currentHasMore = hasMoreReels;
 
   return (
     <div className="space-y-4">
@@ -256,7 +297,7 @@ export function PostFeed() {
         </FilterButton>
       </div>
 
-      {/* Posts */}
+      {/* Content */}
       {filter === "announcements" ? (
         <div className="space-y-4">
           {announcements.length === 0 ? (
@@ -268,6 +309,22 @@ export function PostFeed() {
               <AnnouncementCard key={announcement._id} announcement={announcement} />
             ))
           )}
+        </div>
+      ) : filter === "images" ? (
+        // Reels Grid
+        <div className="w-full">
+          <ReelsMasonryGrid
+            reels={reels}
+            onReelClick={(index) => {
+              const reel = reels[index];
+              if (reel) {
+                router.push(`/reels?reelId=${reel._id}`);
+              }
+            }}
+            onLoadMore={handleLoadMore}
+            hasMore={hasMoreReels}
+            loading={loadingMore}
+          />
         </div>
       ) : (
         <div className="space-y-4">
@@ -283,8 +340,8 @@ export function PostFeed() {
         </div>
       )}
 
-      {/* Load more */}
-      {currentHasMore && displayPosts.length > 0 && (
+      {/* Load more button (only for non-masonry views) */}
+      {filter !== "images" && currentHasMore && (filter === "announcements" ? announcements.length > 0 : displayPosts.length > 0) && (
         <div className="flex justify-center py-4">
           <Button
             variant="outline"
@@ -303,6 +360,8 @@ export function PostFeed() {
           </Button>
         </div>
       )}
+
+
 
     </div>
   );
