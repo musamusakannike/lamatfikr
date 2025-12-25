@@ -73,76 +73,102 @@ export function ReelsMasonryGrid({
     return (
         <div className="w-full px-4 py-6">
             {/* Grid Container */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                {reels.map((reel, index) => (
-                    <div
-                        key={reel._id}
-                        onClick={() => onReelClick(index)}
-                        className="group relative aspect-[9/16] bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                    >
-                        {/* Thumbnail */}
-                        {reel.thumbnailUrl ? (
-                            <Image
-                                src={reel.thumbnailUrl}
-                                alt={reel.caption || "Reel"}
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                            />
-                        ) : (
-                            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-900 via-pink-900 to-orange-900" />
-                        )}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 auto-rows-[200px] md:auto-rows-[250px] grid-flow-dense">
+                {reels.map((reel, index) => {
+                    // Deterministic pattern for masonry layout
+                    // Pattern repeats every 12 items
+                    // 0: Vertical (1x2)
+                    // 1: Square (1x1)
+                    // 2: Square (1x1)
+                    // 3: Horizontal (2x1)
+                    // 4: Vertical (1x2)
+                    // 5: Square (1x1)
+                    // 6: Square (1x1)
+                    // 7: Vertical (1x2)
+                    // 8: Large Square (2x2) - rare
+                    // 9: Square (1x1)
+                    // 10: Square (1x1)
+                    // 11: Horizontal (2x1)
 
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                    const patternIndex = index % 12;
+                    let spanClass = "col-span-1 row-span-1"; // Default Square
 
-                        {/* Play Icon Overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                                <Play className="w-8 h-8 text-white fill-white" />
-                            </div>
-                        </div>
+                    if ([0, 4, 7].includes(patternIndex)) {
+                        spanClass = "col-span-1 row-span-2"; // Vertical
+                    } else if ([3, 11].includes(patternIndex)) {
+                        spanClass = "col-span-2 row-span-1"; // Horizontal
+                    } else if (patternIndex === 8) {
+                        spanClass = "col-span-2 row-span-2"; // Large Square
+                    }
 
-                        {/* User Info - Top */}
-                        <div className="absolute top-2 left-2 right-2 flex items-center gap-2 z-10">
-                            <Link
-                                href={`/user/${reel.userId.username}`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-2 flex-1 min-w-0"
-                            >
-                                <Avatar
-                                    src={reel.userId.avatar}
-                                    alt={reel.userId.firstName}
-                                    size="sm"
-                                    className="ring-2 ring-white/30"
+                    return (
+                        <div
+                            key={reel._id}
+                            onClick={() => onReelClick(index)}
+                            className={`group relative bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 hover:scale-[1.02] hover:shadow-2xl ${spanClass}`}
+                        >
+                            {/* Thumbnail or Video */}
+                            {reel.thumbnailUrl ? (
+                                <Image
+                                    src={reel.thumbnailUrl}
+                                    alt={reel.caption || "Reel"}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                 />
-                                <div className="flex items-center gap-1 min-w-0">
-                                    <span className="text-white text-xs font-semibold truncate">
+                            ) : (
+                                <video
+                                    src={reel.videoUrl}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    muted
+                                    loop
+                                    playsInline
+                                    onMouseOver={(e) => e.currentTarget.play()}
+                                    onMouseOut={(e) => e.currentTarget.pause()}
+                                />
+                            )}
+
+                            {/* Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+                            {/* Play Icon Overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                    <Play className="w-6 h-6 text-white fill-white" />
+                                </div>
+                            </div>
+
+                            {/* User Info - Top */}
+                            <div className="absolute top-2 left-2 right-2 flex items-center gap-2 z-10">
+                                <Link
+                                    href={`/user/${reel.userId.username}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-2 flex-1 min-w-0"
+                                >
+                                    <Avatar
+                                        src={reel.userId.avatar}
+                                        alt={reel.userId.firstName}
+                                        size="xs"
+                                        className="ring-1 ring-white/30 w-6 h-6"
+                                    />
+                                    <span className="text-white text-xs font-semibold truncate shadow-black drop-shadow-md">
                                         {reel.userId.firstName}
                                     </span>
-                                    {reel.userId.verified && <VerifiedBadge size={12} />}
-                                </div>
-                            </Link>
-                        </div>
+                                </Link>
+                            </div>
 
-                        {/* View Count - Bottom */}
-                        <div className="absolute bottom-2 left-2 right-2 z-10">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1 text-white text-xs font-medium">
-                                    <Eye className="w-3.5 h-3.5" />
-                                    <span>{formatViewCount(reel.viewCount)}</span>
-                                </div>
-                                {reel.caption && (
-                                    <div className="flex-1 ml-2">
-                                        <p className="text-white text-xs line-clamp-1">
-                                            {reel.caption}
-                                        </p>
+                            {/* View Count - Bottom */}
+                            <div className="absolute bottom-2 left-2 right-2 z-10">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1 text-white text-xs font-medium drop-shadow-md">
+                                        <Eye className="w-3 h-3" />
+                                        <span>{formatViewCount(reel.viewCount)}</span>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Load More Trigger */}
