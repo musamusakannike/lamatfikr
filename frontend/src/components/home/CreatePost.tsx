@@ -968,7 +968,7 @@ export function CreatePost({ onClose, inModal = false }: CreatePostProps) {
                 ) : (
                   <Send size={16} />
                 )}
-                Post
+                <span className="hidden md:inline">Post</span>
               </Button>
             </div>
           </div>

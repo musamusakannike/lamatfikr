@@ -109,19 +109,38 @@ export default function ReelsPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Navbar
-        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-        isSidebarOpen={sidebarOpen}
-      />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Only show Navbar and Sidebar in grid mode */}
+      {viewMode === "grid" && (
+        <>
+          <Navbar
+            onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+            isSidebarOpen={sidebarOpen}
+          />
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        </>
+      )}
 
-      <main className={cn("pt-16 min-h-screen", isRTL ? "lg:pr-64" : "lg:pl-64")}>
+      {/* Viewer Close Button - Only show in viewer mode, positioned fixed */}
+      {viewMode === "viewer" && (
+        <button
+          onClick={handleClose}
+          className="fixed top-4 right-4 z-50 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center hover:bg-black/70 transition-all text-white"
+          aria-label={t("reels", "backToGrid")}
+        >
+          <X className="w-6 h-6" />
+        </button>
+      )}
+
+      <main className={cn(
+        "min-h-screen",
+        viewMode === "grid" ? cn("pt-16", isRTL ? "lg:pr-64" : "lg:pl-64") : ""
+      )}>
         {loading ? (
-          <div className="h-[calc(100vh-64px)] w-full flex items-center justify-center">
+          <div className="h-screen w-full flex items-center justify-center">
             <Loader2 className="w-12 h-12 animate-spin text-white" />
           </div>
         ) : error ? (
-          <div className="h-[calc(100vh-64px)] w-full flex flex-col items-center justify-center text-white p-6">
+          <div className="h-screen w-full flex flex-col items-center justify-center text-white p-6">
             <p className="text-lg mb-4">{error}</p>
             <button
               onClick={fetchReels}
@@ -131,7 +150,10 @@ export default function ReelsPage() {
             </button>
           </div>
         ) : (
-          <div className="relative min-h-[calc(100vh-64px)] flex flex-col">
+          <div className={cn(
+            "relative flex flex-col",
+            viewMode === "viewer" ? "h-screen" : "min-h-[calc(100vh-64px)]"
+          )}>
             {/* Header - Only show in grid view */}
             {viewMode === "grid" && (
               <div className="sticky top-16 z-30 bg-black/80 backdrop-blur-md border-b border-white/10">
@@ -164,19 +186,8 @@ export default function ReelsPage() {
               </div>
             )}
 
-            {/* Viewer Close Button - Only show in viewer mode */}
-            {viewMode === "viewer" && (
-              <button
-                onClick={handleClose}
-                className="fixed top-20 right-4 z-50 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center hover:bg-black/70 transition-all text-white lg:right-8"
-                aria-label={t("reels", "backToGrid")}
-              >
-                <X className="w-6 h-6" />
-              </button>
-            )}
-
             {/* Content Area */}
-            <div className={cn("flex-1", viewMode === "viewer" ? "h-[calc(100vh-64px)]" : "")}>
+            <div className={cn("flex-1", viewMode === "viewer" ? "h-screen" : "")}>
               {reels.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-white p-6 h-[50vh]">
                   <p className="text-lg mb-4">{t("reels", "noReelsAvailable")}</p>
@@ -196,8 +207,8 @@ export default function ReelsPage() {
                   loading={loadingMore}
                 />
               ) : (
-                // Viewer Mode: Ensure it takes full height adjusted for layout
-                <div className="h-full w-full flex justify-center bg-black">
+                // Viewer Mode: Full screen viewer
+                <div className="h-screen w-full bg-black">
                   <InstagramReelsViewer
                     initialReels={reels}
                     initialIndex={selectedReelIndex}
