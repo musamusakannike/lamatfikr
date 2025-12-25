@@ -104,6 +104,7 @@ export default function MarketplacePage() {
         images: formData.images,
         category: formData.category,
         quantity: formData.quantity,
+        type: formData.type,
       });
       toast.success("Product created successfully");
       fetchProducts();
