@@ -157,6 +157,7 @@ export default function MyListingsPage() {
         images: formData.images,
         category: formData.category,
         quantity: formData.quantity,
+        type: formData.type,
       });
       toast.success(t("myListings", "productCreated"));
       fetchProducts();
