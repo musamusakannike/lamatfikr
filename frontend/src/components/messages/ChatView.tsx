@@ -231,20 +231,22 @@ export function ChatView({
         try {
             toast.loading(video ? "Starting video call..." : "Starting audio call...", { id: "call-start" });
 
-            const call = videoClient.call("default", conversationId);
+            // Use correct call type based on GetStream documentation:
+            // - "default" for video calls
+            // - "audio_room" for audio-only calls
+            const callType = video ? "default" : "audio_room";
+            const call = videoClient.call(callType, conversationId);
 
-            // Join the call
+            // Join the call with proper parameters according to GetStream API
             await call.join({
                 create: true,
                 ring: true,
                 data: {
+                    created_by_id: currentUserId,
                     members: [
                         { user_id: currentUserId },
                         { user_id: otherParticipant._id }
-                    ],
-                    custom: {
-                        type: video ? 'video' : 'audio'
-                    }
+                    ]
                 }
             });
 
@@ -259,7 +261,7 @@ export function ChatView({
                 await call.microphone.enable();
             }
 
-            toast.success("Call started", { id: "call-start" });
+            toast.success(video ? "Video call started" : "Audio call started", { id: "call-start" });
         } catch (error) {
             console.error("Failed to start call", error);
             toast.error(
