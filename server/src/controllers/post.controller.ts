@@ -34,7 +34,10 @@ import {
 
 // ==================== HELPERS ====================
 
-async function processHashtagsAndMentions(postId: Types.ObjectId, contentText: string | undefined) {
+async function processHashtagsAndMentions(
+  postId: Types.ObjectId,
+  contentText: string | undefined
+) {
   const { hashtags, mentions } = parseContent(contentText);
 
   if (hashtags.length > 0) {
@@ -52,7 +55,7 @@ async function processHashtagsAndMentions(postId: Types.ObjectId, contentText: s
     await PostHashtagModel.insertMany(
       hashtagDocs.map((h) => ({ postId, hashtagId: h._id })),
       { ordered: false }
-    ).catch(() => { });
+    ).catch(() => {});
   }
 
   if (mentions.length > 0) {
@@ -64,12 +67,15 @@ async function processHashtagsAndMentions(postId: Types.ObjectId, contentText: s
       await MentionModel.insertMany(
         mentionedUsers.map((u) => ({ postId, mentionedUserId: u._id })),
         { ordered: false }
-      ).catch(() => { });
+      ).catch(() => {});
     }
   }
 }
 
-async function canViewPost(viewerId: string | undefined, post: any): Promise<boolean> {
+async function canViewPost(
+  viewerId: string | undefined,
+  post: any
+): Promise<boolean> {
   if (!post) return false;
 
   const postUserId = post.userId.toString();
@@ -90,11 +96,22 @@ async function canViewPost(viewerId: string | undefined, post: any): Promise<boo
   });
   if (isBlocked) return false;
 
-  if (post.privacy === PostPrivacy.friends || post.privacy === PostPrivacy.friends_only) {
+  if (
+    post.privacy === PostPrivacy.friends ||
+    post.privacy === PostPrivacy.friends_only
+  ) {
     const friendship = await FriendshipModel.findOne({
       $or: [
-        { requesterId: viewerId, addresseeId: postUserId, status: FriendshipStatus.accepted },
-        { requesterId: postUserId, addresseeId: viewerId, status: FriendshipStatus.accepted },
+        {
+          requesterId: viewerId,
+          addresseeId: postUserId,
+          status: FriendshipStatus.accepted,
+        },
+        {
+          requesterId: postUserId,
+          addresseeId: viewerId,
+          status: FriendshipStatus.accepted,
+        },
       ],
     });
     return !!friendship;
@@ -131,7 +148,8 @@ export const createPost: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const { contentText, privacy, location, feeling, media, poll } = validation.data;
+    const { contentText, privacy, location, feeling, media, poll } =
+      validation.data;
 
     const post = await PostModel.create({
       userId,
@@ -170,7 +188,9 @@ export const createPost: RequestHandler = async (req, res, next) => {
     if (contentText) {
       const { mentions } = parseContent(contentText);
       if (mentions.length > 0) {
-        const mentionedUsers = await UserModel.find({ username: { $in: mentions } })
+        const mentionedUsers = await UserModel.find({
+          username: { $in: mentions },
+        })
           .select("_id")
           .lean();
 
@@ -192,8 +212,13 @@ export const createPost: RequestHandler = async (req, res, next) => {
       .populate("userId", "firstName lastName username avatar verified")
       .lean();
 
-    const postMedia = await PostMediaModel.find({ postId: post._id, deletedAt: null }).lean();
-    const postPoll = poll ? await PollModel.findOne({ postId: post._id }).lean() : null;
+    const postMedia = await PostMediaModel.find({
+      postId: post._id,
+      deletedAt: null,
+    }).lean();
+    const postPoll = poll
+      ? await PollModel.findOne({ postId: post._id }).lean()
+      : null;
 
     res.status(201).json({
       message: "Post created successfully",
@@ -224,7 +249,9 @@ export const getPost: RequestHandler = async (req, res, next) => {
 
     const canView = await canViewPost(viewerId, post);
     if (!canView) {
-      res.status(403).json({ message: "You do not have permission to view this post" });
+      res
+        .status(403)
+        .json({ message: "You do not have permission to view this post" });
       return;
     }
 
@@ -236,7 +263,10 @@ export const getPost: RequestHandler = async (req, res, next) => {
 
     let userPollVotes: string[] = [];
     if (poll && viewerId) {
-      const pollVotes = await PollVoteModel.find({ pollId: poll._id, userId: viewerId }).lean();
+      const pollVotes = await PollVoteModel.find({
+        pollId: poll._id,
+        userId: viewerId,
+      }).lean();
       userPollVotes = pollVotes.map((v) => v.optionId.toString());
     }
 
@@ -286,8 +316,15 @@ export const updatePost: RequestHandler = async (req, res, next) => {
     }
 
     const twoHoursMs = 2 * 60 * 60 * 1000;
-    if (Date.now() - new Date(post.createdAt).getTime() > twoHoursMs) {
-      res.status(403).json({ message: "You can only edit a post within 2 hours of posting" });
+    if (
+      post.createdAt &&
+      Date.now() - new Date(post.createdAt).getTime() > twoHoursMs
+    ) {
+      res
+        .status(403)
+        .json({
+          message: "You can only edit a post within 2 hours of posting",
+        });
       return;
     }
 
@@ -371,22 +408,32 @@ export const getFeed: RequestHandler = async (req, res, next) => {
           { addresseeId: userId, status: FriendshipStatus.accepted },
         ],
       }).lean(),
-      FollowModel.find({ followerId: userId, status: FollowStatus.accepted }).lean(),
+      FollowModel.find({
+        followerId: userId,
+        status: FollowStatus.accepted,
+      }).lean(),
       BlockModel.find({
         $or: [{ blockerId: userId }, { blockedId: userId }],
       }).lean(),
       MuteModel.find({
         muterId: userId,
-        $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: new Date() } },
+        ],
       }).lean(),
     ]);
 
     const friendIds = friendships.map((f) =>
-      f.requesterId.toString() === userId ? f.addresseeId.toString() : f.requesterId.toString()
+      f.requesterId.toString() === userId
+        ? f.addresseeId.toString()
+        : f.requesterId.toString()
     );
     const followingIds = following.map((f) => f.followingId.toString());
     const blockedIds = blocked.map((b) =>
-      b.blockerId.toString() === userId ? b.blockedId.toString() : b.blockerId.toString()
+      b.blockerId.toString() === userId
+        ? b.blockedId.toString()
+        : b.blockerId.toString()
     );
     const mutedIds = muted.map((m) => m.mutedId.toString());
 
@@ -408,7 +455,10 @@ export const getFeed: RequestHandler = async (req, res, next) => {
         },
       ],
     })
-      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
+      .populate(
+        "userId",
+        "firstName lastName username avatar verified paidVerifiedUntil"
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -420,7 +470,11 @@ export const getFeed: RequestHandler = async (req, res, next) => {
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
       VoteModel.find({ userId, postId: { $in: postIds } }).lean(),
-      SavedItemModel.find({ userId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean(),
+      SavedItemModel.find({
+        userId,
+        itemType: SavedItemType.post,
+        itemId: { $in: postIds },
+      }).lean(),
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -441,9 +495,10 @@ export const getFeed: RequestHandler = async (req, res, next) => {
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
-    const userPollVotes = pollIds.length > 0
-      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
-      : [];
+    const userPollVotes =
+      pollIds.length > 0
+        ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+        : [];
     const pollVotesByPoll = new Map<string, string[]>();
     userPollVotes.forEach((v) => {
       const key = v.pollId.toString();
@@ -468,7 +523,12 @@ export const getFeed: RequestHandler = async (req, res, next) => {
         upvotes: post.upvoteCount,
         downvotes: post.downvoteCount,
         media: mediaByPost.get(post._id.toString()) || [],
-        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        poll: poll
+          ? {
+              ...poll,
+              userVotes: pollVotesByPoll.get(poll._id.toString()) || [],
+            }
+          : null,
         userVote: voteByPost.get(post._id.toString()) || null,
         isSaved: savedPostIds.has(post._id.toString()),
       };
@@ -526,22 +586,32 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
           { addresseeId: userId, status: FriendshipStatus.accepted },
         ],
       }).lean(),
-      FollowModel.find({ followerId: userId, status: FollowStatus.accepted }).lean(),
+      FollowModel.find({
+        followerId: userId,
+        status: FollowStatus.accepted,
+      }).lean(),
       BlockModel.find({
         $or: [{ blockerId: userId }, { blockedId: userId }],
       }).lean(),
       MuteModel.find({
         muterId: userId,
-        $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: new Date() } },
+        ],
       }).lean(),
     ]);
 
     const friendIds = friendships.map((f) =>
-      f.requesterId.toString() === userId ? f.addresseeId.toString() : f.requesterId.toString()
+      f.requesterId.toString() === userId
+        ? f.addresseeId.toString()
+        : f.requesterId.toString()
     );
     const followingIds = following.map((f) => f.followingId.toString());
     const blockedIds = blocked.map((b) =>
-      b.blockerId.toString() === userId ? b.blockedId.toString() : b.blockerId.toString()
+      b.blockerId.toString() === userId
+        ? b.blockedId.toString()
+        : b.blockerId.toString()
     );
     const mutedIds = muted.map((m) => m.mutedId.toString());
 
@@ -572,7 +642,10 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
         },
       ],
     })
-      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
+      .populate(
+        "userId",
+        "firstName lastName username avatar verified paidVerifiedUntil"
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -584,7 +657,11 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
       VoteModel.find({ userId, postId: { $in: postIds } }).lean(),
-      SavedItemModel.find({ userId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean(),
+      SavedItemModel.find({
+        userId,
+        itemType: SavedItemType.post,
+        itemId: { $in: postIds },
+      }).lean(),
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -605,9 +682,10 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
-    const userPollVotes = pollIds.length > 0
-      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
-      : [];
+    const userPollVotes =
+      pollIds.length > 0
+        ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+        : [];
     const pollVotesByPoll = new Map<string, string[]>();
     userPollVotes.forEach((v) => {
       const key = v.pollId.toString();
@@ -632,7 +710,12 @@ export const getMediaPosts: RequestHandler = async (req, res, next) => {
         upvotes: post.upvoteCount,
         downvotes: post.downvoteCount,
         media: mediaByPost.get(post._id.toString()) || [],
-        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        poll: poll
+          ? {
+              ...poll,
+              userVotes: pollVotesByPoll.get(poll._id.toString()) || [],
+            }
+          : null,
         userVote: voteByPost.get(post._id.toString()) || null,
         isSaved: savedPostIds.has(post._id.toString()),
       };
@@ -707,8 +790,16 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
 
         const isFriend = await FriendshipModel.findOne({
           $or: [
-            { requesterId: viewerId, addresseeId: targetUserId, status: FriendshipStatus.accepted },
-            { requesterId: targetUserId, addresseeId: viewerId, status: FriendshipStatus.accepted },
+            {
+              requesterId: viewerId,
+              addresseeId: targetUserId,
+              status: FriendshipStatus.accepted,
+            },
+            {
+              requesterId: targetUserId,
+              addresseeId: viewerId,
+              status: FriendshipStatus.accepted,
+            },
           ],
         });
 
@@ -735,7 +826,10 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
       deletedAt: null,
       ...privacyFilter,
     })
-      .populate("userId", "firstName lastName username avatar verified paidVerifiedUntil")
+      .populate(
+        "userId",
+        "firstName lastName username avatar verified paidVerifiedUntil"
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -761,8 +855,16 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
     const [allMedia, allPolls, userVotes, savedItems] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
-      viewerId ? VoteModel.find({ userId: viewerId, postId: { $in: postIds } }).lean() : [],
-      viewerId ? SavedItemModel.find({ userId: viewerId, itemType: SavedItemType.post, itemId: { $in: postIds } }).lean() : [],
+      viewerId
+        ? VoteModel.find({ userId: viewerId, postId: { $in: postIds } }).lean()
+        : [],
+      viewerId
+        ? SavedItemModel.find({
+            userId: viewerId,
+            itemType: SavedItemType.post,
+            itemId: { $in: postIds },
+          }).lean()
+        : [],
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -783,9 +885,13 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
-    const userPollVotes = pollIds.length > 0 && viewerId
-      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId: viewerId }).lean()
-      : [];
+    const userPollVotes =
+      pollIds.length > 0 && viewerId
+        ? await PollVoteModel.find({
+            pollId: { $in: pollIds },
+            userId: viewerId,
+          }).lean()
+        : [];
     const pollVotesByPoll = new Map<string, string[]>();
     userPollVotes.forEach((v) => {
       const key = v.pollId.toString();
@@ -800,7 +906,12 @@ export const getUserPosts: RequestHandler = async (req, res, next) => {
         upvotes: post.upvoteCount,
         downvotes: post.downvoteCount,
         media: mediaByPost.get(post._id.toString()) || [],
-        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        poll: poll
+          ? {
+              ...poll,
+              userVotes: pollVotesByPoll.get(poll._id.toString()) || [],
+            }
+          : null,
         userVote: voteByPost.get(post._id.toString()) || null,
         isSaved: viewerId ? savedPostIds.has(post._id.toString()) : false,
       };
@@ -1010,7 +1121,9 @@ export const votePoll: RequestHandler = async (req, res, next) => {
     }
 
     const validOptionIds = poll.options.map((o: any) => o._id.toString());
-    const invalidOptions = optionIds.filter((id) => !validOptionIds.includes(id));
+    const invalidOptions = optionIds.filter(
+      (id) => !validOptionIds.includes(id)
+    );
     if (invalidOptions.length > 0) {
       res.status(400).json({ message: "Invalid option IDs" });
       return;
@@ -1021,11 +1134,16 @@ export const votePoll: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const existingVotes = await PollVoteModel.find({ pollId: poll._id, userId });
+    const existingVotes = await PollVoteModel.find({
+      pollId: poll._id,
+      userId,
+    });
 
     if (existingVotes.length > 0) {
       for (const vote of existingVotes) {
-        const option = poll.options.find((o: any) => o._id.toString() === vote.optionId.toString());
+        const option = poll.options.find(
+          (o: any) => o._id.toString() === vote.optionId.toString()
+        );
         if (option) {
           option.voteCount = Math.max(0, option.voteCount - 1);
         }
@@ -1035,7 +1153,9 @@ export const votePoll: RequestHandler = async (req, res, next) => {
 
     for (const optionId of optionIds) {
       await PollVoteModel.create({ pollId: poll._id, userId, optionId });
-      const option = poll.options.find((o: any) => o._id.toString() === optionId);
+      const option = poll.options.find(
+        (o: any) => o._id.toString() === optionId
+      );
       if (option) {
         option.voteCount += 1;
       }
@@ -1180,9 +1300,10 @@ export const getSavedPosts: RequestHandler = async (req, res, next) => {
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
-    const userPollVotes = pollIds.length > 0
-      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
-      : [];
+    const userPollVotes =
+      pollIds.length > 0
+        ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId }).lean()
+        : [];
     const pollVotesByPoll = new Map<string, string[]>();
     userPollVotes.forEach((v) => {
       const key = v.pollId.toString();
@@ -1198,7 +1319,12 @@ export const getSavedPosts: RequestHandler = async (req, res, next) => {
         return {
           ...post,
           media: mediaByPost.get(post._id.toString()) || [],
-          poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+          poll: poll
+            ? {
+                ...poll,
+                userVotes: pollVotesByPoll.get(poll._id.toString()) || [],
+              }
+            : null,
           userVote: voteByPost.get(post._id.toString()) || null,
           savedAt: (saved as any).createdAt,
           isSaved: true,
@@ -1264,7 +1390,9 @@ export const getPostsByHashtag: RequestHandler = async (req, res, next) => {
     const [allMedia, allPolls, userVotes] = await Promise.all([
       PostMediaModel.find({ postId: { $in: postIds }, deletedAt: null }).lean(),
       PollModel.find({ postId: { $in: postIds } }).lean(),
-      viewerId ? VoteModel.find({ userId: viewerId, postId: { $in: postIds } }).lean() : [],
+      viewerId
+        ? VoteModel.find({ userId: viewerId, postId: { $in: postIds } }).lean()
+        : [],
     ]);
 
     const mediaByPost = new Map<string, any[]>();
@@ -1282,9 +1410,13 @@ export const getPostsByHashtag: RequestHandler = async (req, res, next) => {
 
     // Fetch user's poll votes
     const pollIds = allPolls.map((p) => p._id);
-    const userPollVotes = pollIds.length > 0 && viewerId
-      ? await PollVoteModel.find({ pollId: { $in: pollIds }, userId: viewerId }).lean()
-      : [];
+    const userPollVotes =
+      pollIds.length > 0 && viewerId
+        ? await PollVoteModel.find({
+            pollId: { $in: pollIds },
+            userId: viewerId,
+          }).lean()
+        : [];
     const pollVotesByPoll = new Map<string, string[]>();
     userPollVotes.forEach((v) => {
       const key = v.pollId.toString();
@@ -1297,12 +1429,19 @@ export const getPostsByHashtag: RequestHandler = async (req, res, next) => {
       return {
         ...post,
         media: mediaByPost.get(post._id.toString()) || [],
-        poll: poll ? { ...poll, userVotes: pollVotesByPoll.get(poll._id.toString()) || [] } : null,
+        poll: poll
+          ? {
+              ...poll,
+              userVotes: pollVotesByPoll.get(poll._id.toString()) || [],
+            }
+          : null,
         userVote: voteByPost.get(post._id.toString()) || null,
       };
     });
 
-    const total = await PostHashtagModel.countDocuments({ hashtagId: hashtag._id });
+    const total = await PostHashtagModel.countDocuments({
+      hashtagId: hashtag._id,
+    });
 
     res.json({
       hashtag,
