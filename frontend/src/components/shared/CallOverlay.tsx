@@ -6,7 +6,6 @@ import {
     CallControls,
     SpeakerLayout,
     CallParticipantsList,
-    CallStats,
     RingingCall,
     useCalls,
     CallingState,
@@ -21,15 +20,12 @@ const ActiveCallUI = () => {
             {/* Main video layout (auto handles 1:1, group, audio-only) */}
             <SpeakerLayout />
 
-            {/* Top-right stats (duration, quality, etc.) */}
-            <div className="absolute top-4 right-4">
-                <CallStats />
-            </div>
-
             {/* Right-side participants list */}
             <div className="absolute top-0 right-0 h-full">
                 <CallParticipantsList onClose={() => { }} />
             </div>
+
+
 
             {/* Bottom controls (mic, camera, screen share, leave) */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
