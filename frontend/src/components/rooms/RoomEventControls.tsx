@@ -41,7 +41,18 @@ export function RoomEventControls({ roomId, isPaidRoom, isMember }: RoomEventCon
     if (!isPaidRoom || !isMember) return;
     try {
       const response = await roomsApi.getEvents(roomId);
-      setActiveEvents(response.events.filter((e) => e.status === "active"));
+      setActiveEvents(
+        response.events
+          .filter((e) => e.status === "active")
+          .map((e) => ({
+            id: e.id,
+            type: e.type as "livestream" | "video_call" | "space",
+            status: e.status,
+            streamCallId: e.streamCallId,
+            startedBy: e.startedBy,
+            createdAt: e.createdAt,
+          }))
+      );
     } catch (err) {
       console.error("Failed to load events:", err);
     }

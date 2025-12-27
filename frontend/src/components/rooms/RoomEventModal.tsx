@@ -5,7 +5,7 @@ import { X, Video, Radio, Users } from "lucide-react";
 import { Modal, Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useStreamClientContext } from "@/contexts/StreamClientContext";
-import { Call, CallControls, SpeakerLayout, LivestreamLayout, AudioRoomLayout } from "@stream-io/video-react-sdk";
+import { StreamCall, CallControls, SpeakerLayout, LivestreamLayout } from "@stream-io/video-react-sdk";
 import { cn } from "@/lib/utils";
 
 interface RoomEventModalProps {
@@ -31,7 +31,8 @@ interface RoomEventModalProps {
 
 export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: RoomEventModalProps) {
   const { t } = useLanguage();
-  const { client } = useStreamClientContext();
+  const streamContext = useStreamClientContext();
+  const client = streamContext?.client || null;
   const [call, setCall] = useState<any>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
@@ -121,14 +122,14 @@ export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: R
           </div>
         ) : hasJoined && call && client ? (
           <div className="flex-1 relative bg-black">
-            <Call call={call}>
+            <StreamCall call={call}>
               {event.type === "livestream" && <LivestreamLayout />}
               {event.type === "video_call" && <SpeakerLayout />}
-              {event.type === "space" && <AudioRoomLayout />}
+              {event.type === "space" && <SpeakerLayout />}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
                 <CallControls onLeave={handleLeave} />
               </div>
-            </Call>
+            </StreamCall>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">

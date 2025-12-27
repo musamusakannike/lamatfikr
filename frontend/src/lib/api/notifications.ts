@@ -24,7 +24,10 @@ export interface Notification {
   | "verification_request_approved"
   | "verification_request_rejected"
   | "marketplace_order_paid_buyer"
-  | "marketplace_order_paid_seller";
+  | "marketplace_order_paid_seller"
+  | "room_livestream_started"
+  | "room_video_call_started"
+  | "room_space_started";
   targetId?: string;
   url: string;
   isRead: boolean;

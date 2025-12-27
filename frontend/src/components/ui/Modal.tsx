@@ -9,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "full";
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;
@@ -76,6 +76,7 @@ export function Modal({
     md: "max-w-lg",
     lg: "max-w-2xl",
     xl: "max-w-4xl",
+    full: "max-w-full w-full h-full m-0 rounded-none",
   };
 
   return (
@@ -93,12 +94,13 @@ export function Modal({
       <div
         ref={modalRef}
         className={cn(
-          "relative w-full bg-(--bg-card) rounded-xl shadow-2xl",
+          "relative w-full bg-(--bg-card) shadow-2xl",
           "border border-(--border)",
           "transform transition-all duration-300",
-          "max-h-[90vh] overflow-hidden",
           "flex flex-col",
-          sizeClasses[size]
+          size === "full" 
+            ? "fixed inset-0 m-0 rounded-none max-h-full"
+            : cn("rounded-xl max-h-[90vh] overflow-hidden", sizeClasses[size])
         )}
       >
         {/* Header */}

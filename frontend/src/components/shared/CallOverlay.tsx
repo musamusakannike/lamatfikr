@@ -6,7 +6,6 @@ import {
     StreamTheme,
     CallControls,
     SpeakerLayout,
-    AudioRoomLayout,
     CallParticipantsList,
     RingingCall,
     useCalls,
@@ -34,13 +33,7 @@ const ActiveCallUI = ({ callType, call }: { callType: "default" | "audio_room"; 
     return (
         <div className="fixed inset-0 z-50 bg-black">
             {/* Main video/audio layout */}
-            {isAudioOnly ? (
-                <div className="h-full w-full flex items-center justify-center">
-                    <AudioRoomLayout />
-                </div>
-            ) : (
-                <SpeakerLayout />
-            )}
+            <SpeakerLayout />
 
             {/* Top bar with call info and participants toggle */}
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10">
