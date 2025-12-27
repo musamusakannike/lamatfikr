@@ -1019,6 +1019,16 @@ export const startConversationEvent: RequestHandler = async (
       },
     });
 
+    // Automatically go live for audio rooms to avoid "JoinBackstage" permission errors
+    // Default audio_room configuration puts calls in backstage mode where regular users can't join
+    if (callType === "audio_room") {
+      try {
+        await call.goLive();
+      } catch (err) {
+        console.warn("Failed to automatically go live:", err);
+      }
+    }
+
     // Create conversation event
     const event = await ConversationEventModel.create({
       conversationId,
