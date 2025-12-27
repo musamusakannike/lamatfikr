@@ -877,33 +877,35 @@ export function ChatView({
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-(--border) flex items-center gap-3">
+            <div className="p-3 md:p-4 border-b border-(--border) flex items-center gap-2 md:gap-3 shrink-0">
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={onBack}
-                    className="md:hidden"
+                    className="md:hidden shrink-0 h-8 w-8"
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                 </Button>
 
-                <Link href={`/user/${otherParticipant.username}`} className="flex items-center gap-3 flex-1 min-w-0">
+                <Link href={`/user/${otherParticipant.username}`} className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                     <Avatar
                         src={otherParticipant.avatar}
                         alt={otherParticipant.firstName}
                         size="md"
+                        className="shrink-0 h-9 w-9 md:h-10 md:w-10"
                     />
-                    <div className="min-w-0">
-                        <h2 className="font-semibold truncate">
+                    <div className="min-w-0 flex-1">
+                        <h2 className="font-semibold truncate text-sm md:text-base">
                             {otherParticipant.firstName} {otherParticipant.lastName}
                         </h2>
-                        <p className="text-sm text-(--text-muted) truncate">
+                        <p className="text-xs md:text-sm text-(--text-muted) truncate">
                             {conversation?.disappearingMessagesDuration ? (
                                 <span className="flex items-center gap-1 text-primary-500">
-                                    <Clock size={12} />
-                                    {getDurationLabel(conversation.disappearingMessagesDuration)}
+                                    <Clock size={10} className="md:hidden" />
+                                    <Clock size={12} className="hidden md:inline" />
+                                    <span className="text-xs">{getDurationLabel(conversation.disappearingMessagesDuration)}</span>
                                 </span>
                             ) : (
                                 `@${otherParticipant.username}`
@@ -912,31 +914,34 @@ export function ChatView({
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-(--text-muted) hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                        className="text-(--text-muted) hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors h-8 w-8 md:h-10 md:w-10"
                         onClick={() => handleStartCall(false)}
                         title={t("messages", "startingAudioCall")}
                         aria-label={t("messages", "startingAudioCall")}
                     >
-                        <Phone size={20} />
+                        <Phone size={18} className="md:hidden" />
+                        <Phone size={20} className="hidden md:block" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-(--text-muted) hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        className="text-(--text-muted) hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors h-8 w-8 md:h-10 md:w-10"
                         onClick={() => handleStartCall(true)}
                         title={t("messages", "startingVideoCall")}
                         aria-label={t("messages", "startingVideoCall")}
                     >
-                        <Video size={20} />
+                        <Video size={18} className="md:hidden" />
+                        <Video size={20} className="hidden md:block" />
                     </Button>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-(--text-muted)">
-                                <MoreVertical size={20} />
+                            <Button variant="ghost" size="icon" className="text-(--text-muted) h-8 w-8 md:h-10 md:w-10">
+                                <MoreVertical size={18} className="md:hidden" />
+                                <MoreVertical size={20} className="hidden md:block" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -1032,7 +1037,7 @@ export function ChatView({
             {/* Messages */}
             <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4"
+                className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 space-y-3 md:space-y-4"
             >
                 {/* Load More Button */}
                 {hasMore && (
@@ -1080,7 +1085,7 @@ export function ChatView({
                             >
                                 <div
                                     className={cn(
-                                        "max-w-[75%] rounded-2xl px-4 py-2 relative group",
+                                        "max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-2xl px-3 py-2 md:px-4 relative group",
                                         isOwnMessage
                                             ? "bg-primary-500 text-white rounded-br-md"
                                             : "bg-primary-100 dark:bg-primary-900/40 text-(--text) rounded-bl-md"
@@ -1126,7 +1131,7 @@ export function ChatView({
                                                             alt="Media"
                                                             width={300}
                                                             height={200}
-                                                            className="rounded-lg max-w-full"
+                                                            className="rounded-lg max-w-full h-auto"
                                                         />
                                                     ))}
                                                 </div>
@@ -1230,7 +1235,7 @@ export function ChatView({
                                                 </div>
                                             ) : (
                                                 message.content && (
-                                                    <p className="whitespace-pre-wrap wrap-break-word">
+                                                    <p className="whitespace-pre-wrap break-words text-sm md:text-base">
                                                         {message.content}
                                                         {message.editedAt && (
                                                             <span className="text-[10px] opacity-70 ml-1 italic whitespace-nowrap">
@@ -1339,32 +1344,32 @@ export function ChatView({
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-(--border)">
+            <div className="p-3 md:p-4 border-t border-(--border) shrink-0">
                 {/* Image Previews */}
                 {selectedFiles.length > 0 && (
-                    <div className="flex gap-2 mb-3 flex-wrap">
+                    <div className="flex gap-2 mb-2 md:mb-3 flex-wrap overflow-x-auto">
                         {selectedFiles.map((item, index) => (
-                            <div key={index} className="relative group">
+                            <div key={index} className="relative group shrink-0">
                                 {item.preview && item.file.type.startsWith("image/") ? (
                                     <Image
                                         src={item.preview}
                                         alt={`Selected ${index + 1}`}
-                                        width={80}
-                                        height={80}
-                                        className="w-20 h-20 object-cover rounded-lg"
+                                        width={64}
+                                        height={64}
+                                        className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg"
                                     />
                                 ) : item.preview && item.file.type.startsWith("video/") ? (
-                                    <video src={item.preview} className="w-20 h-20 object-cover rounded-lg" />
+                                    <video src={item.preview} className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg" />
                                 ) : (
-                                    <div className="w-20 h-20 rounded-lg border border-(--border) bg-(--bg-card) flex items-center justify-center">
-                                        <span className="text-xs text-(--text-muted)">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg border border-(--border) bg-(--bg-card) flex items-center justify-center">
+                                        <span className="text-[10px] md:text-xs text-(--text-muted) text-center px-1">
                                             {item.file.type.startsWith("audio/") ? "AUDIO" : "FILE"}
                                         </span>
                                     </div>
                                 )}
                                 <button
                                     onClick={() => removeSelectedFile(index)}
-                                    className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute -top-1 -right-1 md:-top-2 md:-right-2 p-1 rounded-full bg-red-500 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-md"
                                 >
                                     <X size={12} />
                                 </button>
@@ -1373,12 +1378,12 @@ export function ChatView({
                     </div>
                 )}
 
-                <div className="flex items-center gap-2 relative">
+                <div className="flex items-center gap-1.5 md:gap-2 relative">
                     {/* Mobile Options Toggle */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden shrink-0 text-(--text-muted)"
+                        className="md:hidden shrink-0 text-(--text-muted) h-9 w-9"
                         onClick={() => setShowMobileOptions(!showMobileOptions)}
                     >
                         {showMobileOptions ? <X size={20} /> : <Plus size={20} />}
@@ -1388,87 +1393,117 @@ export function ChatView({
                     {showMobileOptions && (
                         <>
                             <div
-                                className="fixed inset-0 z-10 bg-black/5 md:hidden"
+                                className="fixed inset-0 z-10 bg-black/20 md:hidden"
                                 onClick={() => setShowMobileOptions(false)}
                             />
-                            <div className="absolute bottom-16 left-0 bg-(--bg-card) border border-(--border) p-2 rounded-xl shadow-lg flex flex-wrap gap-2 md:hidden z-20 min-w-[200px] animate-in slide-in-from-bottom-2 fade-in-20">
-                                {/* Image Upload */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn(
-                                        "shrink-0",
-                                        selectedFiles.length > 0
-                                            ? "text-primary-600 dark:text-primary-400"
-                                            : "text-(--text-muted)"
-                                    )}
-                                    onClick={() => {
-                                        fileInputRef.current?.click();
-                                        setShowMobileOptions(false);
-                                    }}
-                                    disabled={selectedFiles.length >= 6}
-                                >
-                                    <ImageIcon size={20} />
-                                </Button>
+                            <div className="absolute bottom-14 left-0 bg-(--bg-card) border border-(--border) rounded-2xl shadow-2xl md:hidden z-20 overflow-hidden animate-in slide-in-from-bottom-4 fade-in-20 duration-200">
+                                <div className="p-2 border-b border-(--border) bg-primary-50/50 dark:bg-primary-900/20">
+                                    <p className="text-xs font-medium text-(--text-muted) px-2">Attach Content</p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1 p-2">
+                                    {/* Image Upload */}
+                                    <button
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition-colors",
+                                            selectedFiles.length > 0
+                                                ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30"
+                                                : "text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20",
+                                            selectedFiles.length >= 6 && "opacity-50 cursor-not-allowed"
+                                        )}
+                                        onClick={() => {
+                                            if (selectedFiles.length < 6) {
+                                                fileInputRef.current?.click();
+                                                setShowMobileOptions(false);
+                                            }
+                                        }}
+                                        disabled={selectedFiles.length >= 6}
+                                    >
+                                        <ImageIcon size={22} />
+                                        <span className="text-[10px] font-medium">Photo</span>
+                                    </button>
 
-                                {/* Record audio */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn("shrink-0", isRecordingAudio ? "text-red-600" : "text-(--text-muted)")}
-                                    onClick={() => {
-                                        if (isRecordingAudio) stopAnyRecording();
-                                        else startRecording("audio");
-                                        setShowMobileOptions(false);
-                                    }}
-                                >
-                                    {isRecordingAudio ? <StopCircle size={20} /> : <Mic size={20} />}
-                                </Button>
+                                    {/* Record audio */}
+                                    <button
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition-colors",
+                                            isRecordingAudio 
+                                                ? "text-red-600 bg-red-50 dark:bg-red-900/30" 
+                                                : "text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20"
+                                        )}
+                                        onClick={() => {
+                                            if (isRecordingAudio) stopAnyRecording();
+                                            else startRecording("audio");
+                                            setShowMobileOptions(false);
+                                        }}
+                                    >
+                                        {isRecordingAudio ? <StopCircle size={22} /> : <Mic size={22} />}
+                                        <span className="text-[10px] font-medium">{isRecordingAudio ? "Stop" : "Audio"}</span>
+                                    </button>
 
-                                {/* Record video */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn("shrink-0", isRecordingVideo ? "text-red-600" : "text-(--text-muted)")}
-                                    onClick={() => {
-                                        if (isRecordingVideo) stopAnyRecording();
-                                        else startRecording("video");
-                                        setShowMobileOptions(false);
-                                    }}
-                                >
-                                    {isRecordingVideo ? <StopCircle size={20} /> : <Camera size={20} />}
-                                </Button>
+                                    {/* Record video */}
+                                    <button
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition-colors",
+                                            isRecordingVideo 
+                                                ? "text-red-600 bg-red-50 dark:bg-red-900/30" 
+                                                : "text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20"
+                                        )}
+                                        onClick={() => {
+                                            if (isRecordingVideo) stopAnyRecording();
+                                            else startRecording("video");
+                                            setShowMobileOptions(false);
+                                        }}
+                                    >
+                                        {isRecordingVideo ? <StopCircle size={22} /> : <Camera size={22} />}
+                                        <span className="text-[10px] font-medium">{isRecordingVideo ? "Stop" : "Video"}</span>
+                                    </button>
 
-                                {/* Location */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="shrink-0 text-(--text-muted)"
-                                    onClick={() => {
-                                        setShowLocationPicker(true);
-                                        setShowMobileOptions(false);
-                                    }}
-                                >
-                                    <MapPin size={20} />
-                                </Button>
+                                    {/* Location */}
+                                    <button
+                                        className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition-colors"
+                                        onClick={() => {
+                                            setShowLocationPicker(true);
+                                            setShowMobileOptions(false);
+                                        }}
+                                    >
+                                        <MapPin size={22} />
+                                        <span className="text-[10px] font-medium">Location</span>
+                                    </button>
 
-                                {/* Emoji */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn(
-                                        "shrink-0",
-                                        showEmojiPicker
-                                            ? "text-primary-600 dark:text-primary-400"
-                                            : "text-(--text-muted)"
-                                    )}
-                                    onClick={() => {
-                                        setShowEmojiPicker(!showEmojiPicker);
-                                        setShowMobileOptions(false);
-                                    }}
-                                >
-                                    <Smile size={20} />
-                                </Button>
+                                    {/* Emoji */}
+                                    <button
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition-colors",
+                                            showEmojiPicker
+                                                ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30"
+                                                : "text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20"
+                                        )}
+                                        onClick={() => {
+                                            setShowEmojiPicker(!showEmojiPicker);
+                                            setShowMobileOptions(false);
+                                        }}
+                                    >
+                                        <Smile size={22} />
+                                        <span className="text-[10px] font-medium">Emoji</span>
+                                    </button>
+
+                                    {/* View Once */}
+                                    <button
+                                        className={cn(
+                                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition-colors",
+                                            isViewOnce
+                                                ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30"
+                                                : "text-(--text-muted) hover:bg-primary-50/50 dark:hover:bg-primary-900/20"
+                                        )}
+                                        onClick={() => {
+                                            setIsViewOnce(!isViewOnce);
+                                            setShowMobileOptions(false);
+                                        }}
+                                    >
+                                        {isViewOnce ? <Eye size={22} /> : <EyeOff size={22} />}
+                                        <span className="text-[10px] font-medium">View Once</span>
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )}
@@ -1566,11 +1601,11 @@ export function ChatView({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setShowEmojiPicker(false)}
                             />
-                            <div className="absolute left-0 bottom-full mb-2 z-20">
+                            <div className="absolute left-0 md:left-auto bottom-full mb-2 z-20">
                                 <EmojiPicker
                                     onEmojiClick={handleEmojiClick}
                                     height={350}
-                                    width={320}
+                                    width={Math.min(320, window.innerWidth - 32)}
                                     searchPlaceHolder="Search emoji..."
                                     lazyLoadEmojis={true}
                                 />
@@ -1591,7 +1626,7 @@ export function ChatView({
                             }
                         }}
                         className={cn(
-                            "flex-1 px-4 py-2 rounded-full text-sm",
+                            "flex-1 min-w-0 px-3 md:px-4 py-2 rounded-full text-sm",
                             "bg-primary-50/80 dark:bg-primary-950/40",
                             "border border-(--border)",
                             "focus:border-primary-400 dark:focus:border-primary-500",
@@ -1604,7 +1639,7 @@ export function ChatView({
                         onClick={handleSendMessage}
                         disabled={(!messageText.trim() && selectedFiles.length === 0) || isSending || isUploading}
                         size="icon"
-                        className="shrink-0"
+                        className="shrink-0 h-9 w-9 md:h-10 md:w-10"
                     >
                         {isSending || isUploading ? (
                             <Loader2 size={18} className="animate-spin" />
