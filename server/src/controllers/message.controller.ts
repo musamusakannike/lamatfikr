@@ -3,7 +3,11 @@ import { Types } from "mongoose";
 import { StreamClient } from "@stream-io/node-sdk";
 
 import { ConversationModel } from "../models/conversation.model";
-import { ConversationEventModel, ConversationEventType, ConversationEventStatus } from "../models/conversation-event.model";
+import {
+  ConversationEventModel,
+  ConversationEventType,
+  ConversationEventStatus,
+} from "../models/conversation-event.model";
 import { MessageModel } from "../models/message.model";
 import { MessageReadModel } from "../models/message-read.model";
 import { UserModel } from "../models/user.model";
@@ -26,7 +30,11 @@ import {
 } from "../validators/message.validator";
 
 // Get or create a private conversation with another user
-export const getOrCreateConversation: RequestHandler = async (req, res, next) => {
+export const getOrCreateConversation: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -46,7 +54,9 @@ export const getOrCreateConversation: RequestHandler = async (req, res, next) =>
     const { participantId } = validation.data;
 
     if (userId === participantId) {
-      res.status(400).json({ message: "Cannot create conversation with yourself" });
+      res
+        .status(400)
+        .json({ message: "Cannot create conversation with yourself" });
       return;
     }
 
@@ -83,8 +93,9 @@ export const getOrCreateConversation: RequestHandler = async (req, res, next) =>
         participants: [userId, participantId],
       });
 
-      conversation = await ConversationModel.findById(conversation._id)
-        .populate("participants", "firstName lastName username avatar verified");
+      conversation = await ConversationModel.findById(
+        conversation._id
+      ).populate("participants", "firstName lastName username avatar verified");
     }
 
     res.json({
@@ -112,7 +123,10 @@ export const toggleReaction: RequestHandler = async (req, res, next) => {
 
     const { conversationId, messageId } = req.params;
 
-    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+    if (
+      !Types.ObjectId.isValid(conversationId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
       res.status(400).json({ message: "Invalid ID" });
       return;
     }
@@ -151,10 +165,20 @@ export const toggleReaction: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const hasReaction = Array.isArray((msg as unknown as { reactions?: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions)
-      ? (msg as unknown as { reactions: Array<{ emoji: string; userId: Types.ObjectId }> }).reactions.some(
-        (r) => r.emoji === emoji && r.userId.toString() === userId
-      )
+    const hasReaction = Array.isArray(
+      (
+        msg as unknown as {
+          reactions?: Array<{ emoji: string; userId: Types.ObjectId }>;
+        }
+      ).reactions
+    )
+      ? (
+          msg as unknown as {
+            reactions: Array<{ emoji: string; userId: Types.ObjectId }>;
+          }
+        ).reactions.some(
+          (r) => r.emoji === emoji && r.userId.toString() === userId
+        )
       : false;
 
     if (hasReaction) {
@@ -169,8 +193,11 @@ export const toggleReaction: RequestHandler = async (req, res, next) => {
       );
     }
 
-    const updated = await MessageModel.findById(messageId).select("reactions").lean();
-    const reactions = (updated as unknown as { reactions?: unknown[] })?.reactions || [];
+    const updated = await MessageModel.findById(messageId)
+      .select("reactions")
+      .lean();
+    const reactions =
+      (updated as unknown as { reactions?: unknown[] })?.reactions || [];
 
     io.to(`conversation:${conversationId}`).emit("message:reaction", {
       type: "conversation",
@@ -357,7 +384,9 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
     // Calculate expiration if disappearing messages are enabled
     let expiresAt: Date | null = null;
     if (conversation.disappearingMessagesDuration) {
-      expiresAt = new Date(Date.now() + conversation.disappearingMessagesDuration);
+      expiresAt = new Date(
+        Date.now() + conversation.disappearingMessagesDuration
+      );
     }
 
     // Create message
@@ -384,7 +413,11 @@ export const sendMessage: RequestHandler = async (req, res, next) => {
       .lean();
 
     // Emit real-time event to conversation participants (excluding sender)
-    const conversationParticipants = await ConversationModel.findById(conversationId).select("participants").lean();
+    const conversationParticipants = await ConversationModel.findById(
+      conversationId
+    )
+      .select("participants")
+      .lean();
     if (conversationParticipants) {
       conversationParticipants.participants.forEach((participantId) => {
         if (participantId.toString() !== userId) {
@@ -473,7 +506,12 @@ export const getMessages: RequestHandler = async (req, res, next) => {
 
     // Mark messages as read
     const unreadMessageIds = messages
-      .filter((m) => m.senderId && (m.senderId as unknown as { _id: Types.ObjectId })._id.toString() !== userId)
+      .filter(
+        (m) =>
+          m.senderId &&
+          (m.senderId as unknown as { _id: Types.ObjectId })._id.toString() !==
+            userId
+      )
       .map((m) => m._id);
 
     if (unreadMessageIds.length > 0) {
@@ -483,7 +521,9 @@ export const getMessages: RequestHandler = async (req, res, next) => {
       }).distinct("messageId");
 
       const newReads = unreadMessageIds
-        .filter((id) => !existingReads.some((r) => r.toString() === id.toString()))
+        .filter(
+          (id) => !existingReads.some((r) => r.toString() === id.toString())
+        )
         .map((messageId) => ({
           messageId,
           userId,
@@ -491,23 +531,37 @@ export const getMessages: RequestHandler = async (req, res, next) => {
         }));
 
       if (newReads.length > 0) {
-        await MessageReadModel.insertMany(newReads, { ordered: false }).catch(() => {
-          // Ignore duplicate key errors
-        });
+        await MessageReadModel.insertMany(newReads, { ordered: false }).catch(
+          () => {
+            // Ignore duplicate key errors
+          }
+        );
       }
     }
 
     res.json({
       messages: messages.reverse().map((msg) => {
         if (msg.isViewOnce) {
-          const hasViewed = (msg.viewedBy as unknown as Types.ObjectId[])?.some(id => id.toString() === userId);
+          const hasViewed = (msg.viewedBy as unknown as Types.ObjectId[])?.some(
+            (id) => id.toString() === userId
+          );
           // Sender cannot view their own view once message
-          if ((msg.senderId as unknown as { _id: Types.ObjectId })._id.toString() === userId) {
+          if (
+            (
+              msg.senderId as unknown as { _id: Types.ObjectId }
+            )._id.toString() === userId
+          ) {
             return { ...msg, content: undefined, media: [], attachments: [] };
           }
           // Receiver who has already viewed it
           if (hasViewed) {
-            return { ...msg, content: undefined, media: [], attachments: [], isExpired: true };
+            return {
+              ...msg,
+              content: undefined,
+              media: [],
+              attachments: [],
+              isExpired: true,
+            };
           }
           // Receiver who hasn't viewed it yet - hide content until they click to view
           return { ...msg, content: undefined, media: [], attachments: [] };
@@ -537,7 +591,10 @@ export const editMessage: RequestHandler = async (req, res, next) => {
 
     const { conversationId, messageId } = req.params;
 
-    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+    if (
+      !Types.ObjectId.isValid(conversationId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
       res.status(400).json({ message: "Invalid ID" });
       return;
     }
@@ -568,9 +625,15 @@ export const editMessage: RequestHandler = async (req, res, next) => {
     // Check if message is older than 1 hour
     // Using createdAt. getTime() returns ms.
     const ONE_HOUR = 60 * 60 * 1000;
-    const messageTime = (message as unknown as { createdAt: Date }).createdAt.getTime();
+    const messageTime = (
+      message as unknown as { createdAt: Date }
+    ).createdAt.getTime();
     if (Date.now() - messageTime > ONE_HOUR) {
-      res.status(400).json({ message: "You can only edit messages within 1 hour of sending" });
+      res
+        .status(400)
+        .json({
+          message: "You can only edit messages within 1 hour of sending",
+        });
       return;
     }
 
@@ -609,7 +672,10 @@ export const deleteMessage: RequestHandler = async (req, res, next) => {
 
     const { conversationId, messageId } = req.params;
 
-    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+    if (
+      !Types.ObjectId.isValid(conversationId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
       res.status(400).json({ message: "Invalid ID" });
       return;
     }
@@ -626,10 +692,7 @@ export const deleteMessage: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    await MessageModel.updateOne(
-      { _id: messageId },
-      { deletedAt: new Date() }
-    );
+    await MessageModel.updateOne({ _id: messageId }, { deletedAt: new Date() });
 
     // Emit message deleted event
     io.to(`conversation:${conversationId}`).emit("message:deleted", {
@@ -645,7 +708,11 @@ export const deleteMessage: RequestHandler = async (req, res, next) => {
 };
 
 // Mark conversation as read
-export const markConversationAsRead: RequestHandler = async (req, res, next) => {
+export const markConversationAsRead: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -685,7 +752,9 @@ export const markConversationAsRead: RequestHandler = async (req, res, next) => 
     }).distinct("messageId");
 
     const newReads = unreadMessages
-      .filter((m) => !existingReads.some((r) => r.toString() === m._id.toString()))
+      .filter(
+        (m) => !existingReads.some((r) => r.toString() === m._id.toString())
+      )
       .map((m) => ({
         messageId: m._id,
         userId,
@@ -693,9 +762,11 @@ export const markConversationAsRead: RequestHandler = async (req, res, next) => 
       }));
 
     if (newReads.length > 0) {
-      await MessageReadModel.insertMany(newReads, { ordered: false }).catch(() => {
-        // Ignore duplicate key errors
-      });
+      await MessageReadModel.insertMany(newReads, { ordered: false }).catch(
+        () => {
+          // Ignore duplicate key errors
+        }
+      );
     }
 
     res.json({ message: "Conversation marked as read" });
@@ -743,7 +814,11 @@ export const getUnreadCount: RequestHandler = async (req, res, next) => {
 };
 
 // Update conversation settings (e.g., disappearing messages)
-export const updateConversationSettings: RequestHandler = async (req, res, next) => {
+export const updateConversationSettings: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -810,7 +885,10 @@ export const markAsViewed: RequestHandler = async (req, res, next) => {
 
     const { conversationId, messageId } = req.params;
 
-    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(messageId)) {
+    if (
+      !Types.ObjectId.isValid(conversationId) ||
+      !Types.ObjectId.isValid(messageId)
+    ) {
       res.status(400).json({ message: "Invalid ID" });
       return;
     }
@@ -833,8 +911,8 @@ export const markAsViewed: RequestHandler = async (req, res, next) => {
 
     // Check if user has already viewed this message
     const viewedBy = (message.viewedBy as unknown as Types.ObjectId[]) || [];
-    const alreadyViewed = viewedBy.some(id => id.toString() === userId);
-    
+    const alreadyViewed = viewedBy.some((id) => id.toString() === userId);
+
     if (alreadyViewed) {
       res.status(403).json({ message: "Message has already been viewed" });
       return;
@@ -854,16 +932,19 @@ export const markAsViewed: RequestHandler = async (req, res, next) => {
         media: message.media,
         attachments: message.attachments,
         location: message.location,
-      }
+      },
     });
-
   } catch (error) {
     next(error);
   }
 };
 
 // Start a conversation event (video call or audio call)
-export const startConversationEvent: RequestHandler = async (req, res, next) => {
+export const startConversationEvent: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
   try {
     const userId = req.userId;
     if (!userId) {
@@ -898,7 +979,9 @@ export const startConversationEvent: RequestHandler = async (req, res, next) => 
 
     // Only allow private conversations (DMs)
     if (conversation.type !== ConversationType.private) {
-      res.status(403).json({ message: "Video calls are only available in direct messages" });
+      res
+        .status(403)
+        .json({ message: "Video calls are only available in direct messages" });
       return;
     }
 
@@ -910,12 +993,16 @@ export const startConversationEvent: RequestHandler = async (req, res, next) => 
     });
 
     if (existingEvent) {
-      res.status(400).json({ message: `A ${type} is already active in this conversation` });
+      res
+        .status(400)
+        .json({ message: `A ${type} is already active in this conversation` });
       return;
     }
 
     // Determine GetStream call type
-    const callType = type === ConversationEventType.video_call ? "default" : "audio_room";
+    // Use "default" for both video and audio calls in DMs to ensure consistent behavior
+    // and allow the receiver to join easily. We'll handle camera/mic state on the client.
+    const callType = "default";
 
     // Create GetStream call
     const callId = `conversation-${conversationId}-${type}-${Date.now()}`;
@@ -931,7 +1018,9 @@ export const startConversationEvent: RequestHandler = async (req, res, next) => 
         created_by_id: userId.toString(),
         members: [
           { user_id: userId.toString() },
-          ...(otherParticipant ? [{ user_id: otherParticipant.toString() }] : []),
+          ...(otherParticipant
+            ? [{ user_id: otherParticipant.toString() }]
+            : []),
         ],
         custom: {
           conversationId: conversationId.toString(),
@@ -1040,7 +1129,10 @@ export const endConversationEvent: RequestHandler = async (req, res, next) => {
 
     const { conversationId, eventId } = req.params;
 
-    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(eventId)) {
+    if (
+      !Types.ObjectId.isValid(conversationId) ||
+      !Types.ObjectId.isValid(eventId)
+    ) {
       res.status(400).json({ message: "Invalid conversation ID or event ID" });
       return;
     }
@@ -1074,14 +1166,17 @@ export const endConversationEvent: RequestHandler = async (req, res, next) => {
       conversation.participants.some((p) => p.toString() === userId);
 
     if (!canEnd) {
-      res.status(403).json({ message: "You don't have permission to end this event" });
+      res
+        .status(403)
+        .json({ message: "You don't have permission to end this event" });
       return;
     }
 
     // End the GetStream call if it exists
     if (event.streamCallId) {
       try {
-        const callType = event.type === ConversationEventType.video_call ? "default" : "audio_room";
+        // Use "default" call type as we standardized on it for DMs
+        const callType = "default";
         const call = videoClient.video.call(callType, event.streamCallId);
         await call.end();
       } catch (err) {
