@@ -31,7 +31,7 @@ import Image from "next/image";
 import Link from "next/link";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import { format, isToday, isYesterday } from "date-fns";
-import { messagesApi, type Message, type Conversation } from "@/lib/api/messages";
+import { messagesApi, type Message, type Conversation, type MessageAttachment, type MessageLocation } from "@/lib/api/messages";
 
 import { socialApi } from "@/lib/api/social";
 import { uploadApi } from "@/lib/api/upload";
@@ -242,7 +242,6 @@ export function ChatView({
                 create: true,
                 ring: true,
                 data: {
-                    created_by_id: currentUserId,
                     members: [
                         { user_id: currentUserId },
                         { user_id: otherParticipant._id }
@@ -465,8 +464,8 @@ export function ChatView({
     const [viewOnceContent, setViewOnceContent] = useState<{
         content?: string;
         media?: string[];
-        attachments?: any[];
-        location?: any;
+        attachments?: MessageAttachment[];
+        location?: MessageLocation;
     } | null>(null);
 
     const handleViewOnceMessage = async (messageId: string) => {
