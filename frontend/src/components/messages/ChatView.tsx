@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Button } from "@/components/ui";
+import { Avatar, Button, Modal } from "@/components/ui";
 import {
     ArrowLeft,
     Send,
@@ -50,7 +50,8 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { BlockUserModal } from "@/components/shared/BlockUserModal";
 import { ViewOnceModal } from "./ViewOnceModal";
 import { ReportModal } from "@/components/shared/ReportModal";
-import { useStreamVideoClient } from "@stream-io/video-react-sdk";
+import { useStreamClientContext } from "@/contexts/StreamClientContext";
+import { StreamCall, CallControls, SpeakerLayout } from "@stream-io/video-react-sdk";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -82,7 +83,8 @@ export function ChatView({
 }: ChatViewProps) {
     const { socket, joinConversation, leaveConversation, sendTyping } = useSocket();
     const { t } = useLanguage();
-    const videoClient = useStreamVideoClient();
+    const streamContext = useStreamClientContext();
+    const streamClient = streamContext?.client || null;
     const { addMessages } = useChat();
     const [conversation, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -115,6 +117,20 @@ export function ChatView({
     const [isRecordingVideo, setIsRecordingVideo] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+    
+    // Conversation event state
+    const [activeEvent, setActiveEvent] = useState<{
+        id: string;
+        type: "video_call" | "audio_call";
+        status: string;
+        streamCallId?: string;
+        startedBy?: string;
+        createdAt: string;
+    } | null>(null);
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [call, setCall] = useState<any>(null);
+    const [isJoiningCall, setIsJoiningCall] = useState(false);
+    const [hasJoinedCall, setHasJoinedCall] = useState(false);
 
     const [leafletMounted, setLeafletMounted] = useState(false);
 
@@ -226,25 +242,21 @@ export function ChatView({
     };
 
     const handleStartCall = async (video: boolean) => {
-        if (!videoClient || !otherParticipant) {
+        if (!streamClient || !otherParticipant) {
             toast.error(t("messages", "cannotStartCall"));
             return;
         }
 
         try {
-            const callType = video ? "default" : "audio_room";
+            const eventType = video ? "video_call" : "audio_call";
             const loadingMessage = video ? t("messages", "startingVideoCall") : t("messages", "startingAudioCall");
             toast.loading(loadingMessage, { id: "call-start", duration: 5000 });
 
-            // Create call with unique ID based on conversation
-            const callId = `dm-${conversationId}-${Date.now()}`;
-            const call = videoClient.call(callType, callId);
-
-            // Request permissions before joining
+            // Request permissions before starting
             if (video) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    stream.getTracks().forEach(track => track.stop()); // Stop immediately, we'll enable in call
+                    stream.getTracks().forEach(track => track.stop());
                 } catch (permError) {
                     toast.error(t("messages", "cameraPermissionDenied"), { id: "call-start" });
                     return;
@@ -252,48 +264,28 @@ export function ChatView({
             } else {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    stream.getTracks().forEach(track => track.stop()); // Stop immediately, we'll enable in call
+                    stream.getTracks().forEach(track => track.stop());
                 } catch (permError) {
                     toast.error(t("messages", "microphonePermissionDenied"), { id: "call-start" });
                     return;
                 }
             }
 
-            // Join the call with proper parameters
-            await call.join({
-                create: true,
-                ring: true,
-                data: {
-                    custom: {
-                        conversationId,
-                        type: video ? "video" : "audio",
-                        participants: [currentUserId, otherParticipant._id],
-                    },
-                    members: [
-                        { user_id: currentUserId },
-                        { user_id: otherParticipant._id }
-                    ]
-                }
+            // Start event via backend API
+            const response = await messagesApi.startEvent(conversationId, eventType);
+            
+            // Set active event and open modal
+            setActiveEvent({
+                id: response.event.id,
+                type: eventType,
+                status: response.event.status,
+                streamCallId: response.event.streamCallId,
+                startedBy: response.event.startedBy,
+                createdAt: response.event.createdAt,
             });
+            setShowEventModal(true);
 
-            // Configure camera and microphone based on call type
-            try {
-                if (video) {
-                    await call.camera.enable();
-                    await call.microphone.enable();
-                } else {
-                    await call.camera.disable();
-                    await call.microphone.enable();
-                }
-            } catch (deviceError) {
-                console.warn("Device enable/disable warning:", deviceError);
-                // Continue even if device control fails, user can enable manually
-            }
-
-            toast.success(video ? t("messages", "videoCallStarted") : t("messages", "audioCallStarted"), {
-                id: "call-start",
-                duration: 2000,
-            });
+            toast.success(response.message, { id: "call-start", duration: 2000 });
         } catch (error) {
             console.error("Failed to start call", error);
             let errorMessage = t("messages", "callStartFailed");
@@ -325,9 +317,10 @@ export function ChatView({
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const [convRes, msgRes] = await Promise.all([
+                const [convRes, msgRes, eventsRes] = await Promise.all([
                     messagesApi.getConversation(conversationId),
                     messagesApi.getMessages(conversationId, 1, 50),
+                    messagesApi.getEvents(conversationId).catch(() => ({ events: [] })),
                 ]);
 
                 setConversation(convRes.conversation);
@@ -347,6 +340,20 @@ export function ChatView({
                 })));
                 setPage(1);
                 setHasMore(msgRes.pagination.page < msgRes.pagination.pages);
+
+                // Set active event if any
+                const activeEvents = eventsRes.events.filter(e => e.status === "active");
+                if (activeEvents.length > 0) {
+                    const event = activeEvents[0];
+                    setActiveEvent({
+                        id: event.id,
+                        type: event.type as "video_call" | "audio_call",
+                        status: event.status,
+                        streamCallId: event.streamCallId,
+                        startedBy: typeof event.startedBy === "string" ? event.startedBy : event.startedBy._id,
+                        createdAt: event.createdAt,
+                    });
+                }
 
                 // Mark as read
                 await messagesApi.markAsRead(conversationId);
@@ -427,6 +434,63 @@ export function ChatView({
         };
     }, [conversationId, joinConversation, leaveConversation]);
 
+    // Join call when event modal opens
+    useEffect(() => {
+        if (!streamClient || !showEventModal || !activeEvent?.streamCallId) return;
+
+        const initializeCall = async () => {
+            try {
+                setIsJoiningCall(true);
+                const callType = activeEvent.type === "video_call" ? "default" : "audio_room";
+                const newCall = streamClient.call(callType, activeEvent.streamCallId);
+                await newCall.join();
+                setCall(newCall);
+                setHasJoinedCall(true);
+                setIsJoiningCall(false);
+            } catch (err) {
+                console.error("Failed to join call:", err);
+                toast.error(t("messages", "callStartFailed") || "Failed to join call");
+                setIsJoiningCall(false);
+                setShowEventModal(false);
+            }
+        };
+
+        initializeCall();
+
+        return () => {
+            if (call) {
+                call.leave().catch(console.error);
+                setCall(null);
+                setHasJoinedCall(false);
+            }
+        };
+    }, [streamClient, showEventModal, activeEvent?.streamCallId, activeEvent?.type]);
+
+    const handleLeaveCall = async () => {
+        if (call) {
+            await call.leave();
+            setCall(null);
+            setHasJoinedCall(false);
+        }
+        setShowEventModal(false);
+    };
+
+    const handleEndCall = async () => {
+        if (!activeEvent) return;
+        try {
+            await messagesApi.endEvent(conversationId, activeEvent.id);
+            if (call) {
+                await call.leave();
+                setCall(null);
+                setHasJoinedCall(false);
+            }
+            setActiveEvent(null);
+            setShowEventModal(false);
+        } catch (err) {
+            toast.error(getErrorMessage(err));
+        }
+    };
+
     // Listen for real-time messages
     useEffect(() => {
         if (!socket) return;
@@ -468,11 +532,53 @@ export function ChatView({
         socket.on("message:updated", handleMessageUpdated);
         socket.on("message:deleted", handleMessageDeleted);
 
+        // Listen for conversation events
+        const handleEventStarted = (data: {
+            conversationId: string;
+            eventId: string;
+            type: string;
+            startedBy: string;
+            streamCallId: string;
+        }) => {
+            if (data.conversationId !== conversationId) return;
+            setActiveEvent({
+                id: data.eventId,
+                type: data.type as "video_call" | "audio_call",
+                status: "active",
+                streamCallId: data.streamCallId,
+                startedBy: data.startedBy,
+                createdAt: new Date().toISOString(),
+            });
+            setShowEventModal(true);
+        };
+
+        const handleEventEnded = (data: {
+            conversationId: string;
+            eventId: string;
+            type: string;
+        }) => {
+            if (data.conversationId !== conversationId) return;
+            if (activeEvent?.id === data.eventId) {
+                setActiveEvent(null);
+                setShowEventModal(false);
+                if (call) {
+                    call.leave().catch(console.error);
+                    setCall(null);
+                    setHasJoinedCall(false);
+                }
+            }
+        };
+
+        socket.on("conversation:event:started", handleEventStarted);
+        socket.on("conversation:event:ended", handleEventEnded);
+
         return () => {
             socket.off("message:updated", handleMessageUpdated);
             socket.off("message:deleted", handleMessageDeleted);
+            socket.off("conversation:event:started", handleEventStarted);
+            socket.off("conversation:event:ended", handleEventEnded);
         };
-    }, [socket, conversationId]);
+    }, [socket, conversationId, activeEvent, call]);
 
     const handleEditClick = (msg: Message) => {
         setEditingMessageId(msg._id);
@@ -1566,6 +1672,43 @@ export function ChatView({
                 attachments={viewOnceContent?.attachments}
                 location={viewOnceContent?.location}
             />
+
+            {/* Conversation Event Modal (Video/Audio Call) */}
+            {activeEvent && (
+                <Modal
+                    isOpen={showEventModal}
+                    onClose={handleLeaveCall}
+                    title={activeEvent.type === "video_call" ? t("messages", "videoCall") || "Video Call" : t("messages", "audioCall") || "Audio Call"}
+                    size="full"
+                >
+                    <div className="flex flex-col h-[calc(100vh-8rem)]">
+                        {isJoiningCall ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                                    <p className="text-(--text-muted)">{t("common", "loading")}...</p>
+                                </div>
+                            </div>
+                        ) : hasJoinedCall && call && streamClient ? (
+                            <div className="flex-1 relative bg-black">
+                                <StreamCall call={call}>
+                                    <SpeakerLayout />
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+                                        <CallControls onLeave={handleLeaveCall} />
+                                    </div>
+                                </StreamCall>
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-center">
+                                    <p className="text-(--text-muted) mb-4">{t("common", "errorLoading")}</p>
+                                    <Button onClick={handleLeaveCall}>{t("common", "close")}</Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }

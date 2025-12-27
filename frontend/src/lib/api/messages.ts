@@ -165,4 +165,43 @@ export const messagesApi = {
       `/messages/conversations/${conversationId}/settings`,
       settings
     ),
+
+  // Start a conversation event (video call or audio call)
+  startEvent: (conversationId: string, type: "video_call" | "audio_call") =>
+    apiClient.post<{
+      message: string;
+      event: {
+        id: string;
+        type: string;
+        status: string;
+        streamCallId?: string;
+        startedBy: string;
+        createdAt: string;
+      };
+    }>(`/messages/conversations/${conversationId}/events`, { type }),
+
+  // Get active events for a conversation
+  getEvents: (conversationId: string) =>
+    apiClient.get<{
+      events: Array<{
+        id: string;
+        type: string;
+        status: string;
+        streamCallId?: string;
+        startedBy: MessageUser;
+        createdAt: string;
+      }>;
+    }>(`/messages/conversations/${conversationId}/events`),
+
+  // End a conversation event
+  endEvent: (conversationId: string, eventId: string) =>
+    apiClient.post<{
+      message: string;
+      event: {
+        id: string;
+        type: string;
+        status: string;
+        endedAt?: string;
+      };
+    }>(`/messages/conversations/${conversationId}/events/${eventId}/end`),
 };

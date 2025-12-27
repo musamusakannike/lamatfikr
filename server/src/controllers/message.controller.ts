@@ -1,13 +1,21 @@
 import type { RequestHandler } from "express";
 import { Types } from "mongoose";
+import { StreamClient } from "@stream-io/node-sdk";
 
 import { ConversationModel } from "../models/conversation.model";
+import { ConversationEventModel, ConversationEventType, ConversationEventStatus } from "../models/conversation-event.model";
 import { MessageModel } from "../models/message.model";
 import { MessageReadModel } from "../models/message-read.model";
 import { UserModel } from "../models/user.model";
 import { BlockModel } from "../models/block.model";
 import { ConversationType } from "../models/common";
 import { io } from "../realtime/socket";
+
+// Initialize Stream Video client for video calls
+const videoClient = new StreamClient(
+  process.env.STREAM_API_KEY!,
+  process.env.STREAM_SECRET_KEY!
+);
 import {
   createConversationSchema,
   sendMessageSchema,
@@ -849,6 +857,261 @@ export const markAsViewed: RequestHandler = async (req, res, next) => {
       }
     });
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Start a conversation event (video call or audio call)
+export const startConversationEvent: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId } = req.params;
+    const { type } = req.body;
+
+    if (!Types.ObjectId.isValid(conversationId)) {
+      res.status(400).json({ message: "Invalid conversation ID" });
+      return;
+    }
+
+    if (!Object.values(ConversationEventType).includes(type)) {
+      res.status(400).json({ message: "Invalid event type" });
+      return;
+    }
+
+    // Check if conversation exists and user is a participant
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participants: userId,
+      deletedAt: null,
+    });
+
+    if (!conversation) {
+      res.status(404).json({ message: "Conversation not found" });
+      return;
+    }
+
+    // Only allow private conversations (DMs)
+    if (conversation.type !== ConversationType.private) {
+      res.status(403).json({ message: "Video calls are only available in direct messages" });
+      return;
+    }
+
+    // Check if there's already an active event of this type
+    const existingEvent = await ConversationEventModel.findOne({
+      conversationId,
+      type,
+      status: ConversationEventStatus.active,
+    });
+
+    if (existingEvent) {
+      res.status(400).json({ message: `A ${type} is already active in this conversation` });
+      return;
+    }
+
+    // Determine GetStream call type
+    const callType = type === ConversationEventType.video_call ? "default" : "audio_room";
+
+    // Create GetStream call
+    const callId = `conversation-${conversationId}-${type}-${Date.now()}`;
+    const call = videoClient.video.call(callType, callId);
+
+    // Get other participant
+    const otherParticipant = conversation.participants.find(
+      (p) => p.toString() !== userId
+    );
+
+    await call.getOrCreate({
+      data: {
+        created_by_id: userId.toString(),
+        members: [
+          { user_id: userId.toString() },
+          ...(otherParticipant ? [{ user_id: otherParticipant.toString() }] : []),
+        ],
+        custom: {
+          conversationId: conversationId.toString(),
+          eventType: type,
+        },
+      },
+    });
+
+    // Create conversation event
+    const event = await ConversationEventModel.create({
+      conversationId,
+      type,
+      status: ConversationEventStatus.active,
+      startedBy: userId,
+      streamCallId: callId,
+    });
+
+    // Emit socket event to conversation participants
+    conversation.participants.forEach((participantId) => {
+      if (participantId.toString() !== userId) {
+        io.to(`user:${participantId}`).emit("conversation:event:started", {
+          conversationId,
+          eventId: event._id.toString(),
+          type,
+          startedBy: userId.toString(),
+          streamCallId: callId,
+        });
+      }
+    });
+
+    res.status(201).json({
+      message: `${type} started successfully`,
+      event: {
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        streamCallId: event.streamCallId,
+        startedBy: event.startedBy,
+        createdAt: (event as unknown as { createdAt: Date }).createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get active events for a conversation
+export const getConversationEvents: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId)) {
+      res.status(400).json({ message: "Invalid conversation ID" });
+      return;
+    }
+
+    // Check if user is participant
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participants: userId,
+      deletedAt: null,
+    });
+
+    if (!conversation) {
+      res.status(404).json({ message: "Conversation not found" });
+      return;
+    }
+
+    const events = await ConversationEventModel.find({
+      conversationId,
+      status: ConversationEventStatus.active,
+    })
+      .populate("startedBy", "username firstName lastName avatar")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      events: events.map((event) => ({
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        streamCallId: event.streamCallId,
+        startedBy: event.startedBy,
+        createdAt: (event as unknown as { createdAt: Date }).createdAt,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// End a conversation event
+export const endConversationEvent: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const { conversationId, eventId } = req.params;
+
+    if (!Types.ObjectId.isValid(conversationId) || !Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({ message: "Invalid conversation ID or event ID" });
+      return;
+    }
+
+    // Check if user is participant
+    const conversation = await ConversationModel.findOne({
+      _id: conversationId,
+      participants: userId,
+      deletedAt: null,
+    });
+
+    if (!conversation) {
+      res.status(404).json({ message: "Conversation not found" });
+      return;
+    }
+
+    const event = await ConversationEventModel.findOne({
+      _id: eventId,
+      conversationId,
+      status: ConversationEventStatus.active,
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found or already ended" });
+      return;
+    }
+
+    // Check if user is the one who started it or is a participant
+    const canEnd =
+      event.startedBy.toString() === userId.toString() ||
+      conversation.participants.some((p) => p.toString() === userId);
+
+    if (!canEnd) {
+      res.status(403).json({ message: "You don't have permission to end this event" });
+      return;
+    }
+
+    // End the GetStream call if it exists
+    if (event.streamCallId) {
+      try {
+        const callType = event.type === ConversationEventType.video_call ? "default" : "audio_room";
+        const call = videoClient.video.call(callType, event.streamCallId);
+        await call.end();
+      } catch (err) {
+        // Ignore errors if call doesn't exist
+        console.error("Error ending Stream call:", err);
+      }
+    }
+
+    event.status = ConversationEventStatus.ended;
+    event.endedAt = new Date();
+    await event.save();
+
+    // Emit socket event to conversation participants
+    conversation.participants.forEach((participantId) => {
+      io.to(`user:${participantId}`).emit("conversation:event:ended", {
+        conversationId,
+        eventId: event._id.toString(),
+        type: event.type,
+      });
+    });
+
+    res.json({
+      message: "Event ended successfully",
+      event: {
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        endedAt: event.endedAt,
+      },
+    });
   } catch (error) {
     next(error);
   }

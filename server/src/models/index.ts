@@ -21,6 +21,7 @@ export * from "./poll.model";
 export * from "./poll-vote.model";
 
 export * from "./conversation.model";
+export * from "./conversation-event.model";
 export * from "./message.model";
 export * from "./message-read.model";
 

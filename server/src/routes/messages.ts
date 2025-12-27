@@ -14,6 +14,9 @@ import {
   updateConversationSettings,
   editMessage,
   markAsViewed,
+  startConversationEvent,
+  getConversationEvents,
+  endConversationEvent,
 } from "../controllers/message.controller";
 
 export const messagesRouter = Router();
@@ -43,3 +46,8 @@ messagesRouter.post(
 
 // Unread count
 messagesRouter.get("/unread-count", requireAuth, getUnreadCount);
+
+// Conversation events (video call, audio call)
+messagesRouter.post("/conversations/:conversationId/events", requireAuth, startConversationEvent);
+messagesRouter.get("/conversations/:conversationId/events", requireAuth, getConversationEvents);
+messagesRouter.post("/conversations/:conversationId/events/:eventId/end", requireAuth, endConversationEvent);
