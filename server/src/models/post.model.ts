@@ -17,6 +17,8 @@ export interface Post {
   downvoteCount: number;
   hasPoll: boolean;
   deletedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const PostSchema = new Schema<Post>(
@@ -47,4 +49,5 @@ PostSchema.index({ userId: 1, createdAt: -1 });
 PostSchema.index({ deletedAt: 1, createdAt: -1 });
 
 export const PostModel =
-  (mongoose.models.Post as mongoose.Model<Post>) || mongoose.model<Post>("Post", PostSchema);
+  (mongoose.models.Post as mongoose.Model<Post>) ||
+  mongoose.model<Post>("Post", PostSchema);
