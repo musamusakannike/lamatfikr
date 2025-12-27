@@ -9,33 +9,12 @@ import {
     RingingCall,
     useCalls,
     CallingState,
-    useCallStateHooks,
-    useCall,
 } from "@stream-io/video-react-sdk";
-import { useEffect } from "react";
 
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useStreamClientContext } from "@/contexts/StreamClientContext";
 
 const ActiveCallUI = () => {
-    const call = useCall();
-    const { useCallCallingState } = useCallStateHooks();
-    const callingState = useCallCallingState();
-
-    useEffect(() => {
-        if (callingState === CallingState.JOINED && call?.type === "default") {
-            const enableMedia = async () => {
-                try {
-                    await call.camera.enable();
-                    await call.microphone.enable();
-                } catch (error) {
-                    console.error("Failed to enable media:", error);
-                }
-            };
-            enableMedia();
-        }
-    }, [call, callingState]);
-
     return (
         <div className="fixed inset-0 z-50 bg-black">
             {/* Main video layout (auto handles 1:1, group, audio-only) */}
