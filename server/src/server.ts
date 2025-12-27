@@ -6,6 +6,7 @@ import { env } from "./config/env";
 import { attachSocket } from "./realtime/socket";
 import { configureCloudinary } from "./services/cloudinary";
 import { startFeaturedRoomExpirationService } from "./services/featured-room.service";
+import { startCallCleanupService } from "./services/call-cleanup.service";
 
 async function main() {
   await connectToMongo(env.MONGODB_URI);
@@ -17,6 +18,7 @@ async function main() {
   attachSocket(server);
 
   startFeaturedRoomExpirationService();
+  startCallCleanupService();
 
   server.listen(env.PORT, () => {
     console.log(`[server] listening on :${env.PORT}`);

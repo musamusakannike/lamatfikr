@@ -333,17 +333,26 @@ export function ChatView({
       if (error instanceof Error) {
         if (
           error.message.includes("permission") ||
-          error.message.includes("Permission")
+          error.message.includes("Permission") ||
+          error.name === "NotAllowedError"
         ) {
           errorMessage = video
-            ? t("messages", "cameraPermissionDenied")
-            : t("messages", "microphonePermissionDenied");
-        } else if (error.message.includes("NotAllowedError")) {
-          errorMessage = t("messages", "deviceAccessDenied");
-        } else if (error.message.includes("NotFoundError")) {
-          errorMessage = t("messages", "deviceNotFound");
-        } else if (error.message.includes("NotReadableError")) {
-          errorMessage = t("messages", "deviceInUse");
+            ? t("messages", "cameraPermissionDenied") ||
+              "Camera permission denied"
+            : t("messages", "microphonePermissionDenied") ||
+              "Microphone permission denied";
+        } else if (
+          error.name === "NotFoundError" ||
+          error.message.includes("NotFoundError")
+        ) {
+          errorMessage = t("messages", "deviceNotFound") || "Device not found";
+        } else if (
+          error.name === "NotReadableError" ||
+          error.message.includes("NotReadableError")
+        ) {
+          errorMessage =
+            t("messages", "deviceInUse") ||
+            "Device is in use by another application";
         }
       }
 
@@ -497,8 +506,9 @@ export function ChatView({
     const initializeCall = async () => {
       try {
         setIsJoiningCall(true);
-        // Always use "default" call type for DMs as standardized in backend
-        const callType = "default";
+        // Determine call type based on event type
+        const callType =
+          activeEvent.type === "audio_call" ? "audio_room" : "default";
         if (!activeEvent.streamCallId) {
           throw new Error("Stream call ID is missing");
         }
@@ -1186,6 +1196,59 @@ export function ChatView({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Call Banner */}
+      {activeEvent && !hasJoinedCall && !isJoiningCall && (
+        <div className="flex items-center justify-between px-4 py-3 bg-primary-50 dark:bg-primary-900/40 border-b border-(--border)">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "p-2.5 rounded-full",
+                activeEvent.type === "video_call"
+                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400"
+                  : "bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400"
+              )}
+            >
+              {activeEvent.type === "video_call" ? (
+                <Video size={20} />
+              ) : (
+                <Phone size={20} />
+              )}
+            </div>
+            <div>
+              <p className="font-semibold text-sm">
+                {activeEvent.type === "video_call"
+                  ? "Video Call Started"
+                  : "Audio Call Started"}
+              </p>
+              <p className="text-xs text-(--text-muted)">
+                {activeEvent.startedBy === currentUserId
+                  ? "Waiting for others to join..."
+                  : "Tap to join the call"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {activeEvent.startedBy !== currentUserId && (
+              <Button
+                size="sm"
+                onClick={() => setShowEventModal(true)}
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4"
+              >
+                {t("common", "join") || "Join"}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEndCall}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+            >
+              {t("common", "end") || "End"}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div

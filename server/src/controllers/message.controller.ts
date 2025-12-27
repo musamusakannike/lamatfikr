@@ -629,11 +629,9 @@ export const editMessage: RequestHandler = async (req, res, next) => {
       message as unknown as { createdAt: Date }
     ).createdAt.getTime();
     if (Date.now() - messageTime > ONE_HOUR) {
-      res
-        .status(400)
-        .json({
-          message: "You can only edit messages within 1 hour of sending",
-        });
+      res.status(400).json({
+        message: "You can only edit messages within 1 hour of sending",
+      });
       return;
     }
 
@@ -977,14 +975,6 @@ export const startConversationEvent: RequestHandler = async (
       return;
     }
 
-    // Only allow private conversations (DMs)
-    if (conversation.type !== ConversationType.private) {
-      res
-        .status(403)
-        .json({ message: "Video calls are only available in direct messages" });
-      return;
-    }
-
     // Check if there's already an active event of this type
     const existingEvent = await ConversationEventModel.findOne({
       conversationId,
@@ -1000,9 +990,9 @@ export const startConversationEvent: RequestHandler = async (
     }
 
     // Determine GetStream call type
-    // Use "default" for both video and audio calls in DMs to ensure consistent behavior
-    // and allow the receiver to join easily. We'll handle camera/mic state on the client.
-    const callType = "default";
+    // Use "audio_room" for audio calls to support spaces/rooms behavior
+    // Use "default" for video calls
+    const callType = type === "audio_call" ? "audio_room" : "default";
 
     // Create GetStream call
     const callId = `conversation-${conversationId}-${type}-${Date.now()}`;
@@ -1175,8 +1165,8 @@ export const endConversationEvent: RequestHandler = async (req, res, next) => {
     // End the GetStream call if it exists
     if (event.streamCallId) {
       try {
-        // Use "default" call type as we standardized on it for DMs
-        const callType = "default";
+        // Determine call type based on event type
+        const callType = event.type === "audio_call" ? "audio_room" : "default";
         const call = videoClient.video.call(callType, event.streamCallId);
         await call.end();
       } catch (err) {
@@ -1209,5 +1199,86 @@ export const endConversationEvent: RequestHandler = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// Cleanup empty calls (to be called by cron/scheduler)
+export const cleanupEmptyCalls = async () => {
+  try {
+    const activeEvents = await ConversationEventModel.find({
+      status: ConversationEventStatus.active,
+    });
+
+    if (activeEvents.length === 0) return;
+
+    for (const event of activeEvents) {
+      // Check if event is older than 1 minute
+      const ONE_MINUTE = 60 * 1000;
+      const eventTime = (
+        event as unknown as { createdAt: Date }
+      ).createdAt.getTime();
+      if (Date.now() - eventTime < ONE_MINUTE) continue;
+
+      try {
+        // Query Stream for call stats
+        // Determine call type based on event type
+        const callType = event.type === "audio_call" ? "audio_room" : "default";
+
+        if (!event.streamCallId) continue;
+
+        const { calls } = await videoClient.video.queryCalls({
+          filter_conditions: {
+            id: event.streamCallId,
+          },
+        });
+
+        if (calls.length > 0) {
+          const call = calls[0];
+          // If no participants, end the call
+          // @ts-ignore - stats/session property access depends on SDK version, using safe access
+          const participantCount =
+            (call as any).stats?.participant_count ??
+            (call as any).session?.participants?.length ??
+            0;
+
+          if (participantCount === 0) {
+            console.log(`[cleanup] Ending empty call: ${event._id}`);
+
+            // End the GetStream call
+            const streamCall = videoClient.video.call(
+              callType,
+              event.streamCallId
+            );
+            await streamCall.end();
+
+            // Update DB
+            event.status = ConversationEventStatus.ended;
+            event.endedAt = new Date();
+            await event.save();
+
+            // Emit socket event to participants
+            const conversation = await ConversationModel.findById(
+              event.conversationId
+            ).select("participants");
+            if (conversation) {
+              conversation.participants.forEach((participantId) => {
+                io.to(`user:${participantId}`).emit(
+                  "conversation:event:ended",
+                  {
+                    conversationId: event.conversationId,
+                    eventId: event._id.toString(),
+                    type: event.type,
+                  }
+                );
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`[cleanup] Error checking call ${event._id}:`, err);
+      }
+    }
+  } catch (error) {
+    console.error("[cleanup] Fatal error in call cleanup:", error);
   }
 };
