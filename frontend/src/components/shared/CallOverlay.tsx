@@ -42,15 +42,15 @@ const ActiveCallUI = () => {
 const CallOverlayContent = () => {
     const calls = useCalls();
 
-    const incomingCall = calls.find(
-        (call) => call.state.callingState === CallingState.RINGING
-    );
-
-    const joinedCall = calls.find(
-        (call) => call.state.callingState === CallingState.JOINED
-    );
-
-    const activeCall = joinedCall || incomingCall;
+    const activeCall = calls.find((call) => {
+        const state = call.state.callingState;
+        return (
+            state === CallingState.RINGING ||
+            state === CallingState.JOINED ||
+            state === CallingState.JOINING ||
+            state === CallingState.RECONNECTING
+        );
+    });
 
     if (!activeCall) return null;
 
