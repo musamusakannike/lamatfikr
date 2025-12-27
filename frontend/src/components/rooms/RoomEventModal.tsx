@@ -5,13 +5,18 @@ import { X, Video, Radio, Users } from "lucide-react";
 import { Modal, Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useStreamClientContext } from "@/contexts/StreamClientContext";
-import { StreamCall, CallControls, SpeakerLayout, LivestreamLayout } from "@stream-io/video-react-sdk";
+import {
+  StreamCall,
+  CallControls,
+  SpeakerLayout,
+  LivestreamLayout,
+} from "@stream-io/video-react-sdk";
 import { cn } from "@/lib/utils";
 
 interface RoomEventModalProps {
   event: {
     id: string;
-    type: "livestream" | "video_call" | "space";
+    type: "livestream" | "video_call" | "space" | "audio_call";
     status: string;
     streamCallId: string;
     startedBy?: {
@@ -29,7 +34,13 @@ interface RoomEventModalProps {
   onEndEvent: (eventId: string) => void;
 }
 
-export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: RoomEventModalProps) {
+export function RoomEventModal({
+  event,
+  roomId,
+  isOpen,
+  onClose,
+  onEndEvent,
+}: RoomEventModalProps) {
   const { t } = useLanguage();
   const streamContext = useStreamClientContext();
   const client = streamContext?.client || null;
@@ -105,13 +116,20 @@ export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: R
         return t("rooms", "videoCall");
       case "space":
         return t("rooms", "space");
+      case "audio_call":
+        return t("rooms", "audio_call") || "Audio Call";
       default:
         return "";
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleLeave} title={getEventTitle()} size="full">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleLeave}
+      title={getEventTitle()}
+      size="full"
+    >
       <div className="flex flex-col h-[calc(100vh-8rem)]">
         {isJoining ? (
           <div className="flex-1 flex items-center justify-center">
@@ -123,18 +141,23 @@ export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: R
         ) : hasJoined && call && client ? (
           <div className="flex-1 relative bg-black">
             <StreamCall call={call}>
-              {event.type === "livestream" && <LivestreamLayout />}
-              {event.type === "video_call" && <SpeakerLayout />}
-              {event.type === "space" && <SpeakerLayout />}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-                <CallControls onLeave={handleLeave} />
+              <div className="str-video__theme-dark w-full h-full">
+                {event.type === "livestream" && <LivestreamLayout />}
+                {event.type === "video_call" && <SpeakerLayout />}
+                {event.type === "audio_call" && <SpeakerLayout />}
+                {event.type === "space" && <SpeakerLayout />}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+                  <CallControls onLeave={handleLeave} />
+                </div>
               </div>
             </StreamCall>
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-(--text-muted) mb-4">{t("common", "errorLoading")}</p>
+              <p className="text-(--text-muted) mb-4">
+                {t("common", "errorLoading")}
+              </p>
               <Button onClick={handleLeave}>{t("common", "close")}</Button>
             </div>
           </div>
@@ -143,4 +166,3 @@ export function RoomEventModal({ event, roomId, isOpen, onClose, onEndEvent }: R
     </Modal>
   );
 }
-
