@@ -442,6 +442,9 @@ export function ChatView({
             try {
                 setIsJoiningCall(true);
                 const callType = activeEvent.type === "video_call" ? "default" : "audio_room";
+                if (!activeEvent.streamCallId) {
+                    throw new Error("Stream call ID is missing");
+                }
                 const newCall = streamClient.call(callType, activeEvent.streamCallId);
                 await newCall.join();
                 setCall(newCall);
