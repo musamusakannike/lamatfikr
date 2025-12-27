@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Avatar, Badge, Button, Card, CardContent } from "@/components/ui";
+import { Avatar, Badge, Button, Card, CardContent, Modal } from "@/components/ui";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 import {
     ArrowBigUp,
     ArrowBigDown,
@@ -24,6 +25,8 @@ import {
     ChevronRight,
     UserPlus,
     UserCheck,
+    MoreHorizontal,
+    Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,6 +35,7 @@ import { postsApi, type Post } from "@/lib/api/posts";
 import { commentsApi, type Comment } from "@/lib/api/comments";
 import { socialApi } from "@/lib/api/social";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import toast from "react-hot-toast";
 import { VerifiedBadge } from "@/components/shared/VerifiedBadge";
 
@@ -42,7 +46,9 @@ interface PostCardProps {
 
 export function PostCard({ post: initialPost, showAnnouncement = false }: PostCardProps) {
     const { user: currentUser, isAuthenticated } = useAuth();
+    const { t } = useLanguage();
     const [post, setPost] = useState(initialPost);
+    const [isDeleted, setIsDeleted] = useState(false);
     const [isVoting, setIsVoting] = useState(false);
     const [saved, setSaved] = useState(initialPost.isSaved || false);
     const [showComments, setShowComments] = useState(false);
@@ -56,6 +62,10 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     const [fullscreenImage, setFullscreenImage] = useState<{ url: string; index: number } | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editContent, setEditContent] = useState("");
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     const isOwnPost = currentUser?.id === post.userId._id;
 
@@ -251,6 +261,49 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
     // Calculate net votes (upvotes - downvotes), ensuring we handle undefined values
     const netVotes = (post.upvotes || 0) - (post.downvotes || 0);
 
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    const canEdit = isOwnPost && Date.now() - new Date(post.createdAt).getTime() <= twoHoursMs;
+
+    const openEdit = () => {
+        setEditContent(post.contentText || "");
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!canEdit || isSavingEdit) return;
+
+        try {
+            setIsSavingEdit(true);
+            const res = await postsApi.updatePost(post._id, { contentText: editContent.trim() });
+            setPost(res.post);
+            toast.success(t("posts", "postUpdated"));
+            setIsEditModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error(t("posts", "failedToUpdate"));
+        } finally {
+            setIsSavingEdit(false);
+        }
+    };
+
+    const handleDeletePost = async () => {
+        if (!isOwnPost) return;
+
+        const confirmed = window.confirm(t("posts", "confirmDeletePost"));
+        if (!confirmed) return;
+
+        try {
+            await postsApi.deletePost(post._id);
+            setIsDeleted(true);
+            toast.success(t("posts", "postDeleted"));
+        } catch (error) {
+            console.error(error);
+            toast.error(t("posts", "failedToDelete"));
+        }
+    };
+
+    if (isDeleted) return null;
+
     return (
         <Card className={cn(isAnnouncement && "border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/30")}>
             <CardContent className="p-4">
@@ -341,6 +394,41 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                             </div>
                         </div>
                     </div>
+
+                    {isOwnPost && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    className="p-2 rounded-full text-(--text-muted) hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                                    aria-label={t("posts", "postOptions")}
+                                >
+                                    <MoreHorizontal size={18} />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {canEdit && (
+                                    <DropdownMenuItem
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            openEdit();
+                                        }}
+                                    >
+                                        {t("common", "edit")}
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                    className="text-red-600 focus:text-red-600"
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        handleDeletePost();
+                                    }}
+                                >
+                                    <Trash2 size={16} className="mr-2" />
+                                    {t("common", "delete")}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
 
                 {/* Content */}
@@ -558,6 +646,37 @@ export function PostCard({ post: initialPost, showAnnouncement = false }: PostCa
                     </div>
                 )}
             </CardContent>
+
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title={t("posts", "editPost")}
+            >
+                <div className="p-4 space-y-3">
+                    {!canEdit && (
+                        <p className="text-sm text-red-600">{t("posts", "editTimeLimitPost")}</p>
+                    )}
+                    <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className={cn(
+                            "w-full min-h-[140px] resize-none rounded-lg px-3 py-2 text-sm",
+                            "bg-primary-50/80 dark:bg-primary-950/40",
+                            "border border-(--border)",
+                            "focus:border-primary-400 dark:focus:border-primary-500",
+                            "outline-none transition-all duration-200"
+                        )}
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                            {t("common", "cancel")}
+                        </Button>
+                        <Button onClick={handleSaveEdit} disabled={!canEdit || isSavingEdit}>
+                            {isSavingEdit ? t("posts", "saving") : t("common", "save")}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Fullscreen Image Modal */}
             {fullscreenImage && (

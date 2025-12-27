@@ -285,6 +285,12 @@ export const updatePost: RequestHandler = async (req, res, next) => {
       return;
     }
 
+    const twoHoursMs = 2 * 60 * 60 * 1000;
+    if (Date.now() - new Date(post.createdAt).getTime() > twoHoursMs) {
+      res.status(403).json({ message: "You can only edit a post within 2 hours of posting" });
+      return;
+    }
+
     const { contentText, privacy, location, feeling } = validation.data;
 
     if (contentText !== undefined) post.contentText = contentText;

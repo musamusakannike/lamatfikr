@@ -3431,6 +3431,42 @@ export const translations = {
       ar: "المنشور غير موجود.",
       en: "Post not found.",
     },
+    postOptions: {
+      ar: "خيارات المنشور",
+      en: "Post options",
+    },
+    editPost: {
+      ar: "تعديل المنشور",
+      en: "Edit post",
+    },
+    saving: {
+      ar: "جاري الحفظ...",
+      en: "Saving...",
+    },
+    postUpdated: {
+      ar: "تم تعديل المنشور",
+      en: "Post updated",
+    },
+    failedToUpdate: {
+      ar: "فشل تعديل المنشور",
+      en: "Failed to update post",
+    },
+    confirmDeletePost: {
+      ar: "هل أنت متأكد من حذف هذا المنشور؟",
+      en: "Are you sure you want to delete this post?",
+    },
+    postDeleted: {
+      ar: "تم حذف المنشور",
+      en: "Post deleted",
+    },
+    failedToDelete: {
+      ar: "فشل حذف المنشور",
+      en: "Failed to delete post",
+    },
+    editTimeLimitPost: {
+      ar: "يمكنك تعديل المنشور فقط خلال ساعتين من نشره",
+      en: "You can only edit a post within 2 hours of posting",
+    },
   },
 
   // User Profile Page
