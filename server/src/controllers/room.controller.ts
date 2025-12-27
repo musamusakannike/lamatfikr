@@ -36,7 +36,17 @@ const TAP_API_URL = "https://api.tap.company/v2/charges";
 const streamClient = StreamChat.getInstance(
   process.env.STREAM_API_KEY!,
   process.env.STREAM_SECRET_KEY!
-);
+) as StreamChat & {
+  call: (type: string, id: string) => {
+    getOrCreate: (options: {
+      created_by_id: string;
+      data?: {
+        custom?: Record<string, unknown>;
+      };
+    }) => Promise<unknown>;
+    end: () => Promise<unknown>;
+  };
+};
 
 // Helper to get authenticated user ID
 function getUserId(req: Request): Types.ObjectId {
