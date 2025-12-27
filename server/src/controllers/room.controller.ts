@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import { Types } from "mongoose";
+import { StreamChat } from "stream-chat";
 
 import { env } from "../config/env";
 import {
@@ -14,6 +15,9 @@ import {
   RoomMembershipType,
   RoomInviteLinkModel,
   UserModel,
+  RoomEventModel,
+  RoomEventType,
+  RoomEventStatus,
 } from "../models";
 import { editMessageSchema } from "../validators/message.validator";
 import {
@@ -23,8 +27,16 @@ import {
 import { WalletService } from "../services/wallet.service";
 import { TransactionType } from "../models/transaction.model";
 import { io } from "../realtime/socket";
+import { createNotification } from "../services/notification";
+import { NotificationType } from "../models/common";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
+
+// Initialize Stream client for video calls
+const streamClient = StreamChat.getInstance(
+  process.env.STREAM_API_KEY!,
+  process.env.STREAM_SECRET_KEY!
+);
 
 // Helper to get authenticated user ID
 function getUserId(req: Request): Types.ObjectId {
@@ -1935,4 +1947,261 @@ function generateToken(): string {
     token += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return token;
+}
+
+// Start a room event (livestream, video call, or space)
+export async function startRoomEvent(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId } = req.params;
+    const { type } = req.body;
+
+    if (!Types.ObjectId.isValid(roomId)) {
+      res.status(400).json({ message: "Invalid room ID" });
+      return;
+    }
+
+    if (!Object.values(RoomEventType).includes(type)) {
+      res.status(400).json({ message: "Invalid event type" });
+      return;
+    }
+
+    // Check if room exists and is paid
+    const room = await RoomModel.findOne({ _id: roomId, deletedAt: null });
+    if (!room) {
+      res.status(404).json({ message: "Room not found" });
+      return;
+    }
+
+    if (room.membershipType !== RoomMembershipType.paid) {
+      res.status(403).json({ message: "This feature is only available in paid rooms" });
+      return;
+    }
+
+    // Check if user is a member
+    const membership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    if (!membership) {
+      res.status(403).json({ message: "You must be a member of this room to start events" });
+      return;
+    }
+
+    // Check if there's already an active event of this type
+    const existingEvent = await RoomEventModel.findOne({
+      roomId,
+      type,
+      status: RoomEventStatus.active,
+    });
+
+    if (existingEvent) {
+      res.status(400).json({ message: `A ${type} is already active in this room` });
+      return;
+    }
+
+    // Determine GetStream call type
+    let callType: string;
+    if (type === RoomEventType.livestream) {
+      callType = "livestream";
+    } else if (type === RoomEventType.video_call) {
+      callType = "default";
+    } else {
+      callType = "audio_room";
+    }
+
+    // Create GetStream call
+    const callId = `room-${roomId}-${type}-${Date.now()}`;
+    const call = streamClient.call(callType, callId);
+
+    await call.getOrCreate({
+      created_by_id: userId.toString(),
+      data: {
+        custom: {
+          roomId: roomId.toString(),
+          roomName: room.name,
+          eventType: type,
+        },
+      },
+    });
+
+    // Create room event
+    const event = await RoomEventModel.create({
+      roomId,
+      type,
+      status: RoomEventStatus.active,
+      startedBy: userId,
+      streamCallId: callId,
+    });
+
+    // Notify all room members
+    const members = await RoomMemberModel.find({
+      roomId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    }).select("userId").lean();
+
+    const eventUrl = `${env.FRONTEND_URL}/rooms/${roomId}`;
+    let notificationType: NotificationType;
+    if (type === RoomEventType.livestream) {
+      notificationType = NotificationType.room_livestream_started;
+    } else if (type === RoomEventType.video_call) {
+      notificationType = NotificationType.room_video_call_started;
+    } else {
+      notificationType = NotificationType.room_space_started;
+    }
+
+    await Promise.all(
+      members
+        .filter((m) => m.userId.toString() !== userId.toString())
+        .map((member) =>
+          createNotification({
+            userId: member.userId.toString(),
+            actorId: userId.toString(),
+            type: notificationType,
+            targetId: roomId.toString(),
+            url: eventUrl,
+          })
+        )
+    );
+
+    // Emit socket event
+    io.to(`room:${roomId}`).emit("room:event:started", {
+      eventId: event._id.toString(),
+      type,
+      startedBy: userId.toString(),
+      streamCallId: callId,
+    });
+
+    res.status(201).json({
+      message: `${type} started successfully`,
+      event: {
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        streamCallId: event.streamCallId,
+        startedBy: event.startedBy,
+        createdAt: (event as unknown as { createdAt: Date }).createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Get active events for a room
+export async function getRoomEvents(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { roomId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId)) {
+      res.status(400).json({ message: "Invalid room ID" });
+      return;
+    }
+
+    const events = await RoomEventModel.find({
+      roomId,
+      status: RoomEventStatus.active,
+    })
+      .populate("startedBy", "username firstName lastName avatar")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      events: events.map((event) => ({
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        streamCallId: event.streamCallId,
+        startedBy: event.startedBy,
+        createdAt: (event as unknown as { createdAt: Date }).createdAt,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// End a room event
+export async function endRoomEvent(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = getUserId(req);
+    const { roomId, eventId } = req.params;
+
+    if (!Types.ObjectId.isValid(roomId) || !Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({ message: "Invalid room ID or event ID" });
+      return;
+    }
+
+    const event = await RoomEventModel.findOne({
+      _id: eventId,
+      roomId,
+      status: RoomEventStatus.active,
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found or already ended" });
+      return;
+    }
+
+    // Check if user is the one who started it or is room owner/admin
+    const room = await RoomModel.findOne({ _id: roomId, deletedAt: null });
+    if (!room) {
+      res.status(404).json({ message: "Room not found" });
+      return;
+    }
+
+    const membership = await RoomMemberModel.findOne({
+      roomId,
+      userId,
+      deletedAt: null,
+      status: RoomMemberStatus.approved,
+    });
+
+    const canEnd =
+      event.startedBy.toString() === userId.toString() ||
+      membership?.role === RoomMemberRole.owner ||
+      membership?.role === RoomMemberRole.admin;
+
+    if (!canEnd) {
+      res.status(403).json({ message: "You don't have permission to end this event" });
+      return;
+    }
+
+    // End the GetStream call if it exists
+    if (event.streamCallId) {
+      try {
+        const call = streamClient.call(event.type === RoomEventType.livestream ? "livestream" : event.type === RoomEventType.video_call ? "default" : "audio_room", event.streamCallId);
+        await call.end();
+      } catch (err) {
+        // Ignore errors if call doesn't exist
+        console.error("Error ending Stream call:", err);
+      }
+    }
+
+    event.status = RoomEventStatus.ended;
+    event.endedAt = new Date();
+    await event.save();
+
+    // Emit socket event
+    io.to(`room:${roomId}`).emit("room:event:ended", {
+      eventId: event._id.toString(),
+      type: event.type,
+    });
+
+    res.json({
+      message: "Event ended successfully",
+      event: {
+        id: event._id,
+        type: event.type,
+        status: event.status,
+        endedAt: event.endedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 }

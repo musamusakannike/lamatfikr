@@ -342,6 +342,52 @@ export const roomsApi = {
       `/rooms/${roomId}/messages/${messageId}/view`
     );
   },
+
+  // Room events (livestream, video call, space) - only for paid rooms
+  startEvent: (roomId: string, type: "livestream" | "video_call" | "space") => {
+    return apiClient.post<{
+      message: string;
+      event: {
+        id: string;
+        type: string;
+        status: string;
+        streamCallId: string;
+        startedBy: string;
+        createdAt: string;
+      };
+    }>(`/rooms/${roomId}/events`, { type });
+  },
+
+  getEvents: (roomId: string) => {
+    return apiClient.get<{
+      events: Array<{
+        id: string;
+        type: string;
+        status: string;
+        streamCallId: string;
+        startedBy: {
+          _id: string;
+          username: string;
+          firstName?: string;
+          lastName?: string;
+          avatar?: string;
+        };
+        createdAt: string;
+      }>;
+    }>(`/rooms/${roomId}/events`);
+  },
+
+  endEvent: (roomId: string, eventId: string) => {
+    return apiClient.post<{
+      message: string;
+      event: {
+        id: string;
+        type: string;
+        status: string;
+        endedAt: string;
+      };
+    }>(`/rooms/${roomId}/events/${eventId}/end`);
+  },
 };
 
 export default roomsApi;

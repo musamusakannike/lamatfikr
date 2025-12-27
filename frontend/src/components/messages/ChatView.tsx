@@ -226,22 +226,49 @@ export function ChatView({
     };
 
     const handleStartCall = async (video: boolean) => {
-        if (!videoClient || !otherParticipant) return;
+        if (!videoClient || !otherParticipant) {
+            toast.error(t("messages", "cannotStartCall"));
+            return;
+        }
 
         try {
-            toast.loading(video ? "Starting video call..." : "Starting audio call...", { id: "call-start" });
-
-            // Use correct call type based on GetStream documentation:
-            // - "default" for video calls
-            // - "audio_room" for audio-only calls
             const callType = video ? "default" : "audio_room";
-            const call = videoClient.call(callType, conversationId);
+            const loadingMessage = video ? t("messages", "startingVideoCall") : t("messages", "startingAudioCall");
+            toast.loading(loadingMessage, { id: "call-start", duration: 5000 });
 
-            // Join the call with proper parameters according to GetStream API
+            // Create call with unique ID based on conversation
+            const callId = `dm-${conversationId}-${Date.now()}`;
+            const call = videoClient.call(callType, callId);
+
+            // Request permissions before joining
+            if (video) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    stream.getTracks().forEach(track => track.stop()); // Stop immediately, we'll enable in call
+                } catch (permError) {
+                    toast.error(t("messages", "cameraPermissionDenied"), { id: "call-start" });
+                    return;
+                }
+            } else {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop()); // Stop immediately, we'll enable in call
+                } catch (permError) {
+                    toast.error(t("messages", "microphonePermissionDenied"), { id: "call-start" });
+                    return;
+                }
+            }
+
+            // Join the call with proper parameters
             await call.join({
                 create: true,
                 ring: true,
                 data: {
+                    custom: {
+                        conversationId,
+                        type: video ? "video" : "audio",
+                        participants: [currentUserId, otherParticipant._id],
+                    },
                     members: [
                         { user_id: currentUserId },
                         { user_id: otherParticipant._id }
@@ -250,25 +277,42 @@ export function ChatView({
             });
 
             // Configure camera and microphone based on call type
-            if (video) {
-                // For video calls, enable both camera and microphone
-                await call.camera.enable();
-                await call.microphone.enable();
-            } else {
-                // For audio calls, disable camera but enable microphone
-                await call.camera.disable();
-                await call.microphone.enable();
+            try {
+                if (video) {
+                    await call.camera.enable();
+                    await call.microphone.enable();
+                } else {
+                    await call.camera.disable();
+                    await call.microphone.enable();
+                }
+            } catch (deviceError) {
+                console.warn("Device enable/disable warning:", deviceError);
+                // Continue even if device control fails, user can enable manually
             }
 
-            toast.success(video ? "Video call started" : "Audio call started", { id: "call-start" });
+            toast.success(video ? t("messages", "videoCallStarted") : t("messages", "audioCallStarted"), {
+                id: "call-start",
+                duration: 2000,
+            });
         } catch (error) {
             console.error("Failed to start call", error);
-            toast.error(
-                error instanceof Error && error.message.includes("permission")
-                    ? "Camera/microphone permission denied. Please allow access and try again."
-                    : "Failed to start call. Please try again.",
-                { id: "call-start" }
-            );
+            let errorMessage = t("messages", "callStartFailed");
+
+            if (error instanceof Error) {
+                if (error.message.includes("permission") || error.message.includes("Permission")) {
+                    errorMessage = video
+                        ? t("messages", "cameraPermissionDenied")
+                        : t("messages", "microphonePermissionDenied");
+                } else if (error.message.includes("NotAllowedError")) {
+                    errorMessage = t("messages", "deviceAccessDenied");
+                } else if (error.message.includes("NotFoundError")) {
+                    errorMessage = t("messages", "deviceNotFound");
+                } else if (error.message.includes("NotReadableError")) {
+                    errorMessage = t("messages", "deviceInUse");
+                }
+            }
+
+            toast.error(errorMessage, { id: "call-start", duration: 4000 });
         }
     };
 
@@ -763,16 +807,20 @@ export function ChatView({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-(--text-muted)"
+                        className="text-(--text-muted) hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                         onClick={() => handleStartCall(false)}
+                        title={t("messages", "startingAudioCall")}
+                        aria-label={t("messages", "startingAudioCall")}
                     >
                         <Phone size={20} />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-(--text-muted)"
+                        className="text-(--text-muted) hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                         onClick={() => handleStartCall(true)}
+                        title={t("messages", "startingVideoCall")}
+                        aria-label={t("messages", "startingVideoCall")}
                     >
                         <Video size={20} />
                     </Button>

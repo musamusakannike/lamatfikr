@@ -63,6 +63,8 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { Input } from "@/components/ui/Input";
 import { ViewOnceModal } from "@/components/messages/ViewOnceModal";
+import { RoomEventControls } from "@/components/rooms/RoomEventControls";
+import { RoomEventPrompt } from "@/components/rooms/RoomEventPrompt";
 
 type MembershipType = "free" | "paid";
 
@@ -1118,11 +1120,31 @@ function ChatView({ room, onBack }: ChatViewProps) {
 
     socket.on("message:reaction", handleReaction);
 
+    // Listen for room events
+    const handleEventStarted = (data: { eventId: string; type: string; startedBy: string; streamCallId: string }) => {
+      if (data) {
+        // Reload events to show the new one
+        // This will be handled by RoomEventControls component
+      }
+    };
+
+    const handleEventEnded = (data: { eventId: string; type: string }) => {
+      if (data) {
+        // Reload events to remove the ended one
+        // This will be handled by RoomEventControls component
+      }
+    };
+
+    socket.on("room:event:started", handleEventStarted);
+    socket.on("room:event:ended", handleEventEnded);
+
     return () => {
       socket.off("message:new", handleNewMessage);
       socket.off("message:updated", handleMessageUpdated);
       socket.off("message:deleted", handleMessageDeleted);
       socket.off("message:reaction", handleReaction);
+      socket.off("room:event:started", handleEventStarted);
+      socket.off("room:event:ended", handleEventEnded);
     };
   }, [socket, room.id, getMessageId]);
 
@@ -1383,6 +1405,10 @@ function ChatView({ room, onBack }: ChatViewProps) {
             </button>
           </>
         )}
+        {/* Room Events Controls - Only for paid rooms */}
+        {room.membershipType === "paid" && room.isMember && (
+          <RoomEventControls roomId={room.id} isPaidRoom={room.membershipType === "paid"} isMember={room.isMember} />
+        )}
         <button
           onClick={() => setShowMembers(!showMembers)}
           className={cn(
@@ -1397,6 +1423,10 @@ function ChatView({ room, onBack }: ChatViewProps) {
       <div className="flex-1 flex overflow-hidden">
         {/* Messages Area */}
         <div className="flex-1 flex flex-col">
+          {/* Event Prompt - Show active events when entering room */}
+          {room.membershipType === "paid" && room.isMember && (
+            <RoomEventPrompt roomId={room.id} isPaidRoom={room.membershipType === "paid"} isMember={room.isMember} />
+          )}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">

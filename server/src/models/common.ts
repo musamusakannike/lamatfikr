@@ -79,6 +79,9 @@ export const NotificationType = {
   marketplace_order_paid_buyer: "marketplace_order_paid_buyer",
   marketplace_order_paid_seller: "marketplace_order_paid_seller",
   blocked_by_user: "blocked_by_user",
+  room_livestream_started: "room_livestream_started",
+  room_video_call_started: "room_video_call_started",
+  room_space_started: "room_space_started",
 } as const;
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 

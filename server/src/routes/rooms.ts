@@ -26,6 +26,9 @@ import {
   deleteMessage,
   editMessage,
   markAsViewed,
+  startRoomEvent,
+  getRoomEvents,
+  endRoomEvent,
 } from "../controllers/room.controller";
 
 export const roomsRouter = Router();
@@ -66,3 +69,8 @@ roomsRouter.post("/:roomId/invite-links", generateInviteLink);
 roomsRouter.get("/:roomId/invite-links", getRoomInviteLinks);
 roomsRouter.delete("/:roomId/invite-links/:linkId", revokeInviteLink);
 roomsRouter.post("/invite/:token/join", joinRoomViaInviteLink);
+
+// Room events (livestream, video call, space) - only for paid rooms
+roomsRouter.post("/:roomId/events", startRoomEvent);
+roomsRouter.get("/:roomId/events", getRoomEvents);
+roomsRouter.post("/:roomId/events/:eventId/end", endRoomEvent);

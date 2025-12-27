@@ -36,6 +36,12 @@ function getNotificationText(n: Notification, t: (section: string, key: string) 
       return t("notifications", "orderPaymentConfirmed");
     case "marketplace_order_paid_seller":
       return t("notifications", "newPaidOrder");
+    case "room_livestream_started":
+      return `${actor} ${t("notifications", "startedLivestream")}`;
+    case "room_video_call_started":
+      return `${actor} ${t("notifications", "startedVideoCall")}`;
+    case "room_space_started":
+      return `${actor} ${t("notifications", "startedSpace")}`;
     default:
       return t("notifications", "newNotification");
   }

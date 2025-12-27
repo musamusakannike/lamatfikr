@@ -1515,6 +1515,100 @@ export const translations = {
       en: "now",
     },
 
+    // Room Events (Livestream, Video Call, Space)
+    startLivestream: {
+      ar: "بدء البث المباشر",
+      en: "Start Livestream",
+    },
+    startVideoCall: {
+      ar: "بدء مكالمة فيديو",
+      en: "Start Video Call",
+    },
+    startSpace: {
+      ar: "بدء مساحة",
+      en: "Start Space",
+    },
+    livestream: {
+      ar: "بث مباشر",
+      en: "Livestream",
+    },
+    videoCall: {
+      ar: "مكالمة فيديو",
+      en: "Video Call",
+    },
+    space: {
+      ar: "مساحة",
+      en: "Space",
+    },
+    activeLivestream: {
+      ar: "بث مباشر نشط",
+      en: "Active Livestream",
+    },
+    activeVideoCall: {
+      ar: "مكالمة فيديو نشطة",
+      en: "Active Video Call",
+    },
+    activeSpace: {
+      ar: "مساحة نشطة",
+      en: "Active Space",
+    },
+    joinLivestream: {
+      ar: "انضم للبث المباشر",
+      en: "Join Livestream",
+    },
+    joinVideoCall: {
+      ar: "انضم للمكالمة",
+      en: "Join Video Call",
+    },
+    joinSpace: {
+      ar: "انضم للمساحة",
+      en: "Join Space",
+    },
+    endLivestream: {
+      ar: "إنهاء البث المباشر",
+      en: "End Livestream",
+    },
+    endVideoCall: {
+      ar: "إنهاء المكالمة",
+      en: "End Video Call",
+    },
+    endSpace: {
+      ar: "إنهاء المساحة",
+      en: "End Space",
+    },
+    livestreamStarted: {
+      ar: "بدأ بث مباشر في هذه الغرفة",
+      en: "A livestream started in this room",
+    },
+    videoCallStarted: {
+      ar: "بدأت مكالمة فيديو في هذه الغرفة",
+      en: "A video call started in this room",
+    },
+    spaceStarted: {
+      ar: "بدأت مساحة في هذه الغرفة",
+      en: "A space started in this room",
+    },
+    eventOnlyPaidRooms: {
+      ar: "هذه الميزة متاحة فقط في الغرف المدفوعة",
+      en: "This feature is only available in paid rooms",
+    },
+    eventAlreadyActive: {
+      ar: "هذا الحدث نشط بالفعل في هذه الغرفة",
+      en: "This event is already active in this room",
+    },
+    noActiveEvents: {
+      ar: "لا توجد أحداث نشطة",
+      en: "No active events",
+    },
+    startedBy: {
+      ar: "بدأه",
+      en: "Started by",
+    },
+    eventEnded: {
+      ar: "تم إنهاء الحدث",
+      en: "Event ended",
+    },
+
     // Categories
     technology: {
       ar: "التكنولوجيا",
@@ -3121,6 +3215,75 @@ export const translations = {
       ar: "اختر محادثة لبدء المراسلة",
       en: "Select a conversation to start messaging",
     },
+    // Call related translations
+    startingVideoCall: {
+      ar: "جاري بدء مكالمة فيديو...",
+      en: "Starting video call...",
+    },
+    startingAudioCall: {
+      ar: "جاري بدء مكالمة صوتية...",
+      en: "Starting audio call...",
+    },
+    videoCallStarted: {
+      ar: "تم بدء مكالمة الفيديو",
+      en: "Video call started",
+    },
+    audioCallStarted: {
+      ar: "تم بدء المكالمة الصوتية",
+      en: "Audio call started",
+    },
+    cannotStartCall: {
+      ar: "لا يمكن بدء المكالمة",
+      en: "Cannot start call",
+    },
+    callStartFailed: {
+      ar: "فشل بدء المكالمة. يرجى المحاولة مرة أخرى.",
+      en: "Failed to start call. Please try again.",
+    },
+    cameraPermissionDenied: {
+      ar: "تم رفض إذن الكاميرا. يرجى السماح بالوصول والمحاولة مرة أخرى.",
+      en: "Camera permission denied. Please allow access and try again.",
+    },
+    microphonePermissionDenied: {
+      ar: "تم رفض إذن الميكروفون. يرجى السماح بالوصول والمحاولة مرة أخرى.",
+      en: "Microphone permission denied. Please allow access and try again.",
+    },
+    deviceAccessDenied: {
+      ar: "تم رفض الوصول إلى الجهاز",
+      en: "Device access denied",
+    },
+    deviceNotFound: {
+      ar: "لم يتم العثور على الجهاز",
+      en: "Device not found",
+    },
+    deviceInUse: {
+      ar: "الجهاز قيد الاستخدام من قبل تطبيق آخر",
+      en: "Device is in use by another application",
+    },
+    callConnected: {
+      ar: "متصل",
+      en: "Connected",
+    },
+    callConnecting: {
+      ar: "جاري الاتصال...",
+      en: "Connecting...",
+    },
+    participants: {
+      ar: "المشاركون",
+      en: "Participants",
+    },
+    incomingCall: {
+      ar: "مكالمة واردة",
+      en: "Incoming call",
+    },
+    answerCall: {
+      ar: "الإجابة",
+      en: "Answer",
+    },
+    declineCall: {
+      ar: "رفض",
+      en: "Decline",
+    },
   },
 
   // Notifications Page
@@ -3200,6 +3363,18 @@ export const translations = {
     newPaidOrder: {
       ar: "لديك طلب مدفوع جديد",
       en: "You have a new paid order",
+    },
+    startedLivestream: {
+      ar: "بدأ بثاً مباشراً في غرفة",
+      en: "started a livestream in a room",
+    },
+    startedVideoCall: {
+      ar: "بدأ مكالمة فيديو في غرفة",
+      en: "started a video call in a room",
+    },
+    startedSpace: {
+      ar: "بدأ مساحة في غرفة",
+      en: "started a space in a room",
     },
   },
 
