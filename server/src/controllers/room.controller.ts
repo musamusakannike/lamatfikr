@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import { Types } from "mongoose";
 import { StreamChat } from "stream-chat";
+import { StreamClient } from "@stream-io/node-sdk";
 
 import { env } from "../config/env";
 import {
@@ -32,21 +33,17 @@ import { NotificationType } from "../models/common";
 
 const TAP_API_URL = "https://api.tap.company/v2/charges";
 
-// Initialize Stream client for video calls
-const streamClient = StreamChat.getInstance(
+// Initialize Stream Chat client for chat functionality
+const chatClient = StreamChat.getInstance(
   process.env.STREAM_API_KEY!,
   process.env.STREAM_SECRET_KEY!
-) as StreamChat & {
-  call: (type: string, id: string) => {
-    getOrCreate: (options: {
-      created_by_id: string;
-      data?: {
-        custom?: Record<string, unknown>;
-      };
-    }) => Promise<unknown>;
-    end: () => Promise<unknown>;
-  };
-};
+);
+
+// Initialize Stream Video client for video calls and livestreams
+const videoClient = new StreamClient(
+  process.env.STREAM_API_KEY!,
+  process.env.STREAM_SECRET_KEY!
+);
 
 // Helper to get authenticated user ID
 function getUserId(req: Request): Types.ObjectId {
@@ -2025,11 +2022,11 @@ export async function startRoomEvent(req: Request, res: Response, next: NextFunc
 
     // Create GetStream call
     const callId = `room-${roomId}-${type}-${Date.now()}`;
-    const call = streamClient.call(callType, callId);
+    const call = videoClient.video.call(callType, callId);
 
     await call.getOrCreate({
-      created_by_id: userId.toString(),
       data: {
+        created_by_id: userId.toString(),
         custom: {
           roomId: roomId.toString(),
           roomName: room.name,
@@ -2184,7 +2181,8 @@ export async function endRoomEvent(req: Request, res: Response, next: NextFuncti
     // End the GetStream call if it exists
     if (event.streamCallId) {
       try {
-        const call = streamClient.call(event.type === RoomEventType.livestream ? "livestream" : event.type === RoomEventType.video_call ? "default" : "audio_room", event.streamCallId);
+        const callType = event.type === RoomEventType.livestream ? "livestream" : event.type === RoomEventType.video_call ? "default" : "audio_room";
+        const call = videoClient.video.call(callType, event.streamCallId);
         await call.end();
       } catch (err) {
         // Ignore errors if call doesn't exist

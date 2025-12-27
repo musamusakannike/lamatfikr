@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import { StreamChat } from "stream-chat";
+import { StreamClient } from "@stream-io/node-sdk";
 
 import { UserModel } from "../models/user.model";
 import { AuthProvider, Gender } from "../models/common";
@@ -24,6 +25,11 @@ const EMAIL_VERIFICATION_EXPIRY_HOURS = 24;
 const PASSWORD_RESET_EXPIRY_HOURS = 1;
 
 const streamClient = StreamChat.getInstance(
+  process.env.STREAM_API_KEY!,
+  process.env.STREAM_SECRET_KEY!
+);
+
+const videoClient = new StreamClient(
   process.env.STREAM_API_KEY!,
   process.env.STREAM_SECRET_KEY!
 );
@@ -714,6 +720,22 @@ export const getStreamToken: RequestHandler = async (req, res, next) => {
     }
 
     const token = streamClient.createToken(userId);
+
+    res.json({ token });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getVideoToken: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const token = videoClient.createToken(userId);
 
     res.json({ token });
   } catch (error) {
