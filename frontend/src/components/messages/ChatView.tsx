@@ -1728,7 +1728,7 @@ export function ChatView({
                                 </div>
                             </div>
                         ) : hasJoinedCall && call && streamClient ? (
-                            <div className="flex-1 relative bg-black">
+                            <div className="flex-1 relative bg-black opacity-80">
                                 <StreamCall call={call}>
                                     <SpeakerLayout />
                                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">

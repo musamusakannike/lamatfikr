@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { useSocket } from "./socket-context";
 
 interface Message {
@@ -15,7 +22,12 @@ interface Message {
   };
   content?: string;
   media?: string[];
-  attachments?: Array<{ url: string; type: "image" | "video" | "audio"; name?: string; size?: number }>;
+  attachments?: Array<{
+    url: string;
+    type: "image" | "video" | "audio";
+    name?: string;
+    size?: number;
+  }>;
   location?: { lat: number; lng: number; label?: string };
   reactions?: Array<{ emoji: string; userId: string }>;
   createdAt: string;
@@ -48,12 +60,20 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { socket } = useSocket();
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
-  const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
+  const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>(
+    {}
+  );
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (data: { type: string; conversationId?: string; communityId?: string; roomId?: string; message: Message }) => {
+    const handleNewMessage = (data: {
+      type: string;
+      conversationId?: string;
+      communityId?: string;
+      roomId?: string;
+      message: Message;
+    }) => {
       const chatId = data.conversationId || data.communityId || data.roomId;
       if (!chatId) return;
 
@@ -100,17 +120,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     //   // This will be handled by components that know which chat is active
     // };
 
-    const handleConversationTyping = (data: { userId: string; isTyping: boolean; conversationId: string }) => {
+    const handleConversationTyping = (data: {
+      userId: string;
+      isTyping: boolean;
+      conversationId: string;
+    }) => {
       setTypingUsers((prev) => {
         const key = `conversation:${data.conversationId}`;
         const newTyping = new Set(prev[key] || new Set());
-        
+
         if (data.isTyping) {
           newTyping.add(data.userId);
         } else {
           newTyping.delete(data.userId);
         }
-        
+
         return {
           ...prev,
           [key]: newTyping,
@@ -118,17 +142,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
-    const handleCommunityTyping = (data: { userId: string; isTyping: boolean; communityId: string }) => {
+    const handleCommunityTyping = (data: {
+      userId: string;
+      isTyping: boolean;
+      communityId: string;
+    }) => {
       setTypingUsers((prev) => {
         const key = `community:${data.communityId}`;
         const newTyping = new Set(prev[key] || new Set());
-        
+
         if (data.isTyping) {
           newTyping.add(data.userId);
         } else {
           newTyping.delete(data.userId);
         }
-        
+
         return {
           ...prev,
           [key]: newTyping,
@@ -136,17 +164,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
-    const handleRoomTyping = (data: { userId: string; isTyping: boolean; roomId: string }) => {
+    const handleRoomTyping = (data: {
+      userId: string;
+      isTyping: boolean;
+      roomId: string;
+    }) => {
       setTypingUsers((prev) => {
         const key = `room:${data.roomId}`;
         const newTyping = new Set(prev[key] || new Set());
-        
+
         if (data.isTyping) {
           newTyping.add(data.userId);
         } else {
           newTyping.delete(data.userId);
         }
-        
+
         return {
           ...prev,
           [key]: newTyping,
@@ -169,7 +201,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     };
   }, [socket]);
 
-  const addMessage = (chatId: string, message: Message) => {
+  const addMessage = useCallback((chatId: string, message: Message) => {
     const incomingId = getMessageId(message);
     if (!incomingId) return;
 
@@ -183,12 +215,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         [chatId]: [...existingMessages, normalizeMessage(message)],
       };
     });
-  };
+  }, []);
 
-  const addMessages = (chatId: string, newMessages: Message[]) => {
+  const addMessages = useCallback((chatId: string, newMessages: Message[]) => {
     setMessages((prev) => {
       const existingMessages = prev[chatId] || [];
-      const existingIds = new Set(existingMessages.map((msg) => getMessageId(msg)).filter(Boolean));
+      const existingIds = new Set(
+        existingMessages.map((msg) => getMessageId(msg)).filter(Boolean)
+      );
       const uniqueNewMessages = newMessages
         .map((m) => normalizeMessage(m))
         .filter((m) => m.id && !existingIds.has(m.id));
@@ -200,26 +234,29 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         [chatId]: [...existingMessages, ...uniqueNewMessages],
       };
     });
-  };
+  }, []);
 
-  const setTyping = (chatId: string, userId: string, isTyping: boolean) => {
-    setTypingUsers((prev) => {
-      const newTyping = new Set(prev[chatId] || new Set());
-      
-      if (isTyping) {
-        newTyping.add(userId);
-      } else {
-        newTyping.delete(userId);
-      }
-      
-      return {
-        ...prev,
-        [chatId]: newTyping,
-      };
-    });
-  };
+  const setTyping = useCallback(
+    (chatId: string, userId: string, isTyping: boolean) => {
+      setTypingUsers((prev) => {
+        const newTyping = new Set(prev[chatId] || new Set());
 
-  const clearChat = (chatId: string) => {
+        if (isTyping) {
+          newTyping.add(userId);
+        } else {
+          newTyping.delete(userId);
+        }
+
+        return {
+          ...prev,
+          [chatId]: newTyping,
+        };
+      });
+    },
+    []
+  );
+
+  const clearChat = useCallback((chatId: string) => {
     setMessages((prev) => {
       const { [chatId]: _, ...rest } = prev;
       return rest;
@@ -228,16 +265,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const { [chatId]: _, ...rest } = prev;
       return rest;
     });
-  };
+  }, []);
 
-  const value: ChatContextType = {
-    messages,
-    typingUsers,
-    addMessage,
-    addMessages,
-    setTyping,
-    clearChat,
-  };
+  const value: ChatContextType = useMemo(
+    () => ({
+      messages,
+      typingUsers,
+      addMessage,
+      addMessages,
+      setTyping,
+      clearChat,
+    }),
+    [messages, typingUsers, addMessage, addMessages, setTyping, clearChat]
+  );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }
